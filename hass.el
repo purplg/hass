@@ -18,7 +18,9 @@ For example, 'https://192.168.1.10:8123'"
   :group 'hass
   :type 'string)
 (defcustom hass-entities '()
-  "A list of tracked Home Assistant entities."
+  "A list of tracked Home Assistant entities.
+Set this to a list of Home Assistant entity ID strings. An entity
+ID looks something like *switch.bedroom_light*."
   :group 'hass
   :type '(string))
 (defcustom hass-apikey nil
