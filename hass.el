@@ -32,6 +32,8 @@ authorize API requests"
   "An alist of entity ids to their last queried states")
 (defvar hass--entity-state-change-hook nil
  "Hook called after an entity state has been changed")
+(defvar hass--service-called-hook nil
+ "Hook called after a service has been called")
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant")
 
@@ -62,24 +64,24 @@ Otherwise return HASS-APIKEY as is."
 (defun hass--service-result (entity-id state)
   "Callback when a successful service request is received from API"
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
-  (run-hooks 'hass--entity-state-change-hook))
+  (run-hooks 'hass--service-called-hook))
 
 
 (defun hass--query-entity-state (entity-id)
-  "Retrieve the current state of ENTITY-ID from the Home Assistant server."
-    (request (hass--entity-url entity-id)
-       :sync nil
-       :type "GET" 
-       :headers `(("User-Agent" . hass--user-agent) 
-                  ("Authorization" . ,(concat "Bearer " (hass--parse-apikey)))) 
-       :parser 'json-read 
-       :success (cl-function
-                  (lambda (&key response &allow-other-keys)
-                    (let ((data (request-response-data response))) 
-                      (hass--entity-state-result entity-id (cdr (assoc 'state data)))))) 
-       :error (cl-function
-                (lambda (&rest args &key error-thrown &allow-other-keys) 
-                  (message "Error: %S" error-thrown)))))
+ "Retrieve the current state of ENTITY-ID from the Home Assistant server."
+   (request (hass--entity-url entity-id)
+      :sync nil
+      :type "GET" 
+      :headers `(("User-Agent" . hass--user-agent) 
+                 ("Authorization" . ,(concat "Bearer " (hass--parse-apikey)))) 
+      :parser 'json-read 
+      :success (cl-function
+                 (lambda (&key response &allow-other-keys)
+                   (let ((data (request-response-data response))) 
+                     (hass--entity-state-result entity-id (cdr (assoc 'state data)))))) 
+      :error (cl-function
+               (lambda (&rest args &key error-thrown &allow-other-keys) 
+                 (message "Error: %S" error-thrown)))))
 
 (defun hass--call-service (domain service entity-id)
   "Set the state of =entity-id` from the Home Assistant server"
@@ -93,7 +95,8 @@ Otherwise return HASS-APIKEY as is."
        :parser 'json-read 
        :success (cl-function
                   (lambda (&key &allow-other-keys)
-                    (message "Toggled %s" entity-id))) 
+                    (run-hooks 'hass--service-called-hook) 
+                    (hass--query-entity-state entity-id)))
        :error (cl-function
                 (lambda (&rest args &key error-thrown &allow-other-keys) 
                   (message "Error: %S" error-thrown)))))
