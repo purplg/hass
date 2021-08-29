@@ -10,19 +10,20 @@
 
 (defgroup hass '()
   "Minor mode for hass."
-  :group 'hass)
+  :group 'hass
+  :prefix "hass-")
 
 (defcustom hass-url nil
   "The URL of the Home Assistant instance.
 For example, 'https://192.168.1.10:8123'"
   :group 'hass
   :type 'string)
-(defcustom hass-entities '()
+(defcustom hass-entities nil
   "A list of tracked Home Assistant entities.
 Set this to a list of Home Assistant entity ID strings. An entity
 ID looks something like *switch.bedroom_light*."
   :group 'hass
-  :type '(string))
+  :type '(repeat string))
 (defcustom hass-apikey nil
   "API key used for Home Assistant queries.
 The key generated from the Home Assistant instance used to
