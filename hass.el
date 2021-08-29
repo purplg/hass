@@ -30,7 +30,7 @@ authorize API requests"
 
 (defvar hass--states '()
   "An alist of entity ids to their last queried states")
-(defvar hass-entity-state-change-hook nil
+(defvar hass--entity-state-change-hook nil
  "Hook called after an entity state has been changed")
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant")
