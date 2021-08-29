@@ -94,23 +94,23 @@ Otherwise return HASS-APIKEY as is."
                 (lambda (&rest args &key error-thrown &allow-other-keys) 
                   (message "Error: %S" error-thrown)))))
 
-(defun hass-switch-turn-on (entity-id)
-  (hass--call-service "switch" "turn_on" (concat "switch." entity-id)))
+(defun hass-switch-turn-on (switch-id)
+  (hass--call-service "switch" "turn_on" switch-id))
 
-(defun hass-switch-turn-off (entity-id)
-  (hass--call-service "switch" "turn_off" (concat "switch." entity-id)))
+(defun hass-switch-turn-off (switch-id)
+  (hass--call-service "switch" "turn_off" switch-id))
 
-(defun hass-switch-toggle (entity-id)
-  (hass--call-service "switch" "toggle" (concat "switch." entity-id)))
+(defun hass-switch-toggle (switch-id)
+  (hass--call-service "switch" "toggle" switch-id))
 
 (defun hass-boolean-turn-on (boolean-id)
-  (hass--call-service "input_boolean" "turn_on" (concat "input_boolean." boolean-id)))
+  (hass--call-service "input_boolean" "turn_on" boolean-id))
 
 (defun hass-boolean-turn-off (boolean-id)
-  (hass--call-service "input_boolean" "turn_off" (concat "input_boolean." boolean-id)))
+  (hass--call-service "input_boolean" "turn_off" boolean-id))
 
 (defun hass-boolean-toggle (boolean-id)
-  (hass--call-service "input_boolean" "toggle" (concat "input_boolean." boolean-id)))
+  (hass--call-service "input_boolean" "toggle" boolean-id))
 
 (defun hass-query-all-entities ()
   (interactive)
