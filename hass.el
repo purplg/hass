@@ -35,6 +35,14 @@ authorize API requests"
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant")
 
+(defun hass--parse-apikey ()
+  "If HASS-APIKEY is a lambda, execute it to get value.
+Otherwise return HASS-APIKEY as is."
+  (if (and (equal (type-of hass-apikey) 'cons)
+           (equal (car hass-apikey) 'lambda))
+      (funcall hass-apikey)
+      hass-apikey))
+
 (defun hass--entity-url (entity-id) 
   "Generate entity state endpoint URLs"
   (format "%s/%s/%s" hass-url "api/states" entity-id))
@@ -59,7 +67,7 @@ authorize API requests"
        :sync nil
        :type "GET" 
        :headers `(("User-Agent" . hass--user-agent) 
-                  ("Authorization" . ,(concat "Bearer " hass-apikey))) 
+                  ("Authorization" . ,(concat "Bearer " (hass--parse-apikey)))) 
        :parser 'json-read 
        :success (cl-function
                   (lambda (&key response &allow-other-keys)
@@ -75,7 +83,7 @@ authorize API requests"
        :sync nil
        :type "POST" 
        :headers `(("User-Agent" . hass--user-agent) 
-                  ("Authorization" . ,(concat "Bearer " hass-apikey)) 
+                  ("Authorization" . ,(concat "Bearer " (hass--parse-apikey))) 
                   ("Content-Type" . "application/json")) 
        :data (format "{\"entity_id\": \"%s\"}" entity-id)
        :parser 'json-read 
