@@ -136,6 +136,8 @@ Otherwise return HASS-APIKEY as is."
   :after-hook
   (unless (equal (type-of (hass--parse-apikey)) 'string)
     (user-error "HASS-APIKEY must be set to use hass-mode."))
+  (unless (equal (type-of hass-url) 'string)
+    (user-error "HASS-URL must be set to use hass-mode."))
   :global t)
  
 (provide 'hass)
