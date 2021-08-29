@@ -35,6 +35,7 @@ authorize API requests"
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant")
 
+
 (defun hass--parse-apikey ()
   "If HASS-APIKEY is a lambda, execute it to get value.
 Otherwise return HASS-APIKEY as is."
@@ -43,6 +44,7 @@ Otherwise return HASS-APIKEY as is."
       (funcall hass-apikey)
       hass-apikey))
 
+
 (defun hass--entity-url (entity-id) 
   "Generate entity state endpoint URLs"
   (format "%s/%s/%s" hass-url "api/states" entity-id))
@@ -50,6 +52,7 @@ Otherwise return HASS-APIKEY as is."
 (defun hass--service-url (domain service) 
   "Generate service endpoint URL"
   (format "%s/api/services/%s/%s" hass-url domain service))
+
 
 (defun hass--entity-state-result (entity-id state)
   "Callback when an entity state data is received from API."
@@ -60,6 +63,7 @@ Otherwise return HASS-APIKEY as is."
   "Callback when a successful service request is received from API"
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass--entity-state-change-hook))
+
 
 (defun hass--query-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server."
@@ -94,6 +98,7 @@ Otherwise return HASS-APIKEY as is."
                 (lambda (&rest args &key error-thrown &allow-other-keys) 
                   (message "Error: %S" error-thrown)))))
 
+
 (defun hass-switch-turn-on (switch-id)
   (hass--call-service "switch" "turn_on" switch-id))
 
@@ -112,11 +117,13 @@ Otherwise return HASS-APIKEY as is."
 (defun hass-boolean-toggle (boolean-id)
   (hass--call-service "input_boolean" "toggle" boolean-id))
 
+
 (defun hass-query-all-entities ()
   (interactive)
   "Update the current state all of the registered entities."
   (dolist (entity hass-entities) 
     (hass--query-entity-state entity)))
+
 
 (define-minor-mode hass-mode
   "Toggle hass-mode."
