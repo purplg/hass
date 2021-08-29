@@ -114,7 +114,7 @@ Otherwise return HASS-APIKEY as is."
 
 (defun hass-query-all-entities ()
   (interactive)
-  "Update the current state all of the registered entities"
+  "Update the current state all of the registered entities."
   (dolist (entity hass-entities) 
     (hass--query-entity-state entity)))
 
@@ -125,7 +125,7 @@ Otherwise return HASS-APIKEY as is."
   :group 'hass
   :after-hook
   (unless (equal (type-of (hass--parse-apikey)) 'string)
-    (user-error "HASS-APIKEY must be set to use hass-mode"))
+    (user-error "HASS-APIKEY must be set to use hass-mode."))
   :global t)
  
 (provide 'hass)
