@@ -13,6 +13,20 @@
     :repo "purplg/hass"))
 #+END_SRC
 
+** Doom Emacs
+Place in your ~packages.el~ to pull the repository.
+#+BEGIN_SRC emacs-lisp :results none
+(package! hass
+  :recipe
+  '(:host github
+    :repo "purplg/hass"))
+#+END_SRC
+
+Then load the package in your main config file.
+#+BEGIN_SRC emacs-lisp
+(use-package! hass)
+#+END_SRC
+
 * Configuration
 Both ~hass-url~ and ~hass-apikey~ must be set to use this package
 #+BEGIN_SRC emacs-lisp :results none
