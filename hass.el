@@ -152,12 +152,12 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
   :lighter nil
   :interactive t
   :group 'hass
-  :after-hook
+  :global t
   (unless (equal (type-of (hass--parse-apikey)) 'string)
     (user-error "HASS-APIKEY must be set to use hass-mode."))
   (unless (equal (type-of hass-url) 'string)
-    (user-error "HASS-URL must be set to use hass-mode."))
-  :global t)
+    (user-error "HASS-URL must be set to use hass-mode.")))
+  
  
 (provide 'hass)
 
