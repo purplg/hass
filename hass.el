@@ -15,42 +15,49 @@
 
 (defcustom hass-url nil
   "The URL of the Home Assistant instance.
-For example, 'https://192.168.1.10:8123'"
+
+Set this to the URL of the Home Assistant instance you want to
+control. (e.g. https://192.168.1.10:8123)"
   :group 'hass
   :type 'string)
 (defcustom hass-entities nil
   "A list of tracked Home Assistant entities.
-Set this to a list of Home Assistant entity ID strings. An entity
-ID looks something like *switch.bedroom_light*."
+
+Set this to a list of Home Assistant entity ID strings. An entity ID looks
+something like *switch.bedroom_light*."
+
   :group 'hass
   :type '(repeat string))
 (defcustom hass-apikey nil
   "API key used for Home Assistant queries.
-The key generated from the Home Assistant instance used to
-authorize API requests"
+
+The key generated from the Home Assistant instance used to authorize API
+requests"
   :group 'hass
   :type 'string)
 
 (defvar hass-entity-state-change-hook nil
- "Hook called after an entity state has been changed")
+ "Hook called after an entity state has been changed.")
 (defvar hass-service-called-hook nil
- "Hook called after a service has been called")
+ "Hook called after a service has been called.")
 (defvar hass--states '()
-  "An alist of entity ids to their last queried states")
+  "An alist of entity ids to their last queried states.")
 (defvar hass--user-agent "Emacs hass.el"
-  "The user-agent sent in API requests to Home Assistant")
+  "The user-agent sent in API requests to Home Assistant.")
 (defvar hass--supported-domains
   '("switch" "input_boolean")
-  "List of supported domains")
+  "List of supported domains.")
 (defvar hass--services '((toggle . "toggle")
                          (turn-on . "turn_on") 
                          (turn-off . "turn_off"))
-  "Map of services to their corresponding strings")
+  "Map of services to their corresponding strings.")
 
 
 (defun hass--parse-apikey ()
-  "If HASS-APIKEY is a lambda, execute it to get value.
-Otherwise return HASS-APIKEY as is."
+  "Returns the effective apikey.
+
+If HASS-APIKEY is a lambda, execute it to get value. Otherwise return
+HASS-APIKEY as is."
   (if (and (equal (type-of hass-apikey) 'cons)
            (equal (car hass-apikey) 'lambda))
       (funcall hass-apikey)
@@ -58,11 +65,11 @@ Otherwise return HASS-APIKEY as is."
 
 
 (defun hass--entity-url (entity-id) 
-  "Generate entity state endpoint URLs"
+  "Generate entity state endpoint URLs."
   (format "%s/%s/%s" hass-url "api/states" entity-id))
 
 (defun hass--service-url (domain service) 
-  "Generate service endpoint URL"
+  "Generate service endpoint URL."
   (format "%s/api/services/%s/%s" hass-url domain service))
 
 
@@ -72,13 +79,15 @@ Otherwise return HASS-APIKEY as is."
   (run-hooks 'hass-entity-state-change-hook))
 
 (defun hass--service-result (entity-id state)
-  "Callback when a successful service request is received from API"
+  "Callback when a successful service request is received from API."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass-service-called-hook))
 
 
 (defun hass--query-entity-state (entity-id)
- "Retrieve the current state of ENTITY-ID from the Home Assistant server."
+ "Retrieve the current state of ENTITY-ID from the Home Assistant server.
+
+This function is just for sending the actual API request."
    (request (hass--entity-url entity-id)
       :sync nil
       :type "GET" 
@@ -94,7 +103,9 @@ Otherwise return HASS-APIKEY as is."
                  (message "Error: %S" error-thrown)))))
 
 (defun hass--call-service (domain service entity-id)
-  "Call service SERVICE for ENTITY-ID on the Home Assistant server."
+  "Call service SERVICE for ENTITY-ID on the Home Assistant server.
+
+This function is just for sending the actual API request."
     (request (hass--service-url domain service)
        :sync nil
        :type "POST" 
@@ -113,7 +124,15 @@ Otherwise return HASS-APIKEY as is."
    
 
 (cl-defun hass-call-service (&key entity-id service) 
-  "Call service SERVICE for ENTITY-ID on the Home Assistant server."
+  "Call service SERVICE for ENTITY-ID on the Home Assistant server.
+
+This will send an API request to the url configure in HASS-URL. This function
+requires both ENTITY-ID and SERVICE keyword arguments to e passed.
+
+ENTITY-ID is a string of the entity id in Home Assistant you want to call the
+service on. (e.g. `\"switch.kitchen_light\").
+
+SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
   (when (equal entity-id nil) (user-error "Missing ENTITY-ID"))
   (let ((domain (car (split-string entity-id "\\."))))
     (unless (member domain hass--supported-domains)
