@@ -35,6 +35,14 @@ The key generated from the Home Assistant instance used to authorize API
 requests"
   :group 'hass
   :type 'string)
+(defcustom hass-auto-query nil
+  "Periodically query the state of the configured in HASS-ENTITIES. "
+  :group 'hass
+  :type 'boolean)
+(defcustom hass-auto-query-frequency 60
+  "Amount of seconds between auto-querying HASS-ENTITIES."
+  :group 'hass
+  :type 'integer)
 
 (defvar hass-entity-state-change-hook nil
  "Hook called after an entity state has been changed.")
@@ -51,6 +59,7 @@ requests"
                          (turn-on . "turn_on") 
                          (turn-off . "turn_off"))
   "Map of services to their corresponding strings.")
+(defvar hass--timer nil)
 
 
 ;; Helper functions
@@ -142,11 +151,37 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
     
 
 ;; Auto query
+(defun hass-auto-query-toggle ()
+  "Toggle querying Home Assistant periodically."
+  (interactive)
+  (if hass-auto-query
+    (hass-auto-query-disable)
+    (hass-auto-query-enable)))
+
+(defun hass-auto-query-enable ()
+  (message "enabling auto query")
+  (unless hass-mode
+    (user-error "hass-mode must be enabled to use this feature."))
+  (unless hass--timer
+    (setq hass--timer
+      (run-with-timer nil hass-auto-query-frequency 'hass-query-all-entities)))
+  (setq hass-auto-query t)) 
+
+(defun hass-auto-query-disable ()
+  (message "disabling auto query")
+  (hass--auto-query-cancel)
+  (setq hass-auto-query nil)) 
+
 (defun hass-query-all-entities ()
   (interactive)
   "Update the current state all of the registered entities."
   (dolist (entity hass-entities) 
     (hass--query-entity-state entity)))
+
+(defun hass--auto-query-cancel ()
+  (when hass--timer
+    (cancel-timer hass--timer)
+    (setq hass--timer nil)))
 
 
 (define-minor-mode hass-mode
@@ -155,10 +190,16 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
   :interactive t
   :group 'hass
   :global t
-  (unless (equal (type-of (hass--parse-apikey)) 'string)
-    (user-error "HASS-APIKEY must be set to use hass-mode."))
-  (unless (equal (type-of hass-url) 'string)
-    (user-error "HASS-URL must be set to use hass-mode.")))
+  (when hass-mode
+      (unless (equal (type-of (hass--parse-apikey)) 'string)
+          (user-error "HASS-APIKEY must be set to use hass-mode."))
+      (unless (equal (type-of hass-url) 'string)
+          (user-error "HASS-URL must be set to use hass-mode."))
+      (when hass-auto-query
+        (hass-auto-query-enable)))
+  (unless hass-mode
+    (hass--auto-query-cancel)))
+    
   
  
 (provide 'hass)
