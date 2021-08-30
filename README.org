@@ -64,7 +64,7 @@ service is called.
 (add-hook 'hass-service-called-hook (lambda () (message "A service was called.")))
 #+END_SRC
 
-** Getting your API Key
+** Getting an API Key
 
 Ensure that your Home Assistant instance is configure to support API calls by following the
 instructions [[https://www.home-assistant.io/integrations/api/][here]].
