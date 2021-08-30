@@ -1,4 +1,4 @@
-;;; hass.el --- File description  -*- lexical-binding: t; -*-
+;;; hass.el --- Interact with Home Assistant. -*- lexical-binding: t; -*-
 
 ;; Package-Requires: ((emacs "24.4") (request "0.3.3"))
 ;; Version: 0
