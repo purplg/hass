@@ -123,7 +123,7 @@ This function is just for sending the actual API request."
                   (message "Error: %S" error-thrown)))))
    
 
-(cl-defun hass-call-service (&key entity-id service) 
+(defun hass-call-service (entity-id service) 
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 
 This will send an API request to the url configure in HASS-URL. This function
