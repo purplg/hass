@@ -31,12 +31,12 @@ authorize API requests"
   :group 'hass
   :type 'string)
 
+(defvar hass-entity-state-change-hook nil
+ "Hook called after an entity state has been changed")
+(defvar hass-service-called-hook nil
+ "Hook called after a service has been called")
 (defvar hass--states '()
   "An alist of entity ids to their last queried states")
-(defvar hass--entity-state-change-hook nil
- "Hook called after an entity state has been changed")
-(defvar hass--service-called-hook nil
- "Hook called after a service has been called")
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant")
 (defvar hass--supported-domains
@@ -69,12 +69,12 @@ Otherwise return HASS-APIKEY as is."
 (defun hass--entity-state-result (entity-id state)
   "Callback when an entity state data is received from API."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
-  (run-hooks 'hass--entity-state-change-hook))
+  (run-hooks 'hass-entity-state-change-hook))
 
 (defun hass--service-result (entity-id state)
   "Callback when a successful service request is received from API"
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
-  (run-hooks 'hass--service-called-hook))
+  (run-hooks 'hass-service-called-hook))
 
 
 (defun hass--query-entity-state (entity-id)
@@ -105,7 +105,7 @@ Otherwise return HASS-APIKEY as is."
        :parser 'json-read 
        :success (cl-function
                   (lambda (&key &allow-other-keys)
-                    (run-hooks 'hass--service-called-hook) 
+                    (run-hooks 'hass-service-called-hook) 
                     (hass--query-entity-state entity-id)))
        :error (cl-function
                 (lambda (&rest args &key error-thrown &allow-other-keys) 
