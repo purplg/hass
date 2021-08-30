@@ -39,6 +39,13 @@ authorize API requests"
  "Hook called after a service has been called")
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant")
+(defvar hass--supported-domains
+  '("switch" "input_boolean")
+  "List of supported domains")
+(defvar hass--services '((toggle . "toggle")
+                         (turn-on . "turn_on") 
+                         (turn-off . "turn_off"))
+  "Map of services to their corresponding strings")
 
 
 (defun hass--parse-apikey ()
@@ -87,7 +94,7 @@ Otherwise return HASS-APIKEY as is."
                  (message "Error: %S" error-thrown)))))
 
 (defun hass--call-service (domain service entity-id)
-  "Set the state of =entity-id` from the Home Assistant server"
+  "Call service SERVICE for ENTITY-ID on the Home Assistant server."
     (request (hass--service-url domain service)
        :sync nil
        :type "POST" 
@@ -103,26 +110,16 @@ Otherwise return HASS-APIKEY as is."
        :error (cl-function
                 (lambda (&rest args &key error-thrown &allow-other-keys) 
                   (message "Error: %S" error-thrown)))))
+   
 
-
-(defun hass-switch-turn-on (switch-id)
-  (hass--call-service "switch" "turn_on" switch-id))
-
-(defun hass-switch-turn-off (switch-id)
-  (hass--call-service "switch" "turn_off" switch-id))
-
-(defun hass-switch-toggle (switch-id)
-  (hass--call-service "switch" "toggle" switch-id))
-
-(defun hass-boolean-turn-on (boolean-id)
-  (hass--call-service "input_boolean" "turn_on" boolean-id))
-
-(defun hass-boolean-turn-off (boolean-id)
-  (hass--call-service "input_boolean" "turn_off" boolean-id))
-
-(defun hass-boolean-toggle (boolean-id)
-  (hass--call-service "input_boolean" "toggle" boolean-id))
-
+(cl-defun hass-call-service (&key entity-id service) 
+  "Call service SERVICE for ENTITY-ID on the Home Assistant server."
+  (when (equal entity-id nil) (user-error "Missing ENTITY-ID"))
+  (let ((domain (car (split-string entity-id "\\."))))
+    (unless (member domain hass--supported-domains)
+      (user-error "%S is not a supported domain" domain))
+    (hass--call-service domain (alist-get service hass--services) entity-id)))
+    
 
 (defun hass-query-all-entities ()
   (interactive)

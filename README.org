@@ -30,22 +30,17 @@ The ~hass-entity~ variable is used when the ~hass-query-all-entities~ function i
 contain a list of strings of entity ID's for each entity you want included.
 
 * Usage
-The following functions are available to change the state of an entity by just passing them the
-entity id.
+To call a service on Home Assistant, use the ~hass-call-service~ function. ~hass-call-service~ has 2
+required keyword arguments: ~:entity-id~ and ~:service~. The domain of the service is detected from
+the entity-id. For example, ~switch.bedroom_light~ is in the ~switch~ domain. Currently, the only
+valid services available are ~turn-on~, ~turn-off~, and ~toggle~ and the only supported domains are
+~switch~ and ~input_boolean~.
 
 #+BEGIN_SRC emacs-lisp
-;; switches
-(hass-switch-turn-on)
-(hass-switch-turn-off)
-(hass-switch-toggle)
-
-;; input booleans
-(hass-boolean-turn-on)
-(hass-boolean-turn-off)
-(hass-boolean-toggle)
+(hass-call-service
+  :entity-id "switch.bedroom_light"
+  :service 'toggle)
 #+END_SRC
-
-These functions will be consolidated to a single one in the future.
 
 ** Hooks
 
