@@ -42,6 +42,6 @@ valid services available are ~turn-on~, ~turn-off~, and ~toggle~ and the only su
 
 ** Hooks
 
-There are currently two hooks available. ~hass--entity-state-change-hook~ called when the state of
-an entity is updated, regardless of if it changed or not and ~hass--service-called-hook~ when a
+There are currently two hooks available. ~hass-entity-state-change-hook~ called when the state of
+an entity is updated, regardless of if it changed or not and ~hass-service-called-hook~ when a
 service (for example ~hass-switch-toggle~) is called.
