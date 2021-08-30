@@ -53,6 +53,7 @@ requests"
   "Map of services to their corresponding strings.")
 
 
+;; Helper functions
 (defun hass--parse-apikey ()
   "Returns the effective apikey.
 
@@ -63,7 +64,6 @@ HASS-APIKEY as is."
       (funcall hass-apikey)
       hass-apikey))
 
-
 (defun hass--entity-url (entity-id) 
   "Generate entity state endpoint URLs."
   (format "%s/%s/%s" hass-url "api/states" entity-id))
@@ -73,6 +73,7 @@ HASS-APIKEY as is."
   (format "%s/api/services/%s/%s" hass-url domain service))
 
 
+;; Request Callbacks
 (defun hass--entity-state-result (entity-id state)
   "Callback when an entity state data is received from API."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
@@ -84,6 +85,7 @@ HASS-APIKEY as is."
   (run-hooks 'hass-service-called-hook))
 
 
+;; Requests
 (defun hass--query-entity-state (entity-id)
  "Retrieve the current state of ENTITY-ID from the Home Assistant server.
 
@@ -122,7 +124,6 @@ This function is just for sending the actual API request."
                 (lambda (&rest args &key error-thrown &allow-other-keys) 
                   (message "Error: %S" error-thrown)))))
    
-
 (defun hass-call-service (entity-id service) 
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 
@@ -140,6 +141,7 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
     (hass--call-service domain (alist-get service hass--services) entity-id)))
     
 
+;; Auto query
 (defun hass-query-all-entities ()
   (interactive)
   "Update the current state all of the registered entities."
