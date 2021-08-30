@@ -59,3 +59,7 @@ valid services available are ~turn-on~, ~turn-off~, and ~toggle~ and the only su
 There are currently two hooks available. ~hass-entity-state-change-hook~ called when the state of
 an entity is updated, regardless of if it changed or not and ~hass-service-called-hook~ when a
 service is called.
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'hass-service-called-hook (lambda () (message "A service was called.")))
+#+END_SRC
