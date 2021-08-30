@@ -1,0 +1,54 @@
+#+TITLE: hass
+~hass~ enables you to control Home Assistant entities from Emacs.
+
+*This package is under heavy development and will change.*
+
+* Installation
+** straight.el
+#+BEGIN_SRC emacs-lisp
+(straight-use-package
+  '(hass
+    :type git
+    :host github
+    :repo "purplg/hass"))
+#+END_SRC
+
+* Configuration
+Both ~hass-url~ and ~hass-apikey~ must be set to use this package
+#+BEGIN_SRC emacs-lisp :results none
+(setq hass-url "https://192.168.1.10:8123"
+      hass-apikey "APIKEY-GOES-IN-HERE")
+#+END_SRC
+
+Alternatively, you can store a lambda function inside ~hass-apikey~. This will be executed on every
+query.
+#+BEGIN_SRC emacs-lisp :results none
+(setq hass-apikey (lambda () (auth-source-pass-get 'secret "home/hass/emacs-apikey")))
+#+END_SRC
+
+The ~hass-entity~ variable is used when the ~hass-query-all-entities~ function is called. It should
+contain a list of strings of entity ID's for each entity you want included.
+
+* Usage
+The following functions are available to change the state of an entity by just passing them the
+entity id.
+
+#+BEGIN_SRC emacs-lisp
+;; switches
+(hass-switch-turn-on)
+(hass-switch-turn-off)
+(hass-switch-toggle)
+
+;; input booleans
+(hass-boolean-turn-on)
+(hass-boolean-turn-off)
+(hass-boolean-toggle)
+#+END_SRC
+
+These functions will be consolidated to a single one in the future.
+
+** Hooks
+
+There are currently two hooks available. ~hass--entity-state-change-hook~ called when the state of
+an entity is updated, regardless of if it changed or not and ~hass--service-called-hook~ when a
+service (for example ~hass-switch-toggle~) is called.
