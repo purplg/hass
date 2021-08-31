@@ -92,9 +92,9 @@ HASS-APIKEY as is."
 (defun hass--entity-state-result (entity-id state)
   "Callback when an entity state data is received from API."
   (let ((previous-state (hass-state-of entity-id)))
+    (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
       (run-hook-with-args 'hass-entity-state-updated-functions entity-id)))
-  (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass-entity-state-received-hook))
 
 (defun hass--service-result (entity-id state)
