@@ -108,7 +108,7 @@ This function is just for sending the actual API request."
                      (hass--entity-state-result entity-id (cdr (assoc 'state data)))))) 
       :error (cl-function
                (lambda (&rest args &key error-thrown &allow-other-keys) 
-                 (message "Error: %S" error-thrown)))))
+                 (error "Error: %S" error-thrown)))))
 
 (defun hass--call-service (domain service entity-id)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
@@ -128,7 +128,7 @@ This function is just for sending the actual API request."
                     (hass--query-entity-state entity-id)))
        :error (cl-function
                 (lambda (&rest args &key error-thrown &allow-other-keys) 
-                  (message "Error: %S" error-thrown)))))
+                  (error "Error: %S" error-thrown)))))
    
 (defun hass-call-service (entity-id service) 
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
