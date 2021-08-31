@@ -113,7 +113,13 @@ This function is just for sending the actual API request."
 (defun hass--call-service (domain service entity-id)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 
-This function is just for sending the actual API request."
+This function is just for building and sending the actual API request.
+
+DOMAIN is a string for the domain in Home Assistant this service is apart of.
+
+SERVICE is a string of the Home Assistance service in DOMAIN that is being called.
+
+ENTITY-ID is a string of the entity_id in Home Assistant."
   (request (hass--service-url domain service)
      :sync nil
      :type "POST"
