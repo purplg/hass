@@ -56,12 +56,23 @@ valid services available are ~turn-on~, ~turn-off~, and ~toggle~ and the only su
 
 ** Hooks
 
-There are currently two hooks available. ~hass-entity-state-change-hook~ called when the state of
-an entity is updated, regardless of if it changed or not and ~hass-service-called-hook~ when a
-service is called.
+The most useful hook is a function list named ~hass-entity-state-updated-functions~. Functions in
+this list are passed a single argument ~entity-id~ which is the entity id of the entity whose state
+has changed since it was last updated.
+
+The other two hooks available are ~hass-entity-state-received-hook~ and
+~hass-service-called-hook~. ~hass-entity-state-received-hook~ is called when the state of an entity
+is updated, regardless of if it changed or not. ~hass-service-called-hook~ is called when a service
+is called.
 
 #+BEGIN_SRC emacs-lisp
 (add-hook 'hass-service-called-hook (lambda () (message "A service was called.")))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :results none
+(add-hook 'hass-entity-state-updated-functions
+  (lambda (entity-id)
+    (message "The entity %s state has changed." entity-id)))
 #+END_SRC
 
 ** Getting an API Key
