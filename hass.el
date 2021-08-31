@@ -44,8 +44,13 @@ requests"
   :group 'hass
   :type 'integer)
 
-(defvar hass-entity-state-change-hook nil
- "Hook called after an entity state has been changed.")
+(defvar hass-entity-state-updated-functions nil
+ "List of functions called when an entity state changes.
+
+Each function is called with one arguments: the ENTITY-ID of the
+entity whose state changed.")
+(defvar hass-entity-state-received-hook nil
+ "Hook called after an entity state data was received.")
 (defvar hass-service-called-hook nil
  "Hook called after a service has been called.")
 (defvar hass--states '()
@@ -83,8 +88,11 @@ HASS-APIKEY as is."
 ;; Request Callbacks
 (defun hass--entity-state-result (entity-id state)
   "Callback when an entity state data is received from API."
+  (let ((previous-state (cdr (assoc entity-id hass--states))))
+    (unless (equal previous-state state)
+      (run-hook-with-args 'hass-entity-state-updated-functions entity-id)))
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
-  (run-hooks 'hass-entity-state-change-hook))
+  (run-hooks 'hass-entity-state-received-hook))
 
 (defun hass--service-result (entity-id state)
   "Callback when a successful service request is received from API."
