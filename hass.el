@@ -49,7 +49,7 @@ requests"
 
 Each function is called with one arguments: the ENTITY-ID of the
 entity whose state changed.")
-(defvar hass-entity-state-received-hook nil
+(defvar hass-entity-state-updated-hook nil
  "Hook called after an entity state data was received.")
 (defvar hass-service-called-hook nil
  "Hook called after a service has been called.")
@@ -95,7 +95,7 @@ HASS-APIKEY as is."
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
       (run-hook-with-args 'hass-entity-state-updated-functions entity-id)))
-  (run-hooks 'hass-entity-state-received-hook))
+  (run-hooks 'hass-entity-state-updated-hook))
 
 (defun hass--service-result (entity-id state)
   "Callback when a successful service request is received from API."
