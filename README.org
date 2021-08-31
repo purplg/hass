@@ -74,6 +74,7 @@ is called.
 
 #+BEGIN_SRC emacs-lisp
 (add-hook 'hass-service-called-hook (lambda () (message "A service was called.")))
+(add-hook 'hass-entity-state-received-hook (lambda () (message "An entitys' state was updated.")))
 #+END_SRC
 
 ** Getting an API Key
