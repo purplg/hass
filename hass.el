@@ -85,10 +85,13 @@ HASS-APIKEY as is."
   "Generate service endpoint URL."
   (format "%s/api/services/%s/%s" hass-url domain service))
 
+(defun hass-state-of (entity-id)
+  (cdr (assoc entity-id hass--states)))
+
 ;; Request Callbacks
 (defun hass--entity-state-result (entity-id state)
   "Callback when an entity state data is received from API."
-  (let ((previous-state (cdr (assoc entity-id hass--states))))
+  (let ((previous-state (hass-state-of entity-id)))
     (unless (equal previous-state state)
       (run-hook-with-args 'hass-entity-state-updated-functions entity-id)))
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
