@@ -155,7 +155,6 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
     (hass-auto-query-enable)))
 
 (defun hass-auto-query-enable ()
-  (message "enabling auto query")
   (unless hass-mode
     (user-error "hass-mode must be enabled to use this feature."))
   (unless hass--timer
@@ -164,7 +163,6 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
   (setq hass-auto-query t)) 
 
 (defun hass-auto-query-disable ()
-  (message "disabling auto query")
   (hass--auto-query-cancel)
   (setq hass-auto-query nil)) 
 
