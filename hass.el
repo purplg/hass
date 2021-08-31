@@ -56,7 +56,7 @@ requests"
   '("switch" "input_boolean")
   "List of supported domains.")
 (defvar hass--services '((toggle . "toggle")
-                         (turn-on . "turn_on") 
+                         (turn-on . "turn_on")
                          (turn-off . "turn_off"))
   "Map of services to their corresponding strings.")
 (defvar hass--timer nil)
@@ -72,11 +72,11 @@ HASS-APIKEY as is."
       (funcall hass-apikey)
       hass-apikey))
 
-(defun hass--entity-url (entity-id) 
+(defun hass--entity-url (entity-id)
   "Generate entity state endpoint URLs."
   (format "%s/%s/%s" hass-url "api/states" entity-id))
 
-(defun hass--service-url (domain service) 
+(defun hass--service-url (domain service)
   "Generate service endpoint URL."
   (format "%s/api/services/%s/%s" hass-url domain service))
 
@@ -93,44 +93,44 @@ HASS-APIKEY as is."
 
 ;; Requests
 (defun hass--query-entity-state (entity-id)
- "Retrieve the current state of ENTITY-ID from the Home Assistant server.
+  "Retrieve the current state of ENTITY-ID from the Home Assistant server.
 
 This function is just for sending the actual API request."
-   (request (hass--entity-url entity-id)
-      :sync nil
-      :type "GET" 
-      :headers `(("User-Agent" . hass--user-agent) 
-                 ("Authorization" . ,(concat "Bearer " (hass--parse-apikey)))) 
-      :parser 'json-read 
-      :success (cl-function
-                 (lambda (&key response &allow-other-keys)
-                   (let ((data (request-response-data response))) 
-                     (hass--entity-state-result entity-id (cdr (assoc 'state data)))))) 
-      :error (cl-function
-               (lambda (&rest args &key error-thrown &allow-other-keys) 
-                 (error "Error: %S" error-thrown)))))
+  (request (hass--entity-url entity-id)
+     :sync nil
+     :type "GET"
+     :headers `(("User-Agent" . hass--user-agent)
+                ("Authorization" . ,(concat "Bearer " (hass--parse-apikey))))
+     :parser 'json-read
+     :success (cl-function
+                (lambda (&key response &allow-other-keys)
+                  (let ((data (request-response-data response)))
+                    (hass--entity-state-result entity-id (cdr (assoc 'state data))))))
+     :error (cl-function
+              (lambda (&rest args &key error-thrown &allow-other-keys)
+                (error "Error: %S" error-thrown)))))
 
 (defun hass--call-service (domain service entity-id)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 
 This function is just for sending the actual API request."
-    (request (hass--service-url domain service)
-       :sync nil
-       :type "POST" 
-       :headers `(("User-Agent" . hass--user-agent) 
-                  ("Authorization" . ,(concat "Bearer " (hass--parse-apikey))) 
-                  ("Content-Type" . "application/json")) 
-       :data (format "{\"entity_id\": \"%s\"}" entity-id)
-       :parser 'json-read 
-       :success (cl-function
-                  (lambda (&key &allow-other-keys)
-                    (run-hooks 'hass-service-called-hook) 
-                    (hass--query-entity-state entity-id)))
-       :error (cl-function
-                (lambda (&rest args &key error-thrown &allow-other-keys) 
-                  (error "Error: %S" error-thrown)))))
-   
-(defun hass-call-service (entity-id service) 
+  (request (hass--service-url domain service)
+     :sync nil
+     :type "POST"
+     :headers `(("User-Agent" . hass--user-agent)
+                ("Authorization" . ,(concat "Bearer " (hass--parse-apikey)))
+                ("Content-Type" . "application/json"))
+     :data (format "{\"entity_id\": \"%s\"}" entity-id)
+     :parser 'json-read
+     :success (cl-function
+                (lambda (&allow-other-keys)
+                  (run-hooks 'hass-service-called-hook)
+                  (hass--query-entity-state entity-id)))
+     :error (cl-function
+              (lambda (&rest args &key error-thrown &allow-other-keys)
+                (error "Error: %S" error-thrown)))))
+
+(defun hass-call-service (entity-id service)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 
 This will send an API request to the url configure in HASS-URL. This function
@@ -160,16 +160,16 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
   (unless hass--timer
     (setq hass--timer
       (run-with-timer nil hass-auto-query-frequency 'hass-query-all-entities)))
-  (setq hass-auto-query t)) 
+  (setq hass-auto-query t))
 
 (defun hass-auto-query-disable ()
   (hass--auto-query-cancel)
-  (setq hass-auto-query nil)) 
+  (setq hass-auto-query nil))
 
 (defun hass-query-all-entities ()
   (interactive)
   "Update the current state all of the registered entities."
-  (dolist (entity hass-entities) 
+  (dolist (entity hass-entities)
     (hass--query-entity-state entity)))
 
 (defun hass--auto-query-cancel ()
@@ -192,7 +192,7 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
         (hass-auto-query-enable)))
   (unless hass-mode
     (hass--auto-query-cancel)))
-  
+
 (provide 'hass)
 
 ;;; hass.el ends here
