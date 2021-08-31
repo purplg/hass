@@ -69,10 +69,11 @@ is called.
 (add-hook 'hass-service-called-hook (lambda () (message "A service was called.")))
 #+END_SRC
 
+This example will display the state of an entity when it changes.
 #+BEGIN_SRC emacs-lisp :results none
 (add-hook 'hass-entity-state-updated-functions
   (lambda (entity-id)
-    (message "The entity %s state has changed." entity-id)))
+    (message "The entity %s state has changed to %s." entity-id (hass-state-of entity-id))))
 #+END_SRC
 
 ** Getting an API Key
