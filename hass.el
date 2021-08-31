@@ -61,7 +61,6 @@ requests"
   "Map of services to their corresponding strings.")
 (defvar hass--timer nil)
 
-
 ;; Helper functions
 (defun hass--parse-apikey ()
   "Returns the effective apikey.
@@ -81,7 +80,6 @@ HASS-APIKEY as is."
   "Generate service endpoint URL."
   (format "%s/api/services/%s/%s" hass-url domain service))
 
-
 ;; Request Callbacks
 (defun hass--entity-state-result (entity-id state)
   "Callback when an entity state data is received from API."
@@ -92,7 +90,6 @@ HASS-APIKEY as is."
   "Callback when a successful service request is received from API."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass-service-called-hook))
-
 
 ;; Requests
 (defun hass--query-entity-state (entity-id)
@@ -148,7 +145,6 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
     (unless (member domain hass--supported-domains)
       (user-error "%S is not a supported domain" domain))
     (hass--call-service domain (alist-get service hass--services) entity-id)))
-    
 
 ;; Auto query
 (defun hass-auto-query-toggle ()
@@ -183,7 +179,6 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
     (cancel-timer hass--timer)
     (setq hass--timer nil)))
 
-
 (define-minor-mode hass-mode
   "Toggle hass-mode."
   :lighter nil
@@ -199,9 +194,7 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
         (hass-auto-query-enable)))
   (unless hass-mode
     (hass--auto-query-cancel)))
-    
   
- 
 (provide 'hass)
 
 ;;; hass.el ends here
