@@ -43,7 +43,7 @@ query.
 The ~hass-entity~ variable is used when the ~hass-query-all-entities~ function is called. It should
 contain a list of strings of entity ID's for each entity you want included.
 
-* Getting an API Key
+** Getting an API Key
 
 Ensure that your Home Assistant instance is configure to support API calls by following the
 instructions [[https://www.home-assistant.io/integrations/api/][here]].
