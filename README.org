@@ -54,9 +54,9 @@ and going to your profile by selecting your username in the lower-left corner or
 page.
 
 * Usage
-To call a service on Home Assistant, use the ~hass-call-service~ function. ~hass-call-service~ has 2
-required arguments: ~entity-id~ and ~service~. The domain of the service is detected from
-the ~entity-id~. For example, ~switch.bedroom_light~ is in the ~switch~ domain. Currently, the only
+To call a service on Home Assistant, use the ~hass-call-service~ function which has two required
+arguments: ~entity-id~ and ~service~. The domain of the service is detected from first part of the
+~entity-id~. For example, ~switch.bedroom_light~ is in the ~switch~ domain. Currently, the only
 valid services available are ~turn-on~, ~turn-off~, and ~toggle~ and the only supported domains are
 ~switch~ and ~input_boolean~.
 
