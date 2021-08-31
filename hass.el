@@ -123,7 +123,7 @@ This function is just for sending the actual API request."
      :data (format "{\"entity_id\": \"%s\"}" entity-id)
      :parser 'json-read
      :success (cl-function
-                (lambda (&allow-other-keys)
+                (lambda (&rest _)
                   (run-hooks 'hass-service-called-hook)
                   (hass--query-entity-state entity-id)))
      :error (cl-function
