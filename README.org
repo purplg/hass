@@ -60,7 +60,7 @@ The most useful hook is a function list named ~hass-entity-state-updated-functio
 this list are passed a single argument ~entity-id~ which is the entity id of the entity whose state
 has changed since it was last updated.
 
-This example will display the state of an entity when it changes.
+This example will display the state of an entity when it changes:
 #+BEGIN_SRC emacs-lisp :results none
 (add-hook 'hass-entity-state-updated-functions
   (lambda (entity-id)
