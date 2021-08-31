@@ -87,3 +87,16 @@ is called.
 (add-hook 'hass-entity-state-updated-hook (lambda () (message "An entitys' state was updated.")))
 #+END_SRC
 
+** Auto-query
+Auto-querying is a recurring query to the Home Assistant instance to get the current state of some
+entities. The list of entity IDs that will be queried are found in the variable ~hass-entities~.
+
+#+BEGIN_SRC emacs-lisp :results none
+(setq hass-entities '("switch.bedroom_light" "switch.bedroom_fan"))
+#+END_SRC
+
+The frequency of the query can be adjusted by setting ~hass-auto-query-frequency~ to the number of
+seconds you'd like. Defaults to 60.
+
+Auto-querying is most useful with the function hook ~hass-entity-state-updated-functions~ explained
+in the [[*Hooks][Hooks]] section.
