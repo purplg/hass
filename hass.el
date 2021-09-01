@@ -103,6 +103,9 @@ HASS-APIKEY as is."
   (run-hooks 'hass-service-called-hook))
 
 ;; Requests
+(cl-defun hass--request-error (&key error-thrown &allow-other-keys)
+  (error "hass-mode: %S" error-thrown))
+
 (defun hass--query-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server.
 
@@ -117,9 +120,7 @@ This function is just for sending the actual API request."
                 (lambda (&key response &allow-other-keys)
                   (let ((data (request-response-data response)))
                     (hass--entity-state-result entity-id (cdr (assoc 'state data))))))
-     :error (cl-function
-              (lambda (&rest args &key error-thrown &allow-other-keys)
-                (error "Error: %S" error-thrown)))))
+     :error #'hass--request-error))
 
 (defun hass--call-service (domain service entity-id)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
@@ -143,9 +144,7 @@ ENTITY-ID is a string of the entity_id in Home Assistant."
                 (lambda (&rest _)
                   (run-hooks 'hass-service-called-hook)
                   (hass--query-entity-state entity-id)))
-     :error (cl-function
-              (lambda (&rest args &key error-thrown &allow-other-keys)
-                (error "Error: %S" error-thrown)))))
+     :error #'hass--request-error))
 
 (defun hass-call-service (entity-id service)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
