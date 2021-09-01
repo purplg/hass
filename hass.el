@@ -65,6 +65,7 @@ entity whose state changed.")
                          (turn-off . "turn_off"))
   "Map of services to their corresponding strings.")
 (defvar hass--timer nil)
+(defvar hass--available-services nil)
 
 ;; Helper functions
 (defun hass--parse-apikey ()
@@ -88,7 +89,29 @@ HASS-APIKEY as is."
 (defun hass-state-of (entity-id)
   (cdr (assoc entity-id hass--states)))
 
+;; Service availability
+(defun hass--parse-all-domains (domains)
+  "Collect all domains into an alist of the domains to their
+associated list of services."
+  (mapcar #'hass--parse-domain domains))
+
+(defun hass--parse-domain (domain)
+  "Collect each domain into cons cell of the domain to its
+available list of services."
+  (cons (cdr (assoc 'domain domain))
+        (hass--parse-services (cdr (assoc 'services domain)))))
+  
+(defun hass--parse-services (services)
+  "Flattens the list of services return from /api/services endpoint
+to just the service name."
+  (mapcar (lambda (service)
+            (car service))
+          services))
+
 ;; Request Callbacks
+(defun hass--get-available-services-result (domains)
+  (setq hass--available-services (hass--parse-all-domains domains)))
+
 (defun hass--query-entity-result (entity-id state)
   "Callback when an entity state data is received from API."
   (let ((previous-state (hass-state-of entity-id)))
@@ -105,6 +128,19 @@ HASS-APIKEY as is."
 ;; Requests
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
   (error "hass-mode: %S" error-thrown))
+
+(defun hass--get-available-services ()
+  (request (concat hass-url "/api/services")
+     :sync nil
+     :type "GET"
+     :headers `(("User-Agent" . hass--user-agent)
+                ("Authorization" . ,(concat "Bearer " (hass--parse-apikey))))
+     :parser 'json-read
+     :error #'hass--request-error
+     :success (cl-function
+                (lambda (&key response &allow-other-keys)
+                  (let ((data (request-response-data response)))
+                    (hass--get-available-services-result data))))))
 
 (defun hass--query-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server.
