@@ -142,7 +142,7 @@ to just the service name."
                   (let ((data (request-response-data response)))
                     (hass--get-available-services-result data))))))
 
-(defun hass--query-entity-state (entity-id)
+(defun hass--get-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server.
 
 This function is just for sending the actual API request."
@@ -180,7 +180,7 @@ ENTITY-ID is a string of the entity_id in Home Assistant."
      :success (cl-function
                 (lambda (&rest _)
                   (run-hooks 'hass-service-called-hook)
-                  (hass--query-entity-state entity-id)))))
+                  (hass--get-entity-state entity-id)))))
 
 (defun hass-call-service (entity-id service)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
@@ -223,7 +223,7 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
   (interactive)
   "Update the current state all of the registered entities."
   (dolist (entity hass-entities)
-    (hass--query-entity-state entity)))
+    (hass--get-entity-state entity)))
 
 (defun hass--auto-query-cancel ()
   (when hass--timer
