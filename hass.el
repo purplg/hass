@@ -116,11 +116,11 @@ This function is just for sending the actual API request."
      :headers `(("User-Agent" . hass--user-agent)
                 ("Authorization" . ,(concat "Bearer " (hass--parse-apikey))))
      :parser 'json-read
+     :error #'hass--request-error
      :success (cl-function
                 (lambda (&key response &allow-other-keys)
                   (let ((data (request-response-data response)))
-                    (hass--entity-state-result entity-id (cdr (assoc 'state data))))))
-     :error #'hass--request-error))
+                    (hass--entity-state-result entity-id (cdr (assoc 'state data))))))))
 
 (defun hass--call-service (domain service entity-id)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
@@ -140,11 +140,11 @@ ENTITY-ID is a string of the entity_id in Home Assistant."
                 ("Content-Type" . "application/json"))
      :data (format "{\"entity_id\": \"%s\"}" entity-id)
      :parser 'json-read
+     :error #'hass--request-error
      :success (cl-function
                 (lambda (&rest _)
                   (run-hooks 'hass-service-called-hook)
-                  (hass--query-entity-state entity-id)))
-     :error #'hass--request-error))
+                  (hass--query-entity-state entity-id)))))
 
 (defun hass-call-service (entity-id service)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
