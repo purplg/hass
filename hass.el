@@ -89,7 +89,7 @@ HASS-APIKEY as is."
   (cdr (assoc entity-id hass--states)))
 
 ;; Request Callbacks
-(defun hass--entity-state-result (entity-id state)
+(defun hass--query-entity-result (entity-id state)
   "Callback when an entity state data is received from API."
   (let ((previous-state (hass-state-of entity-id)))
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
@@ -97,7 +97,7 @@ HASS-APIKEY as is."
       (run-hook-with-args 'hass-entity-state-updated-functions entity-id)))
   (run-hooks 'hass-entity-state-updated-hook))
 
-(defun hass--service-result (entity-id state)
+(defun hass--call-service-result (entity-id state)
   "Callback when a successful service request is received from API."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass-service-called-hook))
@@ -120,7 +120,7 @@ This function is just for sending the actual API request."
      :success (cl-function
                 (lambda (&key response &allow-other-keys)
                   (let ((data (request-response-data response)))
-                    (hass--entity-state-result entity-id (cdr (assoc 'state data))))))))
+                    (hass--query-entity-result entity-id (cdr (assoc 'state data))))))))
 
 (defun hass--call-service (domain service entity-id)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
