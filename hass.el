@@ -174,9 +174,10 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
 (defun hass-auto-query-enable ()
   (unless hass-mode
     (user-error "hass-mode must be enabled to use this feature."))
-  (unless hass--timer
-    (setq hass--timer
-      (run-with-timer nil hass-auto-query-frequency 'hass-query-all-entities)))
+  (when hass--timer
+    (hass--auto-query-cancel))
+  (setq hass--timer
+    (run-with-timer nil hass-auto-query-frequency 'hass-query-all-entities))
   (setq hass-auto-query t))
 
 (defun hass-auto-query-disable ()
