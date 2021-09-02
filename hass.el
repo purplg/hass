@@ -104,8 +104,8 @@ available list of services."
 (defun hass--parse-services (services)
   "Flattens the list of services return from /api/services endpoint
 to just the service name."
-  (mapcar (lambda (service)
-            (car service))
+  (mapcar #'(lambda (service)
+              (car service))
           services))
 
 ;; Request Callbacks
