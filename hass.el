@@ -232,6 +232,7 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
     (cancel-timer hass--timer)
     (setq hass--timer nil)))
 
+;;;###autoload
 (define-minor-mode hass-mode
   "Toggle hass-mode.
 
