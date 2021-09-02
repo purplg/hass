@@ -44,6 +44,8 @@ requests"
   :group 'hass
   :type 'integer)
 
+(defvar hass-mode-map (make-sparse-keymap)
+  "Keymap for hass mode.")
 (defvar hass-entity-state-updated-functions nil
  "List of functions called when an entity state changes.
 
@@ -231,7 +233,10 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
     (setq hass--timer nil)))
 
 (define-minor-mode hass-mode
-  "Toggle hass-mode."
+  "Toggle hass-mode.
+
+Key bindings:
+\\{hass-mode-map}"
   :lighter nil
   :interactive t
   :group 'hass
