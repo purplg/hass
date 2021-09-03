@@ -62,10 +62,6 @@ entity whose state changed.")
 (defvar hass--supported-domains
   '("switch" "input_boolean")
   "List of supported domains.")
-(defvar hass--services '((toggle . "toggle")
-                         (turn-on . "turn_on")
-                         (turn-off . "turn_off"))
-  "Map of services to their corresponding strings.")
 (defvar hass--timer nil)
 (defvar hass--available-services nil)
 
@@ -88,6 +84,12 @@ HASS-APIKEY as is."
   "Generate service endpoint URL."
   (format "%s/api/services/%s/%s" hass-url domain service))
 
+(defun hass--domain-of-entity (entity-id)
+  (car (split-string entity-id "\\.")))
+
+(defun hass--services-for-entity (entity-id)
+  (cdr (assoc (hass--domain-of-entity entity-id) hass--available-services)))
+
 (defun hass-state-of (entity-id)
   (cdr (assoc entity-id hass--states)))
 
@@ -107,7 +109,7 @@ available list of services."
   "Flattens the list of services return from /api/services endpoint
 to just the service name."
   (mapcar #'(lambda (service)
-              (car service))
+              (cons (car service) (cdr (assoc 'name (cdr service)))))
           services))
 
 ;; Request Callbacks
@@ -187,18 +189,27 @@ ENTITY-ID is a string of the entity_id in Home Assistant."
 (defun hass-call-service (entity-id service)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 
+If called interactively, prompt the user for an ENTITY-ID and
+SERVICE to call.
+
 This will send an API request to the url configure in HASS-URL. This function
 requires both ENTITY-ID and SERVICE keyword arguments to e passed.
 
 ENTITY-ID is a string of the entity id in Home Assistant you want to call the
 service on. (e.g. `\"switch.kitchen_light\").
 
-SERVICE is the service you want to call on ENTITY-ID. (e.g. 'turn-off)"
+SERVICE is the service you want to call on ENTITY-ID. (e.g. \"turn_off\")"
+  (interactive
+    (let ((entity (completing-read "Entity: " hass-entities nil t)))
+      (list entity
+        (completing-read (format "%s: " entity)
+                         (hass--services-for-entity entity) nil t))))
+            
   (when (equal entity-id nil) (user-error "Missing ENTITY-ID"))
-  (let ((domain (car (split-string entity-id "\\."))))
+  (let ((domain (hass--domain-of-entity entity-id)))
     (unless (member domain hass--supported-domains)
       (user-error "%S is not a supported domain" domain))
-    (hass--call-service domain (alist-get service hass--services) entity-id)))
+    (hass--call-service domain service entity-id)))
 
 ;; Auto query
 (defun hass-auto-query-toggle ()
