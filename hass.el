@@ -63,6 +63,7 @@ entity whose state changed.")
   '("switch" "input_boolean")
   "List of supported domains.")
 (defvar hass--timer nil)
+(defvar hass--available-entities nil)
 (defvar hass--available-services nil)
 
 ;; Helper functions
@@ -93,7 +94,15 @@ HASS-APIKEY as is."
 (defun hass-state-of (entity-id)
   (cdr (assoc entity-id hass--states)))
 
-;; Service availability
+;; API parsing
+(defun hass--parse-all-entities (entities)
+  (mapcar (lambda (entity)
+            (hass--parse-entity entity))
+          entities))
+
+(defun hass--parse-entity (entity-state)
+  (cdr (car entity-state)))
+
 (defun hass--parse-all-domains (domains)
   "Collect all domains into an alist of the domains to their
 associated list of services."
@@ -109,10 +118,13 @@ available list of services."
   "Flattens the list of services return from /api/services endpoint
 to just the service name."
   (mapcar #'(lambda (service)
-              (cons (car service) (cdr (assoc 'name (cdr service)))))
+              (car service))
           services))
 
 ;; Request Callbacks
+(defun hass--get-entities-result (entities)
+  (setq hass--available-entities (hass--parse-all-entities entities)))
+
 (defun hass--get-available-services-result (domains)
   (setq hass--available-services (hass--parse-all-domains domains)))
 
@@ -132,6 +144,19 @@ to just the service name."
 ;; Requests
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
   (error "hass-mode: %S" error-thrown))
+
+(defun hass--get-entities ()
+  (request (concat hass-url "/api/states")
+     :sync nil
+     :type "GET"
+     :headers `(("User-Agent" . hass--user-agent)
+                ("Authorization" . ,(concat "Bearer " (hass--parse-apikey))))
+     :parser 'json-read
+     :error #'hass--request-error
+     :success (cl-function
+                (lambda (&key response &allow-other-keys)
+                  (let ((data (request-response-data response)))
+                    (hass--get-entities-result data))))))
 
 (defun hass--get-available-services ()
   (request (concat hass-url "/api/services")
@@ -200,7 +225,7 @@ service on. (e.g. `\"switch.kitchen_light\").
 
 SERVICE is the service you want to call on ENTITY-ID. (e.g. \"turn_off\")"
   (interactive
-    (let ((entity (completing-read "Entity: " hass-entities nil t)))
+    (let ((entity (completing-read "Entity: " hass--available-entities nil t)))
       (list entity
         (completing-read (format "%s: " entity)
                          (hass--services-for-entity entity) nil t))))
