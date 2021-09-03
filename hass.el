@@ -145,7 +145,7 @@ to just the service name."
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
   (error "hass-mode: %S" error-thrown))
 
-(defun hass--get-entities ()
+(defun hass--get-available-entities ()
   (request (concat hass-url "/api/states")
      :sync nil
      :type "GET"
@@ -285,7 +285,7 @@ Key bindings:
           (user-error "HASS-URL must be set to use hass-mode."))
       (when hass-auto-query
         (hass-auto-query-enable))
-      (hass--get-entities)
+      (hass--get-available-entities)
       (hass--get-available-services))
   (unless hass-mode
     (hass--auto-query-cancel)))
