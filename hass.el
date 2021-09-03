@@ -284,7 +284,9 @@ Key bindings:
       (unless (equal (type-of hass-url) 'string)
           (user-error "HASS-URL must be set to use hass-mode."))
       (when hass-auto-query
-        (hass-auto-query-enable)))
+        (hass-auto-query-enable))
+      (hass--get-entities)
+      (hass--get-available-services))
   (unless hass-mode
     (hass--auto-query-cancel)))
 
