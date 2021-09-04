@@ -85,7 +85,7 @@ entity whose state changed.")
   "The entities retrieved from the Home Assistant instance.")
 
 (defvar hass--available-services nil
-  "The servies retrieved from the Home Assistant instance.")
+  "The services retrieved from the Home Assistant instance.")
 
 ;; Helper functions
 (defun hass--apikey ()
