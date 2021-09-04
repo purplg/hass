@@ -88,7 +88,7 @@ entity whose state changed.")
   "The servies retrieved from the Home Assistant instance.")
 
 ;; Helper functions
-(defun hass--parse-apikey ()
+(defun hass--apikey ()
   "Return the effective apikey.
 
 If HASS-APIKEY is a lambda, execute it to get value.  Otherwise
@@ -205,7 +205,7 @@ list of entity-ids."
      :sync nil
      :type "GET"
      :headers `(("User-Agent" . hass--user-agent)
-                ("Authorization" . ,(concat "Bearer " (hass--parse-apikey))))
+                ("Authorization" . ,(concat "Bearer " (hass--apikey))))
      :parser 'json-read
      :error #'hass--request-error
      :success (cl-function
@@ -219,7 +219,7 @@ list of entity-ids."
      :sync nil
      :type "GET"
      :headers `(("User-Agent" . hass--user-agent)
-                ("Authorization" . ,(concat "Bearer " (hass--parse-apikey))))
+                ("Authorization" . ,(concat "Bearer " (hass--apikey))))
      :parser 'json-read
      :error #'hass--request-error
      :success (cl-function
@@ -235,7 +235,7 @@ This function is just for sending the actual API request."
      :sync nil
      :type "GET"
      :headers `(("User-Agent" . hass--user-agent)
-                ("Authorization" . ,(concat "Bearer " (hass--parse-apikey))))
+                ("Authorization" . ,(concat "Bearer " (hass--apikey))))
      :parser 'json-read
      :error #'hass--request-error
      :success (cl-function
@@ -258,7 +258,7 @@ ENTITY-ID is a string of the entity_id in Home Assistant."
      :sync nil
      :type "POST"
      :headers `(("User-Agent" . hass--user-agent)
-                ("Authorization" . ,(concat "Bearer " (hass--parse-apikey)))
+                ("Authorization" . ,(concat "Bearer " (hass--apikey)))
                 ("Content-Type" . "application/json"))
      :data (format "{\"entity_id\": \"%s\"}" entity-id)
      :parser 'json-read
@@ -350,7 +350,7 @@ Key bindings:
   :group 'hass
   :global t
   (when hass-mode
-      (unless (equal (type-of (hass--parse-apikey)) 'string)
+      (unless (equal (type-of (hass--apikey)) 'string)
           (hass-mode 0)
           (user-error "HASS-APIKEY must be set to use hass-mode"))
       (unless (equal (type-of hass-url) 'string)
