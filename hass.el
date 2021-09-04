@@ -5,6 +5,10 @@
 ;; Author: Ben Whitley
 ;;; Commentary:
 
+;; This mode enables interaction with a Home Assistant instance from within Emacs.
+;;
+;; See README.org for more information.
+
 ;;; Code:
 (require 'request)
 
