@@ -1,8 +1,6 @@
 #+TITLE: hass
 ~hass~ enables you to control Home Assistant entities from Emacs.
 
-*This package is under heavy development and will change.*
-
 * Installation
 ** straight.el
 #+BEGIN_SRC emacs-lisp
@@ -61,8 +59,11 @@ valid services available are ~turn-on~, ~turn-off~, and ~toggle~ and the only su
 ~switch~ and ~input_boolean~.
 
 #+BEGIN_SRC emacs-lisp
-(hass-call-service "switch.bedroom_light" 'toggle)
+(hass-call-service "switch.bedroom_light" "toggle")
 #+END_SRC
+
+If you call ~hass-call-service~ interactively, it will prompt you for an entity ID and then the
+respective service you want to call.
 
 ** Hooks
 
