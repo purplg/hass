@@ -129,16 +129,20 @@ SERVICE is a string of the service to call."
   "Convert entity state data into a list of available entities.
 
 ENTITIES is the data returned from the `/api/states' endpoint."
-  (mapcar (lambda (entity)
-            (hass--parse-entity entity))
-          entities))
+  (delq nil (mapcar (lambda (entity)
+                      (hass--parse-entity entity))
+                    entities)))
 
 (defun hass--parse-entity (entity-state)
   "Convert an entity's state data into its entity-id.
 
 ENTITY-STATE is an individual entity state data return from the
-`/api/states' endpoint."
-  (cdr (car entity-state)))
+`/api/states' endpoint.
+
+Only returns entities that have callable services available."
+  (let ((entity-id (cdr (car entity-state))))
+    (when (hass--services-for-entity entity-id)
+      entity-id)))
 
 (defun hass--parse-all-domains (domains)
   "Collect DOMAINS into an alist of their associated services.
