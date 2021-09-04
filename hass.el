@@ -93,8 +93,7 @@ entity whose state changed.")
 
 If HASS-APIKEY is a lambda, execute it to get value.  Otherwise
 return HASS-APIKEY as is."
-  (if (and (equal (type-of hass-apikey) 'cons)
-           (equal (car hass-apikey) 'lambda))
+  (if (functionp hass-apikey)
       (funcall hass-apikey)
       hass-apikey))
 
