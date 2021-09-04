@@ -1,6 +1,6 @@
-;;; hass.el --- Interact with Home Assistant. -*- lexical-binding: t; -*-
+;;; hass.el --- Interact with Home Assistant -*- lexical-binding: t; -*-
 
-;; Package-Requires: ((emacs "24.4") (request "0.3.3"))
+;; Package-Requires: ((emacs "25.1") (request "0.3.3"))
 ;; Version: 0.1
 ;; Author: Ben Whitley
 ;;; Commentary:
