@@ -290,7 +290,6 @@ ENTITY-ID.  (e.g. `\"turn_off\"')"
         (completing-read (format "%s: " entity)
                          (hass--services-for-entity entity) nil t))))
             
-  (when (equal entity-id nil) (user-error "Missing ENTITY-ID"))
   (let ((domain (hass--domain-of-entity entity-id)))
     (hass--call-service domain service entity-id)))
 
