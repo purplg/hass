@@ -189,13 +189,13 @@ ENTITY-ID is the id of the entity that was affected and now has STATE."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass-service-called-hook))
 
-;; Requests
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
   "Error handler for invalid requests.
 
 ERROR-THROWN is the error thrown from the request.el request."
   (error "Hass-mode: %S" error-thrown))
 
+;; Requests
 (defun hass--get-available-entities ()
   "Retrieve the available entities from the Home Assistant instance.
 
