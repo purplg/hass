@@ -13,6 +13,10 @@
   :group 'hass
   :prefix "hass-")
 
+(defvar hass-mode-map (make-sparse-keymap)
+  "Keymap for hass mode.")
+
+;; Customizable
 (defcustom hass-url nil
   "The URL of the Home Assistant instance.
 
@@ -20,6 +24,7 @@ Set this to the URL of the Home Assistant instance you want to
 control. (e.g. https://192.168.1.10:8123)"
   :group 'hass
   :type 'string)
+
 (defcustom hass-entities nil
   "A list of tracked Home Assistant entities.
 
@@ -28,6 +33,7 @@ something like *switch.bedroom_light*."
 
   :group 'hass
   :type '(repeat string))
+
 (defcustom hass-apikey nil
   "API key used for Home Assistant queries.
 
@@ -35,35 +41,44 @@ The key generated from the Home Assistant instance used to authorize API
 requests"
   :group 'hass
   :type 'string)
+
 (defcustom hass-auto-query nil
   "Periodically query the state of the configured in HASS-ENTITIES. "
   :group 'hass
   :type 'boolean)
+
 (defcustom hass-auto-query-frequency 60
   "Amount of seconds between auto-querying HASS-ENTITIES."
   :group 'hass
   :type 'integer)
 
-(defvar hass-mode-map (make-sparse-keymap)
-  "Keymap for hass mode.")
+;; Hooks
 (defvar hass-entity-state-updated-functions nil
  "List of functions called when an entity state changes.
 
 Each function is called with one arguments: the ENTITY-ID of the
 entity whose state changed.")
+
 (defvar hass-entity-state-updated-hook nil
  "Hook called after an entity state data was received.")
+
 (defvar hass-service-called-hook nil
  "Hook called after a service has been called.")
+
+;; Internal state
 (defvar hass--states '()
   "An alist of entity ids to their last queried states.")
+
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant.")
+
 (defvar hass--timer nil
   "Stores a reference to the timer used to periodically update
 entity state.")
+
 (defvar hass--available-entities nil
   "The entities retrieved from the Home Assistant instance.")
+
 (defvar hass--available-services nil
   "The servies retrieved from the Home Assistant instance.")
 
