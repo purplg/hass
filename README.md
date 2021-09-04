@@ -109,10 +109,10 @@ not. `hass-service-called-hook` is called when a service is called.
 
 Auto-querying is a recurring query to the Home Assistant instance to get
 the current state of some entities. The list of entity IDs that will be
-queried are found in the variable `hass-entities`.
+queried are found in the variable `hass-auto-entities`.
 
 ``` emacs-lisp
-(setq hass-entities '("switch.bedroom_light" "switch.bedroom_fan"))
+(setq hass-auto-entities '("switch.bedroom_light" "switch.bedroom_fan"))
 ```
 
 The frequency of the query can be adjusted by setting
