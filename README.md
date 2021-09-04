@@ -53,7 +53,7 @@ for each entity you want included.
 
 ### Getting an API Key
 
-Ensure that your Home Assistant instance is configure to support API
+Ensure that your Home Assistant instance is configured to support API
 calls by following the instructions
 [here](https://www.home-assistant.io/integrations/api/).
 

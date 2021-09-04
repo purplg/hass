@@ -43,7 +43,7 @@ contain a list of strings of entity ID's for each entity you want included.
 
 ** Getting an API Key
 
-Ensure that your Home Assistant instance is configure to support API calls by following the
+Ensure that your Home Assistant instance is configured to support API calls by following the
 instructions [[https://www.home-assistant.io/integrations/api/][here]].
 
 Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home Assistant instance
