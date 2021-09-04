@@ -306,7 +306,7 @@ the frequency (in seconds) hass-mode should query the Home
 Assistant instance.
 
 Use the variable `hass-auto-entities' to set which entities you want
-to query."
+to query automatically."
   (interactive)
   (if hass-auto-query
     (hass-auto-query-disable)
