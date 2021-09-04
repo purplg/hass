@@ -27,14 +27,14 @@
   "The URL of the Home Assistant instance.
 
 Set this to the URL of the Home Assistant instance you want to
-control. (e.g. https://192.168.1.10:8123)"
+control.  (e.g. https://192.168.1.10:8123)"
   :group 'hass
   :type 'string)
 
 (defcustom hass-entities nil
   "A list of tracked Home Assistant entities.
 
-Set this to a list of Home Assistant entity ID strings. An entity ID looks
+Set this to a list of Home Assistant entity ID strings.  An entity ID looks
 something like *switch.bedroom_light*."
 
   :group 'hass
@@ -49,7 +49,7 @@ requests"
   :type 'string)
 
 (defcustom hass-auto-query nil
-  "Periodically query the state of the configured in HASS-ENTITIES. "
+  "Periodically query the state of the configured in HASS-ENTITIES."
   :group 'hass
   :type 'boolean)
 
@@ -79,8 +79,7 @@ entity whose state changed.")
   "The user-agent sent in API requests to Home Assistant.")
 
 (defvar hass--timer nil
-  "Stores a reference to the timer used to periodically update
-entity state.")
+  "Stores a reference to the timer used to periodically update entity state.")
 
 (defvar hass--available-entities nil
   "The entities retrieved from the Home Assistant instance.")
@@ -90,21 +89,27 @@ entity state.")
 
 ;; Helper functions
 (defun hass--parse-apikey ()
-  "Returns the effective apikey.
+  "Return the effective apikey.
 
-If HASS-APIKEY is a lambda, execute it to get value. Otherwise return
-HASS-APIKEY as is."
+If HASS-APIKEY is a lambda, execute it to get value.  Otherwise
+return HASS-APIKEY as is."
   (if (and (equal (type-of hass-apikey) 'cons)
            (equal (car hass-apikey) 'lambda))
       (funcall hass-apikey)
       hass-apikey))
 
 (defun hass--entity-url (entity-id)
-  "Generate entity state endpoint URLs."
+  "Generate entity state endpoint URLs.
+
+ENTITY-ID is a string of the entities ID."
   (format "%s/%s/%s" hass-url "api/states" entity-id))
 
 (defun hass--service-url (domain service)
-  "Generate service endpoint URL."
+  "Generate service endpoint URL.
+
+DOMAIN is a string of the domain the SERVICE resides in.
+
+SERVICE is a string of the service to call."
   (format "%s/api/services/%s/%s" hass-url domain service))
 
 (defun hass--domain-of-entity (entity-id)
@@ -112,53 +117,65 @@ HASS-APIKEY as is."
   (car (split-string entity-id "\\.")))
 
 (defun hass--services-for-entity (entity-id)
-  "Returns the services available for an ENTITY-ID."
+  "Return the services available for an ENTITY-ID."
   (cdr (assoc (hass--domain-of-entity entity-id) hass--available-services)))
 
 (defun hass-state-of (entity-id)
-  "Returns the last known state of ENTITY-ID."
+  "Return the last known state of ENTITY-ID."
   (cdr (assoc entity-id hass--states)))
 
 ;; API parsing
 (defun hass--parse-all-entities (entities)
-  "Convert entity state data into a list of available entities."
+  "Convert entity state data into a list of available entities.
+
+ENTITIES is the data returned from the `/api/states' endpoint."
   (mapcar (lambda (entity)
             (hass--parse-entity entity))
           entities))
 
 (defun hass--parse-entity (entity-state)
-  "Convert an entity's state data into its entity-id."
+  "Convert an entity's state data into its entity-id.
+
+ENTITY-STATE is an individual entity state data return from the
+`/api/states' endpoint."
   (cdr (car entity-state)))
 
 (defun hass--parse-all-domains (domains)
-  "Collect all domains into an alist of the domains to their
-associated list of services."
+  "Collect DOMAINS into an alist of their associated services.
+
+DOMAINS is the data returned from the `/api/services' endpoint."
   (mapcar #'hass--parse-domain domains))
 
 (defun hass--parse-domain (domain)
-  "Collect each domain into cons cell of the domain to its
-available list of services."
+  "Convert DOMAIN into cons cell of its available list of services.
+
+DOMAIN is a single domain return from the `/api/services'
+endpoint."
   (cons (cdr (assoc 'domain domain))
         (hass--parse-services (cdr (assoc 'services domain)))))
   
 (defun hass--parse-services (services)
-  "Flattens the list of services return from /api/services endpoint
-to just the service name."
+  "Flattens the SERVICES return from `/api/services' endpoint to just the service name."
   (mapcar #'(lambda (service)
               (car service))
           services))
 
 ;; Request Callbacks
 (defun hass--get-entities-result (entities)
-  "Callback when all entity states is received from API."
+  "Callback when states of all ENTITIES is received from API."
   (setq hass--available-entities (hass--parse-all-entities entities)))
 
 (defun hass--get-available-services-result (domains)
-  "Callback when all service information is received from API."
+  "Callback when all service information is received from API.
+
+DOMAINS is the response from the `/api/services' endpoint which
+returns a list of domains and their available services."
   (setq hass--available-services (hass--parse-all-domains domains)))
 
 (defun hass--query-entity-result (entity-id state)
-  "Callback when an entity state data is received from API."
+  "Callback when an entity state data is received from API.
+
+ENTITY-ID is the id of the entity that has STATE."
   (let ((previous-state (hass-state-of entity-id)))
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
@@ -166,14 +183,18 @@ to just the service name."
   (run-hooks 'hass-entity-state-updated-hook))
 
 (defun hass--call-service-result (entity-id state)
-  "Callback when a successful service request is received from API."
+  "Callback when a successful service request is received from API.
+
+ENTITY-ID is the id of the entity that was affected and now has STATE."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass-service-called-hook))
 
 ;; Requests
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
-  "Error handler for invalid requests."
-  (error "hass-mode: %S" error-thrown))
+  "Error handler for invalid requests.
+
+ERROR-THROWN is the error thrown from the request.el request."
+  (error "Hass-mode: %S" error-thrown))
 
 (defun hass--get-available-entities ()
   "Retrieve the available entities from the Home Assistant instance.
@@ -229,7 +250,8 @@ This function is just for building and sending the actual API request.
 
 DOMAIN is a string for the domain in Home Assistant this service is apart of.
 
-SERVICE is a string of the Home Assistance service in DOMAIN that is being called.
+SERVICE is a string of the Home Assistance service in DOMAIN that
+is being called.
 
 ENTITY-ID is a string of the entity_id in Home Assistant."
   (request (hass--service-url domain service)
@@ -252,13 +274,15 @@ ENTITY-ID is a string of the entity_id in Home Assistant."
 If called interactively, prompt the user for an ENTITY-ID and
 SERVICE to call.
 
-This will send an API request to the url configure in HASS-URL. This function
-requires both ENTITY-ID and SERVICE keyword arguments to e passed.
+This will send an API request to the url configure in HASS-URL.
+This function requires both ENTITY-ID and SERVICE keyword
+arguments to be passed.
 
-ENTITY-ID is a string of the entity id in Home Assistant you want to call the
-service on. (e.g. `\"switch.kitchen_light\").
+ENTITY-ID is a string of the entity id in Home Assistant you want
+to call the service on.  (e.g. `\"switch.kitchen_light\"').
 
-SERVICE is the service you want to call on ENTITY-ID. (e.g. \"turn_off\")"
+SERVICE is the service you want to call on
+ENTITY-ID.  (e.g. `\"turn_off\"')"
   (interactive
     (let ((entity (completing-read "Entity: " hass--available-entities nil t)))
       (list entity
@@ -280,7 +304,7 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. \"turn_off\")"
 (defun hass-auto-query-enable ()
   "Enable auto-query."
   (unless hass-mode
-    (user-error "hass-mode must be enabled to use this feature."))
+    (user-error "Hass-mode must be enabled to use this feature"))
   (when hass--timer
     (hass--auto-query-cancel))
   (setq hass--timer
@@ -317,9 +341,9 @@ Key bindings:
   :global t
   (when hass-mode
       (unless (equal (type-of (hass--parse-apikey)) 'string)
-          (user-error "HASS-APIKEY must be set to use hass-mode."))
+          (user-error "HASS-APIKEY must be set to use hass-mode"))
       (unless (equal (type-of hass-url) 'string)
-          (user-error "HASS-URL must be set to use hass-mode."))
+          (user-error "HASS-URL must be set to use hass-mode"))
       (when hass-auto-query
         (hass-auto-query-enable))
       (hass--get-available-entities)
