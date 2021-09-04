@@ -274,7 +274,8 @@ ENTITY-ID is a string of the entity_id in Home Assistant."
 If called interactively, prompt the user for an ENTITY-ID and
 SERVICE to call.
 
-This will send an API request to the url configure in HASS-URL.
+This will send an API request to the url configure in `hass-url'.
+
 This function requires both ENTITY-ID and SERVICE keyword
 arguments to be passed.
 
