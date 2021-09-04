@@ -295,7 +295,18 @@ ENTITY-ID.  (e.g. `\"turn_off\"')"
 
 ;; Auto query
 (defun hass-auto-query-toggle ()
-  "Toggle querying Home Assistant periodically."
+  "Toggle querying Home Assistant periodically.
+
+Auto-querying is a way to periodically query the state of
+entities you want to hook into to capture when their state
+changes.
+
+Use the variable `hass-auto-query-frequency' to change
+the frequency (in seconds) hass-mode should query the Home
+Assistant instance.
+
+Use the variable `hass-entities' to set which entities you want
+to query."
   (interactive)
   (if hass-auto-query
     (hass-auto-query-disable)
