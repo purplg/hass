@@ -91,7 +91,7 @@ entity whose state changed.")
 (defun hass--apikey ()
   "Return the effective apikey.
 
-If HASS-APIKEY is a lambda, execute it to get value.  Otherwise
+If HASS-APIKEY is a function, execute it to get value.  Otherwise
 return HASS-APIKEY as is."
   (if (functionp hass-apikey)
       (funcall hass-apikey)
