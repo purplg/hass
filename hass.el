@@ -31,15 +31,6 @@ control.  (e.g. https://192.168.1.10:8123)"
   :group 'hass
   :type 'string)
 
-(defcustom hass-entities nil
-  "A list of tracked Home Assistant entities.
-
-Set this to a list of Home Assistant entity ID strings.  An entity ID looks
-something like *switch.bedroom_light*."
-
-  :group 'hass
-  :type '(repeat string))
-
 (defcustom hass-apikey nil
   "API key used for Home Assistant queries.
 
@@ -47,6 +38,15 @@ The key generated from the Home Assistant instance used to authorize API
 requests"
   :group 'hass
   :type 'string)
+
+(defcustom hass-auto-entities nil
+  "A list of tracked Home Assistant entities.
+
+Set this to a list of Home Assistant entity ID strings.  An entity ID looks
+something like *switch.bedroom_light*."
+
+  :group 'hass
+  :type '(repeat string))
 
 (defcustom hass-auto-query nil
   "Periodically query the state of the configured in HASS-ENTITIES."
@@ -305,7 +305,7 @@ Use the variable `hass-auto-query-frequency' to change
 the frequency (in seconds) hass-mode should query the Home
 Assistant instance.
 
-Use the variable `hass-entities' to set which entities you want
+Use the variable `hass-auto-entities' to set which entities you want
 to query."
   (interactive)
   (if hass-auto-query
@@ -330,7 +330,7 @@ to query."
 (defun hass-query-all-entities ()
   "Update the current state all of the registered entities."
   (interactive)
-  (dolist (entity hass-entities)
+  (dolist (entity hass-auto-entities)
     (hass--get-entity-state entity)))
 
 (defun hass--auto-query-cancel ()
