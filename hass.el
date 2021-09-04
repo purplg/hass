@@ -357,7 +357,6 @@ to query automatically."
 Key bindings:
 \\{hass-mode-map}"
   :lighter nil
-  :interactive t
   :group 'hass
   :global t
   (when hass-mode
