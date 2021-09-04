@@ -119,3 +119,7 @@ Defaults to 60.
 
 Auto-querying is most useful with the function hook
 `hass-entity-state-updated-functions` explained in the [Hooks](#Hooks) section.
+
+# License
+
+MIT
