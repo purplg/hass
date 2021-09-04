@@ -59,9 +59,6 @@ entity whose state changed.")
   "An alist of entity ids to their last queried states.")
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant.")
-(defvar hass--supported-domains
-  '("switch" "input_boolean")
-  "List of supported domains.")
 (defvar hass--timer nil
   "Stores a reference to the timer used to periodically update
 entity state.")
@@ -249,8 +246,6 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. \"turn_off\")"
             
   (when (equal entity-id nil) (user-error "Missing ENTITY-ID"))
   (let ((domain (hass--domain-of-entity entity-id)))
-    (unless (member domain hass--supported-domains)
-      (user-error "%S is not a supported domain" domain))
     (hass--call-service domain service entity-id)))
 
 ;; Auto query
