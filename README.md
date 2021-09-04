@@ -67,9 +67,6 @@ at the very bottom of this page.
 
 To call a service on Home Assistant, use the `hass-call-service`
 function which has two required arguments: `entity-id` and `service`.
-The domain of the service is detected from first part of the
-`entity-id`. For example, `switch.bedroom_light` is in the `switch`
-domain.
 
 ``` emacs-lisp
 (hass-call-service "switch.bedroom_light" "toggle")
