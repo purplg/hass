@@ -317,9 +317,8 @@ ENTITY-ID.  (e.g. `\"turn_off\"')"
   (setq hass-auto-query nil))
 
 (defun hass-query-all-entities ()
-  "Update the state of all entities."
-  (interactive)
   "Update the current state all of the registered entities."
+  (interactive)
   (dolist (entity hass-entities)
     (hass--get-entity-state entity)))
 
