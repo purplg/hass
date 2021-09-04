@@ -69,9 +69,7 @@ To call a service on Home Assistant, use the `hass-call-service`
 function which has two required arguments: `entity-id` and `service`.
 The domain of the service is detected from first part of the
 `entity-id`. For example, `switch.bedroom_light` is in the `switch`
-domain. Currently, the only valid services available are `turn-on`,
-`turn-off`, and `toggle` and the only supported domains are `switch` and
-`input_boolean`.
+domain.
 
 ``` emacs-lisp
 (hass-call-service "switch.bedroom_light" "toggle")
