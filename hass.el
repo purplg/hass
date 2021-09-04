@@ -120,7 +120,7 @@ SERVICE is a string of the service to call."
   "Return the services available for an ENTITY-ID."
   (cdr (assoc (hass--domain-of-entity entity-id) hass--available-services)))
 
-(defun hass-state-of (entity-id)
+(defun hass--state-of (entity-id)
   "Return the last known state of ENTITY-ID."
   (cdr (assoc entity-id hass--states)))
 
@@ -176,7 +176,7 @@ returns a list of domains and their available services."
   "Callback when an entity state data is received from API.
 
 ENTITY-ID is the id of the entity that has STATE."
-  (let ((previous-state (hass-state-of entity-id)))
+  (let ((previous-state (hass--state-of entity-id)))
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
       (run-hook-with-args 'hass-entity-state-updated-functions entity-id)))
