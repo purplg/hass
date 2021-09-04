@@ -351,8 +351,10 @@ Key bindings:
   :global t
   (when hass-mode
       (unless (equal (type-of (hass--parse-apikey)) 'string)
+          (hass-mode 0)
           (user-error "HASS-APIKEY must be set to use hass-mode"))
       (unless (equal (type-of hass-url) 'string)
+          (hass-mode 0)
           (user-error "HASS-URL must be set to use hass-mode"))
       (when hass-auto-query
         (hass-auto-query-enable))
