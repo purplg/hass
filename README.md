@@ -1,8 +1,10 @@
+# hass-mode
+
 `hass` enables you to control Home Assistant entities from Emacs.
 
-# Installation
+## Installation
 
-## straight.el
+### straight.el
 
 ``` emacs-lisp
 (straight-use-package
@@ -12,7 +14,7 @@
     :repo "purplg/hass"))
 ```
 
-## Doom Emacs
+### Doom Emacs
 
 Place in your `packages.el` to pull the repository.
 
@@ -29,7 +31,7 @@ Then load the package in your main config file.
 (use-package! hass)
 ```
 
-# Configuration
+## Configuration
 
 Both `hass-url` and `hass-apikey` must be set to use this package
 
@@ -49,7 +51,7 @@ The `hass-entity` variable is used when the `hass-query-all-entities`
 function is called. It should contain a list of strings of entity ID's
 for each entity you want included.
 
-## Getting an API Key
+### Getting an API Key
 
 Ensure that your Home Assistant instance is configure to support API
 calls by following the instructions
@@ -61,7 +63,7 @@ username in the lower-left corner or going to this URL:
 `http://HOME-ASSISTANT-URL:8123/profile`. You can generate an API token
 at the very bottom of this page.
 
-# Usage
+## Usage
 
 To call a service on Home Assistant, use the `hass-call-service`
 function which has two required arguments: `entity-id` and `service`.
@@ -78,7 +80,7 @@ domain. Currently, the only valid services available are `turn-on`,
 If you call `hass-call-service` interactively, it will prompt you for an
 entity ID and then the respective service you want to call.
 
-## Hooks
+### Hooks
 
 The most useful hook is a function list named
 `hass-entity-state-updated-functions`. Functions in this list are passed
@@ -103,7 +105,7 @@ not. `hass-service-called-hook` is called when a service is called.
 (add-hook 'hass-entity-state-updated-hook (lambda () (message "An entitys' state was updated.")))
 ```
 
-## Auto-query
+### Auto-query
 
 Auto-querying is a recurring query to the Home Assistant instance to get
 the current state of some entities. The list of entity IDs that will be
