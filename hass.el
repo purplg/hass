@@ -62,9 +62,13 @@ entity whose state changed.")
 (defvar hass--supported-domains
   '("switch" "input_boolean")
   "List of supported domains.")
-(defvar hass--timer nil)
-(defvar hass--available-entities nil)
-(defvar hass--available-services nil)
+(defvar hass--timer nil
+  "Stores a reference to the timer used to periodically update
+entity state.")
+(defvar hass--available-entities nil
+  "The entities retrieved from the Home Assistant instance.")
+(defvar hass--available-services nil
+  "The servies retrieved from the Home Assistant instance.")
 
 ;; Helper functions
 (defun hass--parse-apikey ()
@@ -86,21 +90,26 @@ HASS-APIKEY as is."
   (format "%s/api/services/%s/%s" hass-url domain service))
 
 (defun hass--domain-of-entity (entity-id)
+  "Convert an ENTITY-ID to its respective domain."
   (car (split-string entity-id "\\.")))
 
 (defun hass--services-for-entity (entity-id)
+  "Returns the services available for an ENTITY-ID."
   (cdr (assoc (hass--domain-of-entity entity-id) hass--available-services)))
 
 (defun hass-state-of (entity-id)
+  "Returns the last known state of ENTITY-ID."
   (cdr (assoc entity-id hass--states)))
 
 ;; API parsing
 (defun hass--parse-all-entities (entities)
+  "Convert entity state data into a list of available entities."
   (mapcar (lambda (entity)
             (hass--parse-entity entity))
           entities))
 
 (defun hass--parse-entity (entity-state)
+  "Convert an entity's state data into its entity-id."
   (cdr (car entity-state)))
 
 (defun hass--parse-all-domains (domains)
@@ -123,9 +132,11 @@ to just the service name."
 
 ;; Request Callbacks
 (defun hass--get-entities-result (entities)
+  "Callback when all entity states is received from API."
   (setq hass--available-entities (hass--parse-all-entities entities)))
 
 (defun hass--get-available-services-result (domains)
+  "Callback when all service information is received from API."
   (setq hass--available-services (hass--parse-all-domains domains)))
 
 (defun hass--query-entity-result (entity-id state)
@@ -143,9 +154,14 @@ to just the service name."
 
 ;; Requests
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
+  "Error handler for invalid requests."
   (error "hass-mode: %S" error-thrown))
 
 (defun hass--get-available-entities ()
+  "Retrieve the available entities from the Home Assistant instance.
+
+Makes a request to /api/states but drops everything except an
+list of entity-ids."
   (request (concat hass-url "/api/states")
      :sync nil
      :type "GET"
@@ -159,6 +175,7 @@ to just the service name."
                     (hass--get-entities-result data))))))
 
 (defun hass--get-available-services ()
+  "Retrieve the available services from the Home Assistant instance."
   (request (concat hass-url "/api/services")
      :sync nil
      :type "GET"
@@ -245,6 +262,7 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. \"turn_off\")"
     (hass-auto-query-enable)))
 
 (defun hass-auto-query-enable ()
+  "Enable auto-query."
   (unless hass-mode
     (user-error "hass-mode must be enabled to use this feature."))
   (when hass--timer
@@ -254,16 +272,19 @@ SERVICE is the service you want to call on ENTITY-ID. (e.g. \"turn_off\")"
   (setq hass-auto-query t))
 
 (defun hass-auto-query-disable ()
+  "Disable auto-query."
   (hass--auto-query-cancel)
   (setq hass-auto-query nil))
 
 (defun hass-query-all-entities ()
+  "Update the state of all entities."
   (interactive)
   "Update the current state all of the registered entities."
   (dolist (entity hass-entities)
     (hass--get-entity-state entity)))
 
 (defun hass--auto-query-cancel ()
+  "Cancel auto-query without disabling it."
   (when hass--timer
     (cancel-timer hass--timer)
     (setq hass--timer nil)))
