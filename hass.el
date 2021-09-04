@@ -202,8 +202,7 @@ ERROR-THROWN is the error thrown from the request.el request."
            (user-error "Hass-mode: No Home Assistant instance detected at url: %s" hass-url))
           ((string= error "exited abnormally with code 35\n") 
            (user-error "Hass-mode: Did you mean to use HTTP instead of HTTPS for url %s?" hass-url))
-          (t
-           (error "Hass-mode: unknown error: %S" error-thrown)))))
+          ((error "Hass-mode: unknown error: %S" error-thrown)))))
 
 ;; Requests
 (defun hass--get-available-entities ()
