@@ -327,17 +327,17 @@ to query automatically."
   (hass--auto-query-cancel)
   (setq hass-auto-query nil))
 
-(defun hass-query-all-entities ()
-  "Update the current state all of the registered entities."
-  (interactive)
-  (dolist (entity hass-auto-entities)
-    (hass--get-entity-state entity)))
-
 (defun hass--auto-query-cancel ()
   "Cancel auto-query without disabling it."
   (when hass--timer
     (cancel-timer hass--timer)
     (setq hass--timer nil)))
+
+(defun hass-query-all-entities ()
+  "Update the current state all of the registered entities."
+  (interactive)
+  (dolist (entity hass-auto-entities)
+    (hass--get-entity-state entity)))
 
 ;;;###autoload
 (define-minor-mode hass-mode
