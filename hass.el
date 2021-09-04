@@ -196,7 +196,14 @@ ENTITY-ID is the id of the entity that was affected and now has STATE."
   "Error handler for invalid requests.
 
 ERROR-THROWN is the error thrown from the request.el request."
-  (error "Hass-mode: %S" error-thrown))
+
+  (let ((error (cdr error-thrown)))
+    (cond ((string= error "exited abnormally with code 7\n")
+           (user-error "Hass-mode: No Home Assistant instance detected at url: %s" hass-url))
+          ((string= error "exited abnormally with code 35\n") 
+           (user-error "Hass-mode: Did you mean to use HTTP instead of HTTPS for url %s?" hass-url))
+          (t
+           (error "Hass-mode: unknown error: %S" error-thrown)))))
 
 ;; Requests
 (defun hass--get-available-entities ()
