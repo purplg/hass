@@ -22,6 +22,7 @@
 (defvar hass-mode-map (make-sparse-keymap)
   "Keymap for hass mode.")
 
+
 ;; Customizable
 (defcustom hass-url nil
   "The URL of the Home Assistant instance.
@@ -58,6 +59,7 @@ something like *switch.bedroom_light*."
   :group 'hass
   :type 'integer)
 
+
 ;; Hooks
 (defvar hass-entity-state-updated-functions nil
  "List of functions called when an entity state changes.
@@ -71,6 +73,7 @@ entity whose state changed.")
 (defvar hass-service-called-hook nil
  "Hook called after a service has been called.")
 
+
 ;; Internal state
 (defvar hass--states '()
   "An alist of entity ids to their last queried states.")
@@ -87,6 +90,7 @@ entity whose state changed.")
 (defvar hass--available-services nil
   "The services retrieved from the Home Assistant instance.")
 
+
 ;; Helper functions
 (defun hass--apikey ()
   "Return the effective apikey.
@@ -123,6 +127,7 @@ SERVICE is a string of the service to call."
   "Return the last known state of ENTITY-ID."
   (cdr (assoc entity-id hass--states)))
 
+
 ;; API parsing
 (defun hass--parse-all-entities (entities)
   "Convert entity state data into a list of available entities.
@@ -163,6 +168,7 @@ endpoint."
               (car service))
           services))
 
+
 ;; Request Callbacks
 (defun hass--get-entities-result (entities)
   "Callback when states of all ENTITIES is received from API."
@@ -206,6 +212,7 @@ ERROR-THROWN is the error thrown from the request.el request."
            (user-error "Hass-mode: Did you mean to use HTTP instead of HTTPS for url %s?" hass-url))
           ((error "Hass-mode: unknown error: %S" error-thrown)))))
 
+
 ;; Requests
 (defun hass--request (type url &optional success payload)
   "Function to reduce a lot of boilerplate when making a request.
@@ -300,6 +307,7 @@ ENTITY-ID.  (e.g. `\"turn_off\"')"
   (let ((domain (hass--domain-of-entity entity-id)))
     (hass--call-service domain service entity-id)))
 
+
 ;; Auto query
 (defun hass-auto-query-toggle ()
   "Toggle querying Home Assistant periodically.
@@ -346,6 +354,7 @@ to query automatically."
   (dolist (entity hass-auto-entities)
     (hass--get-entity-state entity)))
 
+
 ;;;###autoload
 (define-minor-mode hass-mode
   "Toggle hass-mode.
