@@ -239,7 +239,7 @@ PAYLOAD is contents the body of the request."
 (defun hass--get-available-entities ()
   "Retrieve the available entities from the Home Assistant instance.
 
-Makes a request to /api/states but drops everything except an
+Makes a request to `/api/states' but drops everything except an
 list of entity-ids."
   (hass--request "GET" (concat hass-url "/api/states")
      (cl-function
