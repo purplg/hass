@@ -208,6 +208,16 @@ ERROR-THROWN is the error thrown from the request.el request."
 
 ;; Requests
 (defun hass--request (type url &optional success payload)
+  "Function to reduce a lot of boilerplate when making a request.
+
+TYPE is a string of the type of request to make. For example, `\"GET\"'.
+
+URL is a string of URL of the request.
+
+SUCCESS is a callback function for when the request successful
+completed.
+
+PAYLOAD is contents the body of the request."
   (request url
      :sync nil
      :type type
