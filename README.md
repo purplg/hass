@@ -75,6 +75,23 @@ function which has two required arguments: `entity-id` and `service`.
 If you call `hass-call-service` interactively, it will prompt you for an
 entity ID and then the respective service you want to call.
 
+### Auto-query
+
+Auto-querying is a recurring query to the Home Assistant instance to get
+the current state of some entities. The list of entity IDs that will be
+queried are found in the variable `hass-auto-entities`.
+
+``` emacs-lisp
+(setq hass-auto-entities '("switch.bedroom_light" "switch.bedroom_fan"))
+```
+
+The frequency of the query can be adjusted by setting
+`hass-auto-query-frequency` to the number of seconds you'd like.
+Defaults to 60.
+
+Auto-querying is most useful with the function hook
+`hass-entity-state-updated-functions` explained in the [Hooks](#Hooks) section.
+
 ### Hooks
 
 The most useful hook is a function list named
@@ -99,23 +116,6 @@ not. `hass-service-called-hook` is called when a service is called.
 (add-hook 'hass-service-called-hook (lambda () (message "A service was called.")))
 (add-hook 'hass-entity-state-updated-hook (lambda () (message "An entitys' state was updated.")))
 ```
-
-### Auto-query
-
-Auto-querying is a recurring query to the Home Assistant instance to get
-the current state of some entities. The list of entity IDs that will be
-queried are found in the variable `hass-auto-entities`.
-
-``` emacs-lisp
-(setq hass-auto-entities '("switch.bedroom_light" "switch.bedroom_fan"))
-```
-
-The frequency of the query can be adjusted by setting
-`hass-auto-query-frequency` to the number of seconds you'd like.
-Defaults to 60.
-
-Auto-querying is most useful with the function hook
-`hass-entity-state-updated-functions` explained in the [Hooks](#Hooks) section.
 
 # License
 
