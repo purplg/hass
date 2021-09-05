@@ -94,10 +94,10 @@ Auto-querying is most useful with the function hook
 
 ### Hooks
 
-The most useful hook is a function list named
-`hass-entity-state-updated-functions`. Functions in this list are passed
-a single argument `entity-id` which is the entity id of the entity whose
-state has changed since it was last updated.
+The most useful hook is a function list named `hass-entity-state-updated-functions`. Functions in
+this list are passed a single argument `entity-id` which is the entity id of the entity whose state
+has changed since it was last updated. Using this function hook along side
+[auto-querying](#Auto-query) enables Emacs to react to changes to Home Assistant entities.
 
 This example will display the state of an entity when it changes:
 
