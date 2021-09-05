@@ -40,7 +40,7 @@ Both `hass-url` and `hass-apikey` must be set to use this package
       hass-apikey "APIKEY-GOES-IN-HERE")
 ```
 
-Alternatively, you can store a lambda function inside `hass-apikey`.
+Alternatively, you can store a function inside `hass-apikey`.
 This will be executed on every query.
 
 ``` emacs-lisp

@@ -32,7 +32,7 @@ Both ~hass-url~ and ~hass-apikey~ must be set to use this package
       hass-apikey "APIKEY-GOES-IN-HERE")
 #+END_SRC
 
-Alternatively, you can store a lambda function inside ~hass-apikey~. This will be executed on every
+Alternatively, you can store a function inside ~hass-apikey~. This will be executed on every
 query.
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-apikey (lambda () (auth-source-pass-get 'secret "home/hass/emacs-apikey")))
