@@ -207,52 +207,46 @@ ERROR-THROWN is the error thrown from the request.el request."
           ((error "Hass-mode: unknown error: %S" error-thrown)))))
 
 ;; Requests
+(defun hass--request (type url &optional success payload)
+  (request url
+     :sync nil
+     :type type
+     :headers `(("User-Agent" . hass--user-agent)
+                ("Authorization" . ,(concat "Bearer " (hass--apikey)))
+                ("Content-Type" . "application/json"))
+     :data payload
+     :parser #'json-read
+     :error #'hass--request-error
+     :success success))
+
 (defun hass--get-available-entities ()
   "Retrieve the available entities from the Home Assistant instance.
 
 Makes a request to /api/states but drops everything except an
 list of entity-ids."
-  (request (concat hass-url "/api/states")
-     :sync nil
-     :type "GET"
-     :headers `(("User-Agent" . hass--user-agent)
-                ("Authorization" . ,(concat "Bearer " (hass--apikey))))
-     :parser 'json-read
-     :error #'hass--request-error
-     :success (cl-function
-                (lambda (&key response &allow-other-keys)
-                  (let ((data (request-response-data response)))
-                    (hass--get-entities-result data))))))
+  (hass--request "GET" (concat hass-url "/api/states")
+     (cl-function
+       (lambda (&key response &allow-other-keys)
+         (let ((data (request-response-data response)))
+           (hass--get-entities-result data))))))
 
 (defun hass--get-available-services ()
   "Retrieve the available services from the Home Assistant instance."
-  (request (concat hass-url "/api/services")
-     :sync nil
-     :type "GET"
-     :headers `(("User-Agent" . hass--user-agent)
-                ("Authorization" . ,(concat "Bearer " (hass--apikey))))
-     :parser 'json-read
-     :error #'hass--request-error
-     :success (cl-function
-                (lambda (&key response &allow-other-keys)
-                  (let ((data (request-response-data response)))
-                    (hass--get-available-services-result data))))))
+  (hass--request "GET" (concat hass-url "/api/services")
+     (cl-function
+       (lambda (&key response &allow-other-keys)
+         (let ((data (request-response-data response)))
+           (hass--get-available-services-result data))))))
 
 (defun hass--get-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server.
 
 This function is just for sending the actual API request."
-  (request (hass--entity-url entity-id)
-     :sync nil
-     :type "GET"
-     :headers `(("User-Agent" . hass--user-agent)
-                ("Authorization" . ,(concat "Bearer " (hass--apikey))))
-     :parser 'json-read
-     :error #'hass--request-error
-     :success (cl-function
-                (lambda (&key response &allow-other-keys)
-                  (let ((data (request-response-data response)))
-                    (hass--query-entity-result entity-id (cdr (assoc 'state data))))))))
+  (hass--request "GET" (hass--entity-url entity-id)
+    (cl-function
+      (lambda (&key response &allow-other-keys)
+        (let ((data (request-response-data response)))
+          (hass--query-entity-result entity-id (cdr (assoc 'state data))))))))
 
 (defun hass--call-service (domain service entity-id)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
@@ -265,19 +259,11 @@ SERVICE is a string of the Home Assistance service in DOMAIN that
 is being called.
 
 ENTITY-ID is a string of the entity_id in Home Assistant."
-  (request (hass--service-url domain service)
-     :sync nil
-     :type "POST"
-     :headers `(("User-Agent" . hass--user-agent)
-                ("Authorization" . ,(concat "Bearer " (hass--apikey)))
-                ("Content-Type" . "application/json"))
-     :data (format "{\"entity_id\": \"%s\"}" entity-id)
-     :parser 'json-read
-     :error #'hass--request-error
-     :success (cl-function
-                (lambda (&rest _)
-                  (run-hooks 'hass-service-called-hook)
-                  (hass--get-entity-state entity-id)))))
+  (hass--request "POST" (hass--service-url domain service)
+    #'(lambda (&rest _)
+        (run-hooks 'hass-service-called-hook)
+        (hass--get-entity-state entity-id))
+    (format "{\"entity_id\": \"%s\"}" entity-id)))
 
 (defun hass-call-service (entity-id service)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
