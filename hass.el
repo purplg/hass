@@ -107,13 +107,14 @@ return HASS-APIKEY as is."
 ENTITY-ID is a string of the entities ID."
   (format "%s/%s/%s" hass-url "api/states" entity-id))
 
-(defun hass--service-url (domain service)
+(defun hass--service-url (service)
   "Generate service endpoint URL.
 
-DOMAIN is a string of the domain the SERVICE resides in.
-
 SERVICE is a string of the service to call."
-  (format "%s/api/services/%s/%s" hass-url domain service))
+  (let* ((parts (split-string service "\\."))
+         (domain (pop parts))
+         (service (pop parts)))
+    (format "%s/api/services/%s/%s" hass-url domain service)))
 
 (defun hass--domain-of-entity (entity-id)
   "Convert an ENTITY-ID to its respective domain."
@@ -226,15 +227,15 @@ completed.
 
 PAYLOAD is contents the body of the request."
   (request url
-     :sync nil
-     :type type
-     :headers `(("User-Agent" . hass--user-agent)
-                ("Authorization" . ,(concat "Bearer " (hass--apikey)))
-                ("Content-Type" . "application/json"))
-     :data payload
-     :parser #'json-read
-     :error #'hass--request-error
-     :success success))
+       :sync nil
+       :type type
+       :headers `(("User-Agent" . hass--user-agent)
+                  ("Authorization" . ,(concat "Bearer " (hass--apikey)))
+                  ("Content-Type" . "application/json"))
+       :data payload
+       :parser #'json-read
+       :error #'hass--request-error
+       :success success))
 
 (defun hass--get-available-entities ()
   "Retrieve the available entities from the Home Assistant instance.
@@ -265,7 +266,7 @@ This function is just for sending the actual API request."
         (let ((data (request-response-data response)))
           (hass--query-entity-result entity-id (cdr (assoc 'state data))))))))
 
-(defun hass--call-service (domain service entity-id)
+(defun hass--call-service (service payload &optional success-callback)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 
 This function is just for building and sending the actual API request.
@@ -276,13 +277,12 @@ SERVICE is a string of the Home Assistance service in DOMAIN that
 is being called.
 
 ENTITY-ID is a string of the entity_id in Home Assistant."
-  (hass--request "POST" (hass--service-url domain service)
-    #'(lambda (&rest _)
-        (run-hooks 'hass-service-called-hook)
-        (hass--get-entity-state entity-id))
-    (format "{\"entity_id\": \"%s\"}" entity-id)))
+  (hass--request "POST"
+                 (hass--service-url service)
+                 success-callback
+                 payload))
 
-(defun hass-call-service (entity-id service)
+(defun hass-call-service-on-entity (entity-id service)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 
 If called interactively, prompt the user for an ENTITY-ID and
@@ -301,11 +301,15 @@ ENTITY-ID.  (e.g. `\"turn_off\"')"
   (interactive
     (let ((entity (completing-read "Entity: " hass--available-entities nil t)))
       (list entity
-        (completing-read (format "%s: " entity)
-                         (hass--services-for-entity entity) nil t))))
-            
-  (let ((domain (hass--domain-of-entity entity-id)))
-    (hass--call-service domain service entity-id)))
+            (format "%s.%s" (hass--domain-of-entity entity)
+                            (completing-read (format "%s: " entity)
+                                             (hass--services-for-entity entity) nil t)))))
+
+  (hass--call-service service
+                      (format "{\"entity_id\": \"%s\"}" entity-id)
+                      #'(lambda (&rest _)
+                          (run-hooks 'hass-service-called-hook)
+                          (hass--get-entity-state entity-id))))
 
 
 ;; Auto query
