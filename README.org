@@ -62,6 +62,29 @@ arguments: ~entity-id~ and ~service~.
 If you call ~hass-call-service~ interactively, it will prompt you for an entity ID and then the
 respective service you want to call.
 
+** Payloads
+
+For services that require additional data use the ~hass-call-service-with-payload~ function. The
+second argument, ~payload~, requires an JSON encoded string.
+
+This example publishes to an MQTT topic:
+
+#+BEGIN_SRC emacs-lisp :results none
+(hass-call-service-with-payload "mqtt.publish"
+                                (json-encode '(("payload" . "PERFORM")
+                                               ("topic" . "valetudo/vacuum/LocateCapability/locate/set"))))
+#+END_SRC
+
+You could pass a JSON string directly, but that would require escaping every quote which can be
+cumbersome. Here's what the encoded list above looks like in JSON:
+
+#+BEGIN_SRC javascript
+{
+  "payload": "PERFORM",
+  "topic": "valetudo/vacuum/LocateCapability/locate/set"
+}
+#+END_SRC
+
 ** Auto-query
 Auto-querying is a recurring query to the Home Assistant instance to get the current state of some
 entities. The list of entity IDs that will be queried are found in the variable ~hass-auto-entities~.
