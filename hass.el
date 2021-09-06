@@ -191,7 +191,7 @@ ERROR-THROWN is the error thrown from the request.el request."
     (cond ((string= error "exited abnormally with code 7\n")
            (hass-mode 0)
            (user-error "Hass-mode: No Home Assistant instance detected at url: %s" hass-url))
-          ((string= error "exited abnormally with code 35\n") 
+          ((string= error "exited abnormally with code 35\n")
            (hass-mode 0)
            (user-error "Hass-mode: Did you mean to use HTTP instead of HTTPS for url %s?" hass-url))
           ((error "Hass-mode: unknown error: %S" error-thrown)))))
@@ -200,7 +200,7 @@ ERROR-THROWN is the error thrown from the request.el request."
 ;; Requests
 (defun hass--request (type url &optional success payload)
   "Function to reduce a lot of boilerplate when making a request.
-TYPE is a string of the type of request to make. For example, `\"GET\"'.
+TYPE is a string of the type of request to make.  For example, `\"GET\"'.
 
 URL is a string of URL of the request.
 
@@ -250,12 +250,11 @@ This function is just for sending the actual API request."
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 This function is just for building and sending the actual API request.
 
-DOMAIN is a string for the domain in Home Assistant this service is apart of.
+SERVICE is a string of the Home Assistant service to be called.
 
-SERVICE is a string of the Home Assistance service in DOMAIN that
-is being called.
+PAYLOAD is a JSON-encoded string of the payload to be sent with SERVICE.
 
-ENTITY-ID is a string of the entity_id in Home Assistant."
+SUCCESS-CALLBACK is a function to be called with a successful request response."
   (hass--request "POST"
                  (hass--service-url service)
                  success-callback
@@ -283,7 +282,7 @@ SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')"
    (format "{\"entity_id\": \"%s\"}" entity-id)
    (lambda (&rest _) (hass--get-entity-state entity-id))))
 
-(defun hass-call-service-with-payload (service payload &optional callback)
+(defun hass-call-service-with-payload (service payload &optional success-callback)
   "Call service with a custom payload on Home Assistant.
 This will send an API request to the url configure in `hass-url'.
 
@@ -291,7 +290,7 @@ SERVICE is a string of the Home Assistant service to be called.
 
 PAYLOAD is a JSON-encoded string of the payload to be sent with SERVICE.
 
-CALLBACK is an optional function to be called after the service call is sent."
+SUCCESS-CALLBACK is a function to be called with a successful request response."
   (hass--call-service
    service
    payload
@@ -305,9 +304,9 @@ Auto-querying is a way to periodically query the state of
 entities you want to hook into to capture when their state
 changes.
 
-Use the variable `hass-auto-query-frequency' to change
-the frequency (in seconds) hass-mode should query the Home
-Assistant instance.
+Use the variable `hass-auto-query-frequency' to change how
+frequently (in seconds) the Home Assistant instance should be
+queried.
 
 Use the variable `hass-auto-entities' to set which entities you want
 to query automatically."
@@ -343,7 +342,7 @@ to query automatically."
 
 ;;;###autoload
 (define-minor-mode hass-mode
-  "Toggle hass-mode.
+  "Toggle Home Assistant mode.
 Key bindings:
 \\{hass-mode-map}"
   :lighter nil
