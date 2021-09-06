@@ -3,6 +3,7 @@
 
 * Installation
 ** straight.el
+
 #+BEGIN_SRC emacs-lisp :results none
 (straight-use-package
   '(hass
@@ -12,7 +13,9 @@
 #+END_SRC
 
 ** Doom Emacs
+
 Place in your ~packages.el~ to pull the repository.
+
 #+BEGIN_SRC emacs-lisp :results none
 (package! hass
   :recipe
@@ -21,12 +24,15 @@ Place in your ~packages.el~ to pull the repository.
 #+END_SRC
 
 Then load the package in your main config file.
+
 #+BEGIN_SRC emacs-lisp :results none
 (use-package! hass)
 #+END_SRC
 
 * Configuration
+
 Both ~hass-url~ and ~hass-apikey~ must be set to use this package
+
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-url "https://192.168.1.10:8123"
       hass-apikey "APIKEY-GOES-IN-HERE")
@@ -34,6 +40,7 @@ Both ~hass-url~ and ~hass-apikey~ must be set to use this package
 
 Alternatively, you can store a function inside ~hass-apikey~. This will be executed on every
 query.
+
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-apikey (lambda () (auth-source-pass-get 'secret "home/hass/emacs-apikey")))
 #+END_SRC
@@ -52,6 +59,7 @@ and going to your profile by selecting your username in the lower-left corner or
 page.
 
 * Usage
+
 To call a service on Home Assistant, use the ~hass-call-service~ function which has two required
 arguments: ~entity-id~ and ~service~.
 
@@ -86,6 +94,7 @@ cumbersome. Here's what the encoded list above looks like in JSON:
 #+END_SRC
 
 ** Auto-query
+
 Auto-querying is a recurring query to the Home Assistant instance to get the current state of some
 entities. The list of entity IDs that will be queried are found in the variable ~hass-auto-entities~.
 
@@ -107,6 +116,7 @@ has changed since it was last updated. Using this function hook along side [[*Au
 Emacs to react to changes to Home Assistant entities.
 
 This example will display the state of an entity when it changes:
+
 #+BEGIN_SRC emacs-lisp :results none
 (add-hook 'hass-entity-state-updated-functions
   (lambda (entity-id)
