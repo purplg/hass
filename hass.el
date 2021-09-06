@@ -282,16 +282,16 @@ ENTITY-ID.  (e.g. `\"turn_off\"')"
             (format "%s.%s"
                     (hass--domain-of-entity entity)
                     (completing-read (format "%s: " entity) (hass--services-for-entity entity) nil t)))))
-  (hass--call-service
+  (hass-call-service-with-payload
    service
    (format "{\"entity_id\": \"%s\"}" entity-id)
-   (lambda (&rest _) (run-hooks 'hass-service-called-hook) (hass--get-entity-state entity-id))))
+   (lambda (&rest _) (hass--get-entity-state entity-id))))
 
-(defun hass-call-service-with-payload (service payload)
+(defun hass-call-service-with-payload (service payload &optional callback)
   (hass--call-service
    service
    payload
-   (lambda (&rest _) (run-hooks 'hass-service-called-hook))))
+   (lambda (&rest _) (run-hooks 'hass-service-called-hook) (funcall callback))))
 
 
 ;; Auto query
