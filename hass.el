@@ -126,8 +126,7 @@ SERVICE is a string of the service to call."
 (defun hass--parse-all-entities (entities)
   "Convert entity state data into a list of available entities.
 ENTITIES is the data returned from the `/api/states' endpoint."
-  (delq nil (mapcar (lambda (entity)
-                      (hass--parse-entity entity))
+  (delq nil (mapcar (lambda (entity) (hass--parse-entity entity))
                     entities)))
 
 (defun hass--parse-entity (entity-state)
@@ -154,8 +153,7 @@ endpoint."
   
 (defun hass--parse-services (services)
   "Flattens the SERVICES return from `/api/services' endpoint to just the service name."
-  (mapcar #'(lambda (service)
-              (car service))
+  (mapcar (lambda (service) (car service))
           services))
 
 
@@ -281,15 +279,15 @@ ENTITY-ID.  (e.g. `\"turn_off\"')"
   (interactive
     (let ((entity (completing-read "Entity: " hass--available-entities nil t)))
       (list entity
-            (format "%s.%s" (hass--domain-of-entity entity)
-                            (completing-read (format "%s: " entity)
-                                             (hass--services-for-entity entity) nil t)))))
+            (format "%s.%s"
+                    (hass--domain-of-entity entity)
+                    (completing-read (format "%s: " entity) (hass--services-for-entity entity) nil t)))))
 
   (hass--call-service service
       (or payload (format "{\"entity_id\": \"%s\"}" entity-id))
-      #'(lambda (&rest _)
-          (run-hooks 'hass-service-called-hook)
-          (hass--get-entity-state entity-id))))
+      (lambda (&rest _)
+        (run-hooks 'hass-service-called-hook)
+        (hass--get-entity-state entity-id))))
 
 
 ;; Auto query
@@ -312,12 +310,9 @@ to query automatically."
 
 (defun hass-auto-query-enable ()
   "Enable auto-query."
-  (unless hass-mode
-    (user-error "Hass-mode must be enabled to use this feature"))
-  (when hass--timer
-    (hass--auto-query-cancel))
-  (setq hass--timer
-    (run-with-timer nil hass-auto-query-frequency 'hass-query-all-entities))
+  (unless hass-mode (user-error "Hass-mode must be enabled to use this feature"))
+  (when hass--timer (hass--auto-query-cancel))
+  (setq hass--timer (run-with-timer nil hass-auto-query-frequency 'hass-query-all-entities))
   (setq hass-auto-query t))
 
 (defun hass-auto-query-disable ()
@@ -353,12 +348,10 @@ Key bindings:
       (unless (equal (type-of hass-url) 'string)
           (hass-mode 0)
           (user-error "HASS-URL must be set to use hass-mode"))
-      (when hass-auto-query
-        (hass-auto-query-enable))
+      (when hass-auto-query (hass-auto-query-enable))
       (hass--get-available-entities)
       (hass--get-available-services))
-  (unless hass-mode
-    (hass--auto-query-cancel)))
+  (unless hass-mode (hass--auto-query-cancel)))
 
 (provide 'hass)
 
