@@ -3,7 +3,7 @@
 
 * Installation
 ** straight.el
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :results none
 (straight-use-package
   '(hass
     :type git
@@ -21,7 +21,7 @@ Place in your ~packages.el~ to pull the repository.
 #+END_SRC
 
 Then load the package in your main config file.
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :results none
 (use-package! hass)
 #+END_SRC
 
@@ -55,7 +55,7 @@ page.
 To call a service on Home Assistant, use the ~hass-call-service~ function which has two required
 arguments: ~entity-id~ and ~service~.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :results none
 (hass-call-service "switch.bedroom_light" "switch.toggle")
 #+END_SRC
 
@@ -95,7 +95,7 @@ The other two hooks available are ~hass-entity-state-updated-hook~ and
 is updated, regardless of if it changed or not. ~hass-service-called-hook~ is called when a service
 is called.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :results none
 (add-hook 'hass-service-called-hook (lambda () (message "A service was called.")))
 (add-hook 'hass-entity-state-updated-hook (lambda () (message "An entitys' state was updated.")))
 #+END_SRC
