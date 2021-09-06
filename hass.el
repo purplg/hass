@@ -262,20 +262,16 @@ ENTITY-ID is a string of the entity_id in Home Assistant."
                  payload))
 
 (defun hass-call-service (entity-id service)
-  "Call service SERVICE for ENTITY-ID on the Home Assistant server.
+  "Call service for an entity on Home Assistant.
 If called interactively, prompt the user for an ENTITY-ID and
 SERVICE to call.
 
 This will send an API request to the url configure in `hass-url'.
 
-This function requires both ENTITY-ID and SERVICE keyword
-arguments to be passed.
-
 ENTITY-ID is a string of the entity id in Home Assistant you want
 to call the service on.  (e.g. `\"switch.kitchen_light\"').
 
-SERVICE is the service you want to call on
-ENTITY-ID.  (e.g. `\"turn_off\"')"
+SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')"
   (interactive
     (let ((entity (completing-read "Entity: " hass--available-entities nil t)))
       (list entity
@@ -288,6 +284,14 @@ ENTITY-ID.  (e.g. `\"turn_off\"')"
    (lambda (&rest _) (hass--get-entity-state entity-id))))
 
 (defun hass-call-service-with-payload (service payload &optional callback)
+  "Call service with a custom payload on Home Assistant.
+This will send an API request to the url configure in `hass-url'.
+
+SERVICE is a string of the Home Assistant service to be called.
+
+PAYLOAD is a JSON-encoded string of the payload to be sent with SERVICE.
+
+CALLBACK is an optional function to be called after the service call is sent."
   (hass--call-service
    service
    payload
