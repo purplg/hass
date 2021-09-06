@@ -295,7 +295,7 @@ CALLBACK is an optional function to be called after the service call is sent."
   (hass--call-service
    service
    payload
-   (lambda (&rest _) (run-hooks 'hass-service-called-hook) (funcall callback))))
+   (lambda (&rest _) (run-hooks 'hass-service-called-hook) (when callback (funcall callback)))))
 
 
 ;; Auto query
