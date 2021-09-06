@@ -83,9 +83,10 @@ second argument, `payload`, requires an JSON encoded string.
 This example publishes to an MQTT topic:
 
 ``` emacs-lisp
-(hass-call-service-with-payload "mqtt.publish"
-                                (json-encode '(("payload" . "PERFORM")
-                                               ("topic" . "valetudo/vacuum/LocateCapability/locate/set"))))
+(hass-call-service-with-payload
+ "mqtt.publish"
+ (json-encode '(("payload" . "PERFORM")
+                ("topic" . "valetudo/vacuum/LocateCapability/locate/set"))))
 ```
 
 You could pass a JSON string directly, but that would require escaping every quote which can be
