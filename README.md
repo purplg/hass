@@ -69,7 +69,7 @@ To call a service on Home Assistant, use the `hass-call-service`
 function which has two required arguments: `entity-id` and `service`.
 
 ``` emacs-lisp
-(hass-call-service "switch.bedroom_light" "toggle")
+(hass-call-service "switch.bedroom_light" "switch.toggle")
 ```
 
 If you call `hass-call-service` interactively, it will prompt you for an
