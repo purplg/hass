@@ -261,7 +261,7 @@ ENTITY-ID is a string of the entity_id in Home Assistant."
                  success-callback
                  payload))
 
-(defun hass-call-service (entity-id service &optional payload)
+(defun hass-call-service (entity-id service)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 If called interactively, prompt the user for an ENTITY-ID and
 SERVICE to call.
@@ -282,12 +282,16 @@ ENTITY-ID.  (e.g. `\"turn_off\"')"
             (format "%s.%s"
                     (hass--domain-of-entity entity)
                     (completing-read (format "%s: " entity) (hass--services-for-entity entity) nil t)))))
+  (hass--call-service
+   service
+   (format "{\"entity_id\": \"%s\"}" entity-id)
+   (lambda (&rest _) (run-hooks 'hass-service-called-hook) (hass--get-entity-state entity-id))))
 
-  (hass--call-service service
-      (or payload (format "{\"entity_id\": \"%s\"}" entity-id))
-      (lambda (&rest _)
-        (run-hooks 'hass-service-called-hook)
-        (hass--get-entity-state entity-id))))
+(defun hass-call-service-with-payload (service payload)
+  (hass--call-service
+   service
+   payload
+   (lambda (&rest _) (run-hooks 'hass-service-called-hook))))
 
 
 ;; Auto query
