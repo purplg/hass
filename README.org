@@ -3,7 +3,8 @@
 
 * Installation
 ** straight.el
-#+BEGIN_SRC emacs-lisp
+
+#+BEGIN_SRC emacs-lisp :results none
 (straight-use-package
   '(hass
     :type git
@@ -12,7 +13,9 @@
 #+END_SRC
 
 ** Doom Emacs
+
 Place in your ~packages.el~ to pull the repository.
+
 #+BEGIN_SRC emacs-lisp :results none
 (package! hass
   :recipe
@@ -21,12 +24,15 @@ Place in your ~packages.el~ to pull the repository.
 #+END_SRC
 
 Then load the package in your main config file.
-#+BEGIN_SRC emacs-lisp
+
+#+BEGIN_SRC emacs-lisp :results none
 (use-package! hass)
 #+END_SRC
 
 * Configuration
+
 Both ~hass-url~ and ~hass-apikey~ must be set to use this package
+
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-url "https://192.168.1.10:8123"
       hass-apikey "APIKEY-GOES-IN-HERE")
@@ -34,6 +40,7 @@ Both ~hass-url~ and ~hass-apikey~ must be set to use this package
 
 Alternatively, you can store a function inside ~hass-apikey~. This will be executed on every
 query.
+
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-apikey (lambda () (auth-source-pass-get 'secret "home/hass/emacs-apikey")))
 #+END_SRC
@@ -52,17 +59,43 @@ and going to your profile by selecting your username in the lower-left corner or
 page.
 
 * Usage
+
 To call a service on Home Assistant, use the ~hass-call-service~ function which has two required
 arguments: ~entity-id~ and ~service~.
 
-#+BEGIN_SRC emacs-lisp
-(hass-call-service "switch.bedroom_light" "toggle")
+#+BEGIN_SRC emacs-lisp :results none
+(hass-call-service "switch.bedroom_light" "switch.toggle")
 #+END_SRC
 
 If you call ~hass-call-service~ interactively, it will prompt you for an entity ID and then the
 respective service you want to call.
 
+** Payloads
+
+For services that require additional data use the ~hass-call-service-with-payload~ function. The
+second argument, ~payload~, requires an JSON encoded string.
+
+This example publishes to an MQTT topic:
+
+#+BEGIN_SRC emacs-lisp :results none
+(hass-call-service-with-payload
+ "mqtt.publish"
+ (json-encode '(("payload" . "PERFORM")
+                ("topic" . "valetudo/vacuum/LocateCapability/locate/set"))))
+#+END_SRC
+
+You could pass a JSON string directly, but that would require escaping every quote which can be
+cumbersome. Here's what the encoded list above looks like in JSON:
+
+#+BEGIN_SRC javascript
+{
+  "payload": "PERFORM",
+  "topic": "valetudo/vacuum/LocateCapability/locate/set"
+}
+#+END_SRC
+
 ** Auto-query
+
 Auto-querying is a recurring query to the Home Assistant instance to get the current state of some
 entities. The list of entity IDs that will be queried are found in the variable ~hass-auto-entities~.
 
@@ -84,6 +117,7 @@ has changed since it was last updated. Using this function hook along side [[*Au
 Emacs to react to changes to Home Assistant entities.
 
 This example will display the state of an entity when it changes:
+
 #+BEGIN_SRC emacs-lisp :results none
 (add-hook 'hass-entity-state-updated-functions
   (lambda (entity-id)
@@ -95,7 +129,7 @@ The other two hooks available are ~hass-entity-state-updated-hook~ and
 is updated, regardless of if it changed or not. ~hass-service-called-hook~ is called when a service
 is called.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :results none
 (add-hook 'hass-service-called-hook (lambda () (message "A service was called.")))
 (add-hook 'hass-entity-state-updated-hook (lambda () (message "An entitys' state was updated.")))
 #+END_SRC
