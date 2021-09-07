@@ -1,7 +1,7 @@
 ;;; hass.el --- Interact with Home Assistant -*- lexical-binding: t; -*-
 
 ;; Package-Requires: ((emacs "25.1") (request "0.3.3"))
-;; Version: 1.1
+;; Version: 1.1.1
 ;; Author: Ben Whitley
 ;;; Commentary:
 
