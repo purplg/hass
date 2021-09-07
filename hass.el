@@ -166,7 +166,8 @@ endpoint."
   "Callback when all service information is received from API.
 DOMAINS is the response from the `/api/services' endpoint which
 returns a list of domains and their available services."
-  (setq hass--available-services (hass--parse-all-domains domains)))
+  (setq hass--available-services (hass--parse-all-domains domains))
+  (hass--get-available-entities))
 
 (defun hass--query-entity-result (entity-id state)
   "Callback when an entity state data is received from API.
@@ -356,7 +357,6 @@ Key bindings:
           (hass-mode 0)
           (user-error "HASS-URL must be set to use hass-mode"))
       (when hass-auto-query (hass-auto-query-enable))
-      (hass--get-available-entities)
       (hass--get-available-services))
   (unless hass-mode (hass--auto-query-cancel)))
 
