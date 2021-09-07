@@ -294,7 +294,7 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
   (hass--call-service
    service
    payload
-   (lambda (&rest _) (run-hooks 'hass-service-called-hook) (when callback (funcall callback)))))
+   (lambda (&rest _) (run-hooks 'hass-service-called-hook) (when success-callback (funcall success-callback)))))
 
 
 ;; Auto query
