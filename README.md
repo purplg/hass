@@ -77,7 +77,7 @@ entity ID and then the respective service you want to call.
 
 ### Payloads
 
-For services that require additional data use the ~hass-call-service-with-payload~ function. The
+For services that require additional data use the `hass-call-service-with-payload` function. The
 second argument, `payload`, requires an JSON encoded string.
 
 This example publishes to an MQTT topic:
