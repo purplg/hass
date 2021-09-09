@@ -12,7 +12,7 @@
 ;; Homepage: https://github.com/purplg/hass
 
 ;;; Code:
-(require' json)
+(require 'json)
 (require 'request)
 
 (defgroup hass '()
