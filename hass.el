@@ -20,7 +20,7 @@
   :group 'hass
   :prefix "hass-")
 
-(defvar hass-mode-map (make-sparse-keymap)
+(defvar hass-watch-mode-map (make-sparse-keymap)
   "Keymap for hass mode.")
 
 
