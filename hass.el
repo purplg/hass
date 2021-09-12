@@ -217,7 +217,8 @@ PAYLOAD is contents the body of the request."
 (defun hass--get-available-entities (&optional callback)
   "Retrieve the available entities from the Home Assistant instance.
 Makes a request to `/api/states' but drops everything except an
-list of entity-ids."
+list of entity-ids.
+Optional argument CALLBACK ran after entities are received."
   (hass--request "GET" (concat hass-url "/api/states")
      (cl-function
        (lambda (&key response &allow-other-keys)
@@ -226,7 +227,8 @@ list of entity-ids."
          (when callback (funcall callback))))))
 
 (defun hass--get-available-services (&optional callback)
-  "Retrieve the available services from the Home Assistant instance."
+  "Retrieve the available services from the Home Assistant instance.
+Optional argument CALLBACK ran after services are received."
   (hass--request "GET" (concat hass-url "/api/services")
      (cl-function
        (lambda (&key response &allow-other-keys)
