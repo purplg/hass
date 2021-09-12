@@ -3,6 +3,7 @@
 ;; Package-Requires: ((emacs "25.1") (request "0.3.3"))
 ;; Version: 1.2.0
 ;; Author: Ben Whitley
+;; SPDX-License-Identifier: MIT
 ;;; Commentary:
 
 ;; This mode enables interaction with a Home Assistant instance from within Emacs.
