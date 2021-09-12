@@ -235,8 +235,7 @@ list of entity-ids."
          (when callback (funcall callback))))))
 
 (defun hass--get-entity-state (entity-id)
-  "Retrieve the current state of ENTITY-ID from the Home Assistant server.
-This function is just for sending the actual API request."
+  "Retrieve the current state of ENTITY-ID from the Home Assistant server."
   (hass--request "GET" (hass--entity-url entity-id)
     (cl-function
       (lambda (&key response &allow-other-keys)
@@ -245,7 +244,6 @@ This function is just for sending the actual API request."
 
 (defun hass--call-service (service payload &optional success-callback)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
-This function is just for building and sending the actual API request.
 
 SERVICE is a string of the Home Assistant service to be called.
 
