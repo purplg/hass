@@ -184,10 +184,10 @@ ENTITY-ID is the id of the entity that was affected and now has STATE."
 ERROR-THROWN is the error thrown from the request.el request."
   (let ((error (cdr error-thrown)))
     (cond ((string= error "exited abnormally with code 7\n")
-           (user-error "hass: No Home Assistant instance detected at url: %s" hass-url))
+           (user-error "Hass: No Home Assistant instance detected at url: %s" hass-url))
           ((string= error "exited abnormally with code 35\n")
-           (user-error "hass: Did you mean to use HTTP instead of HTTPS for url %s?" hass-url))
-          ((error "hass: unknown error: %S" error-thrown)))))
+           (user-error "Hass: Did you mean to use HTTP instead of HTTPS for url %s?" hass-url))
+          ((error "Hass: unknown error: %S" error-thrown)))))
 
 
 ;; Requests
