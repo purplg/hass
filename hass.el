@@ -167,8 +167,7 @@ endpoint."
   "Callback when all service information is received from API.
 DOMAINS is the response from the `/api/services' endpoint which
 returns a list of domains and their available services."
-  (setq hass--available-services (hass--parse-all-domains domains))
-  (hass--get-available-entities))
+  (setq hass--available-services (hass--parse-all-domains domains)))
 
 (defun hass--query-entity-result (entity-id state)
   "Callback when an entity state data is received from API.
@@ -221,7 +220,7 @@ PAYLOAD is contents the body of the request."
        :error #'hass--request-error
        :success success))
 
-(defun hass--get-available-entities ()
+(defun hass--get-available-entities (&optional callback)
   "Retrieve the available entities from the Home Assistant instance.
 Makes a request to `/api/states' but drops everything except an
 list of entity-ids."
@@ -229,15 +228,17 @@ list of entity-ids."
      (cl-function
        (lambda (&key response &allow-other-keys)
          (let ((data (request-response-data response)))
-           (hass--get-entities-result data))))))
+           (hass--get-entities-result data))
+         (when callback (funcall callback))))))
 
-(defun hass--get-available-services ()
+(defun hass--get-available-services (&optional callback)
   "Retrieve the available services from the Home Assistant instance."
   (hass--request "GET" (concat hass-url "/api/services")
      (cl-function
        (lambda (&key response &allow-other-keys)
          (let ((data (request-response-data response)))
-           (hass--get-available-services-result data))))))
+           (hass--get-available-services-result data))
+         (when callback (funcall callback))))))
 
 (defun hass--get-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server.
@@ -358,7 +359,7 @@ Key bindings:
           (hass-mode 0)
           (user-error "HASS-URL must be set to use hass-mode"))
       (when hass-watch (hass-watch-enable))
-      (hass--get-available-services))
+      (hass--get-available-services 'hass--get-available-entities))
   (unless hass-mode (hass--watch-cancel)))
 
 (provide 'hass)
