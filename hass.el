@@ -39,7 +39,7 @@ requests"
   :group 'hass
   :type 'string)
 
-(defcustom hass-watched-entities nil
+(defcustom hass-watch-entities nil
   "A list of tracked Home Assistant entities.
 Set this to a list of Home Assistant entity ID strings.  An entity ID looks
 something like *switch.bedroom_light*."
@@ -306,7 +306,7 @@ Use the variable `hass-watch-frequency' to change how
 frequently (in seconds) the Home Assistant instance should be
 queried.
 
-Use the variable `hass-watched-entities' to set which entities you want
+Use the variable `hass-watch-entities' to set which entities you want
 to query automatically."
   :lighter nil
   :group 'hass
@@ -328,7 +328,7 @@ to query automatically."
 
 (defun hass-watch--query-entities ()
   "Update the current state all of the registered entities."
-  (dolist (entity hass-watched-entities)
+  (dolist (entity hass-watch-entities)
     (hass--get-entity-state entity)))
 
 
