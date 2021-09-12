@@ -39,7 +39,7 @@ requests"
   :group 'hass
   :type 'string)
 
-(defcustom hass-auto-entities nil
+(defcustom hass-watched-entities nil
   "A list of tracked Home Assistant entities.
 Set this to a list of Home Assistant entity ID strings.  An entity ID looks
 something like *switch.bedroom_light*."
@@ -47,13 +47,13 @@ something like *switch.bedroom_light*."
   :group 'hass
   :type '(repeat string))
 
-(defcustom hass-auto-query nil
+(defcustom hass-watch nil
   "Periodically query the state of the configured in HASS-ENTITIES."
   :group 'hass
   :type 'boolean)
 
-(defcustom hass-auto-query-frequency 60
-  "Amount of seconds between auto-querying HASS-ENTITIES."
+(defcustom hass-watch-frequency 60
+  "Amount of seconds between watching HASS-ENTITIES."
   :group 'hass
   :type 'integer)
 
@@ -300,45 +300,45 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
 
 
 ;; Auto query
-(defun hass-auto-query-toggle ()
+(defun hass-watch-toggle ()
   "Toggle querying Home Assistant periodically.
-Auto-querying is a way to periodically query the state of
+watching is a way to periodically query the state of
 entities you want to hook into to capture when their state
 changes.
 
-Use the variable `hass-auto-query-frequency' to change how
+Use the variable `hass-watch-frequency' to change how
 frequently (in seconds) the Home Assistant instance should be
 queried.
 
-Use the variable `hass-auto-entities' to set which entities you want
+Use the variable `hass-watched-entities' to set which entities you want
 to query automatically."
   (interactive)
-  (if hass-auto-query
-    (hass-auto-query-disable)
-    (hass-auto-query-enable)))
+  (if hass-watch
+    (hass-watch-disable)
+    (hass-watch-enable)))
 
-(defun hass-auto-query-enable ()
-  "Enable auto-query."
+(defun hass-watch-enable ()
+  "Enable watch."
   (unless hass-mode (user-error "Hass-mode must be enabled to use this feature"))
-  (when hass--timer (hass--auto-query-cancel))
-  (setq hass--timer (run-with-timer nil hass-auto-query-frequency 'hass-query-all-entities))
-  (setq hass-auto-query t))
+  (when hass--timer (hass--watch-cancel))
+  (setq hass--timer (run-with-timer nil hass-watch-frequency 'hass-query-watched-entities))
+  (setq hass-watch t))
 
-(defun hass-auto-query-disable ()
-  "Disable auto-query."
-  (hass--auto-query-cancel)
-  (setq hass-auto-query nil))
+(defun hass-watch-disable ()
+  "Disable watch."
+  (hass--watch-cancel)
+  (setq hass-watch nil))
 
-(defun hass--auto-query-cancel ()
-  "Cancel auto-query without disabling it."
+(defun hass--watch-cancel ()
+  "Cancel watch without disabling it."
   (when hass--timer
     (cancel-timer hass--timer)
     (setq hass--timer nil)))
 
-(defun hass-query-all-entities ()
+(defun hass-query-watched-entities ()
   "Update the current state all of the registered entities."
   (interactive)
-  (dolist (entity hass-auto-entities)
+  (dolist (entity hass-watched-entities)
     (hass--get-entity-state entity)))
 
 
@@ -357,9 +357,9 @@ Key bindings:
       (unless (equal (type-of hass-url) 'string)
           (hass-mode 0)
           (user-error "HASS-URL must be set to use hass-mode"))
-      (when hass-auto-query (hass-auto-query-enable))
+      (when hass-watch (hass-watch-enable))
       (hass--get-available-services))
-  (unless hass-mode (hass--auto-query-cancel)))
+  (unless hass-mode (hass--watch-cancel)))
 
 (provide 'hass)
 
