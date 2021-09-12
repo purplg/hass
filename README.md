@@ -48,7 +48,7 @@ This will be executed on every query.
 (setq hass-apikey (lambda () (auth-source-pass-get 'secret "home/hass/emacs-apikey")))
 ```
 
-Once those variables are set, you must call ~(hass-setup)~ before using this package so that it can
+Once those variables are set, you must call `(hass-setup)` before using this package so that it can
 query the Home Assistance instance and populate available entities and services.
 
 ### Getting an API Key
