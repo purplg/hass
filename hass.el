@@ -333,21 +333,15 @@ to query automatically."
 
 
 ;;;###autoload
-(define-minor-mode hass-mode
-  "Toggle Home Assistant mode.
-Key bindings:
-\\{hass-mode-map}"
-  :lighter nil
-  :group 'hass
-  :global t
-  (when hass-mode
-      (unless (equal (type-of (hass--apikey)) 'string)
-          (hass-mode 0)
-          (user-error "HASS-APIKEY must be set to use hass-mode"))
-      (unless (equal (type-of hass-url) 'string)
-          (hass-mode 0)
-          (user-error "HASS-URL must be set to use hass-mode"))
-      (hass--get-available-services 'hass--get-available-entities)))
+(defun hass-setup ()
+  "Run before using any hass features.
+Check whether necessary variables are set and then query the Home
+Assistant instance for available services and entities."
+  (cond ((not (equal (type-of (hass--apikey)) 'string))
+         (user-error "HASS-APIKEY must be set to use hass-mode"))
+        ((not (equal (type-of hass-url) 'string))
+         (user-error "HASS-URL must be set to use hass-mode"))
+        ((hass--get-available-services 'hass--get-available-entities))))
 
 (provide 'hass)
 
