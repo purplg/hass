@@ -20,11 +20,11 @@
   :group 'hass
   :prefix "hass-")
 
+
+;; Customizable
 (defvar hass-watch-mode-map (make-sparse-keymap)
   "Keymap for hass mode.")
 
-
-;; Customizable
 (defcustom hass-url nil
   "The URL of the Home Assistant instance.
 Set this to the URL of the Home Assistant instance you want to
