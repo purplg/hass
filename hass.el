@@ -59,7 +59,7 @@ something like *switch.bedroom_light*."
 Each function is called with one arguments: the ENTITY-ID of the
 entity whose state changed.")
 
-(defvar hass-entity-state-updated-hook nil
+(defvar hass-entity-state-refreshed-hook nil
  "Hook called after an entity state data was received.")
 
 (defvar hass-service-called-hook nil
@@ -171,7 +171,7 @@ ENTITY-ID is the id of the entity that has STATE."
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
       (run-hook-with-args 'hass-entity-state-updated-functions entity-id)))
-  (run-hooks 'hass-entity-state-updated-hook))
+  (run-hooks 'hass-entity-state-refreshed-hook))
 
 (defun hass--call-service-result (entity-id state)
   "Callback when a successful service request is received from API.
