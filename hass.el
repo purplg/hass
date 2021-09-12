@@ -1,7 +1,7 @@
 ;;; hass.el --- Interact with Home Assistant -*- lexical-binding: t; -*-
 
 ;; Package-Requires: ((emacs "25.1") (request "0.3.3"))
-;; Version: 1.1.1
+;; Version: 1.2.0
 ;; Author: Ben Whitley
 ;;; Commentary:
 
@@ -12,7 +12,7 @@
 ;; Homepage: https://github.com/purplg/hass
 
 ;;; Code:
-(require' json)
+(require 'json)
 (require 'request)
 
 (defgroup hass '()
@@ -20,11 +20,11 @@
   :group 'hass
   :prefix "hass-")
 
-(defvar hass-mode-map (make-sparse-keymap)
-  "Keymap for hass mode.")
-
 
 ;; Customizable
+(defvar hass-watch-mode-map (make-sparse-keymap)
+  "Keymap for hass mode.")
+
 (defcustom hass-url nil
   "The URL of the Home Assistant instance.
 Set this to the URL of the Home Assistant instance you want to
@@ -39,7 +39,7 @@ requests"
   :group 'hass
   :type 'string)
 
-(defcustom hass-auto-entities nil
+(defcustom hass-watch-entities nil
   "A list of tracked Home Assistant entities.
 Set this to a list of Home Assistant entity ID strings.  An entity ID looks
 something like *switch.bedroom_light*."
@@ -47,13 +47,8 @@ something like *switch.bedroom_light*."
   :group 'hass
   :type '(repeat string))
 
-(defcustom hass-auto-query nil
-  "Periodically query the state of the configured in HASS-ENTITIES."
-  :group 'hass
-  :type 'boolean)
-
-(defcustom hass-auto-query-frequency 60
-  "Amount of seconds between auto-querying HASS-ENTITIES."
+(defcustom hass-watch-frequency 60
+  "Amount of seconds between watching HASS-ENTITIES."
   :group 'hass
   :type 'integer)
 
@@ -64,7 +59,7 @@ something like *switch.bedroom_light*."
 Each function is called with one arguments: the ENTITY-ID of the
 entity whose state changed.")
 
-(defvar hass-entity-state-updated-hook nil
+(defvar hass-entity-state-refreshed-hook nil
  "Hook called after an entity state data was received.")
 
 (defvar hass-service-called-hook nil
@@ -167,8 +162,7 @@ endpoint."
   "Callback when all service information is received from API.
 DOMAINS is the response from the `/api/services' endpoint which
 returns a list of domains and their available services."
-  (setq hass--available-services (hass--parse-all-domains domains))
-  (hass--get-available-entities))
+  (setq hass--available-services (hass--parse-all-domains domains)))
 
 (defun hass--query-entity-result (entity-id state)
   "Callback when an entity state data is received from API.
@@ -177,7 +171,7 @@ ENTITY-ID is the id of the entity that has STATE."
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
       (run-hook-with-args 'hass-entity-state-updated-functions entity-id)))
-  (run-hooks 'hass-entity-state-updated-hook))
+  (run-hooks 'hass-entity-state-refreshed-hook))
 
 (defun hass--call-service-result (entity-id state)
   "Callback when a successful service request is received from API.
@@ -188,7 +182,6 @@ ENTITY-ID is the id of the entity that was affected and now has STATE."
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
   "Error handler for invalid requests.
 ERROR-THROWN is the error thrown from the request.el request."
-
   (let ((error (cdr error-thrown)))
     (cond ((string= error "exited abnormally with code 7\n")
            (hass-mode 0)
@@ -221,7 +214,7 @@ PAYLOAD is contents the body of the request."
        :error #'hass--request-error
        :success success))
 
-(defun hass--get-available-entities ()
+(defun hass--get-available-entities (&optional callback)
   "Retrieve the available entities from the Home Assistant instance.
 Makes a request to `/api/states' but drops everything except an
 list of entity-ids."
@@ -229,19 +222,20 @@ list of entity-ids."
      (cl-function
        (lambda (&key response &allow-other-keys)
          (let ((data (request-response-data response)))
-           (hass--get-entities-result data))))))
+           (hass--get-entities-result data))
+         (when callback (funcall callback))))))
 
-(defun hass--get-available-services ()
+(defun hass--get-available-services (&optional callback)
   "Retrieve the available services from the Home Assistant instance."
   (hass--request "GET" (concat hass-url "/api/services")
      (cl-function
        (lambda (&key response &allow-other-keys)
          (let ((data (request-response-data response)))
-           (hass--get-available-services-result data))))))
+           (hass--get-available-services-result data))
+         (when callback (funcall callback))))))
 
 (defun hass--get-entity-state (entity-id)
-  "Retrieve the current state of ENTITY-ID from the Home Assistant server.
-This function is just for sending the actual API request."
+  "Retrieve the current state of ENTITY-ID from the Home Assistant server."
   (hass--request "GET" (hass--entity-url entity-id)
     (cl-function
       (lambda (&key response &allow-other-keys)
@@ -250,7 +244,6 @@ This function is just for sending the actual API request."
 
 (defun hass--call-service (service payload &optional success-callback)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
-This function is just for building and sending the actual API request.
 
 SERVICE is a string of the Home Assistant service to be called.
 
@@ -296,70 +289,58 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
   (hass--call-service
    service
    payload
-   (lambda (&rest _) (run-hooks 'hass-service-called-hook) (when success-callback (funcall success-callback)))))
+   (lambda (&rest _)
+     (run-hooks 'hass-service-called-hook)
+     (when success-callback (funcall success-callback)))))
 
 
-;; Auto query
-(defun hass-auto-query-toggle ()
-  "Toggle querying Home Assistant periodically.
-Auto-querying is a way to periodically query the state of
-entities you want to hook into to capture when their state
-changes.
+;; Watching
+;;;###autoload
+(define-minor-mode hass-watch-mode
+  "Toggle mode for querying Home Assistant periodically.
+Watching is a way to periodically query the state of entities you
+want to hook into to capture when their state changes.
 
-Use the variable `hass-auto-query-frequency' to change how
+Use the variable `hass-watch-frequency' to change how
 frequently (in seconds) the Home Assistant instance should be
 queried.
 
-Use the variable `hass-auto-entities' to set which entities you want
+Use the variable `hass-watch-entities' to set which entities you want
 to query automatically."
-  (interactive)
-  (if hass-auto-query
-    (hass-auto-query-disable)
-    (hass-auto-query-enable)))
+  :lighter nil
+  :group 'hass
+  :global t
+  (when hass--timer (hass-watch--cancel-timer))
+  (when hass-watch-mode
+    (hass--get-available-services 'hass--get-available-entities)
+    (when hass--timer (hass-watch--cancel-timer))
+    (setq hass--timer (run-with-timer
+                       nil
+                       hass-watch-frequency
+                       'hass-watch--query-entities))))
 
-(defun hass-auto-query-enable ()
-  "Enable auto-query."
-  (unless hass-mode (user-error "Hass-mode must be enabled to use this feature"))
-  (when hass--timer (hass--auto-query-cancel))
-  (setq hass--timer (run-with-timer nil hass-auto-query-frequency 'hass-query-all-entities))
-  (setq hass-auto-query t))
-
-(defun hass-auto-query-disable ()
-  "Disable auto-query."
-  (hass--auto-query-cancel)
-  (setq hass-auto-query nil))
-
-(defun hass--auto-query-cancel ()
-  "Cancel auto-query without disabling it."
+(defun hass-watch--cancel-timer ()
+  "Cancel watch without disabling it."
   (when hass--timer
     (cancel-timer hass--timer)
     (setq hass--timer nil)))
 
-(defun hass-query-all-entities ()
+(defun hass-watch--query-entities ()
   "Update the current state all of the registered entities."
-  (interactive)
-  (dolist (entity hass-auto-entities)
+  (dolist (entity hass-watch-entities)
     (hass--get-entity-state entity)))
 
 
 ;;;###autoload
-(define-minor-mode hass-mode
-  "Toggle Home Assistant mode.
-Key bindings:
-\\{hass-mode-map}"
-  :lighter nil
-  :group 'hass
-  :global t
-  (when hass-mode
-      (unless (equal (type-of (hass--apikey)) 'string)
-          (hass-mode 0)
-          (user-error "HASS-APIKEY must be set to use hass-mode"))
-      (unless (equal (type-of hass-url) 'string)
-          (hass-mode 0)
-          (user-error "HASS-URL must be set to use hass-mode"))
-      (when hass-auto-query (hass-auto-query-enable))
-      (hass--get-available-services))
-  (unless hass-mode (hass--auto-query-cancel)))
+(defun hass-setup ()
+  "Run before using any hass features.
+Check whether necessary variables are set and then query the Home
+Assistant instance for available services and entities."
+  (cond ((not (equal (type-of (hass--apikey)) 'string))
+         (user-error "HASS-APIKEY must be set to use hass-mode"))
+        ((not (equal (type-of hass-url) 'string))
+         (user-error "HASS-URL must be set to use hass-mode"))
+        ((hass--get-available-services 'hass--get-available-entities))))
 
 (provide 'hass)
 

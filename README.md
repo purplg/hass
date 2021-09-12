@@ -38,6 +38,7 @@ Both `hass-url` and `hass-apikey` must be set to use this package
 ``` emacs-lisp
 (setq hass-url "https://192.168.1.10:8123"
       hass-apikey "APIKEY-GOES-IN-HERE")
+(hass-setup)
 ```
 
 Alternatively, you can store a function inside `hass-apikey`.
@@ -47,9 +48,8 @@ This will be executed on every query.
 (setq hass-apikey (lambda () (auth-source-pass-get 'secret "home/hass/emacs-apikey")))
 ```
 
-The `hass-entity` variable is used when the `hass-query-all-entities`
-function is called. It should contain a list of strings of entity ID's
-for each entity you want included.
+Once those variables are set, you must call `(hass-setup)` before using this package so that it can
+query the Home Assistance instance and populate available entities and services.
 
 ### Getting an API Key
 
@@ -99,29 +99,29 @@ cumbersome. Here's what the encoded list above looks like in JSON:
 }
 ```
 
-### Auto-query
+### Watching entities
 
-Auto-querying is a recurring query to the Home Assistant instance to get
-the current state of some entities. The list of entity IDs that will be
-queried are found in the variable `hass-auto-entities`.
+`hass-watch-mode` is a mode that periodically queries the Home Assistant instance to get the current
+state of a list of entities. The list of entity IDs that will be queried are found in the variable
+`hass-watch-entities`.
 
 ``` emacs-lisp
-(setq hass-auto-entities '("switch.bedroom_light" "switch.bedroom_fan"))
+(setq hass-watched-entities '("switch.bedroom_light" "switch.bedroom_fan"))
 ```
 
 The frequency of the query can be adjusted by setting
-`hass-auto-query-frequency` to the number of seconds you'd like.
+`hass-watch-frequency` to the number of seconds you'd like.
 Defaults to 60.
 
-Auto-querying is most useful with the function hook
-`hass-entity-state-updated-functions` explained in the [Hooks](#Hooks) section.
+Watching is most useful with the function hook `hass-entity-state-updated-functions` explained in
+the [Hooks](#Hooks) section.
 
 ### Hooks
 
 The most useful hook is a function list named `hass-entity-state-updated-functions`. Functions in
 this list are passed a single argument `entity-id` which is the entity id of the entity whose state
-has changed since it was last updated. Using this function hook along side
-[auto-querying](#Auto-query) enables Emacs to react to changes to Home Assistant entities.
+has changed since it was last updated. Using this function hook along side [watching
+entities](#Watching entities) enables Emacs to react to changes to Home Assistant entities.
 
 This example will display the state of an entity when it changes:
 
