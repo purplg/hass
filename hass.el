@@ -184,10 +184,10 @@ ENTITY-ID is the id of the entity that was affected and now has STATE."
 ERROR-THROWN is the error thrown from the request.el request."
   (let ((error (cdr error-thrown)))
     (cond ((string= error "exited abnormally with code 7\n")
-           (user-error "Hass-mode: No Home Assistant instance detected at url: %s" hass-url))
+           (user-error "hass: No Home Assistant instance detected at url: %s" hass-url))
           ((string= error "exited abnormally with code 35\n")
-           (user-error "Hass-mode: Did you mean to use HTTP instead of HTTPS for url %s?" hass-url))
-          ((error "Hass-mode: unknown error: %S" error-thrown)))))
+           (user-error "hass: Did you mean to use HTTP instead of HTTPS for url %s?" hass-url))
+          ((error "hass: unknown error: %S" error-thrown)))))
 
 
 ;; Requests
@@ -337,9 +337,9 @@ to query automatically."
 Check whether necessary variables are set and then query the Home
 Assistant instance for available services and entities."
   (cond ((not (equal (type-of (hass--apikey)) 'string))
-         (user-error "HASS-APIKEY must be set to use hass-mode"))
+         (user-error "HASS-APIKEY must be set to use hass"))
         ((not (equal (type-of hass-url) 'string))
-         (user-error "HASS-URL must be set to use hass-mode"))
+         (user-error "HASS-URL must be set to use hass"))
         ((hass--get-available-services 'hass--get-available-entities))))
 
 (provide 'hass)
