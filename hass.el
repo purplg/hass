@@ -182,7 +182,6 @@ ENTITY-ID is the id of the entity that was affected and now has STATE."
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
   "Error handler for invalid requests.
 ERROR-THROWN is the error thrown from the request.el request."
-
   (let ((error (cdr error-thrown)))
     (cond ((string= error "exited abnormally with code 7\n")
            (hass-mode 0)
