@@ -4,39 +4,50 @@
 
 ## Installation
 
+### package.el
+
+``` emacs-lisp
+(use-package hass
+  :ensure t
+  (setq hass-url "http://homeassistant:8123"
+        hass-apikey "APIKEY-GOES-IN-HERE")
+  (hass-setup))
+```
+
 ### straight.el
 
 ``` emacs-lisp
-(straight-use-package
-  '(hass
-    :type git
-    :host github
-    :repo "purplg/hass"))
+(straight-use-package 'hass)
+(setq hass-url "http://homeassistant:8123"
+      hass-apikey "APIKEY-GOES-IN-HERE")
+(hass-setup)
 ```
 
 ### Doom Emacs
 
-Place in your `packages.el` to pull the repository.
+Place in your `packages.el` then run `doom sync` to pull the repository:
 
 ``` emacs-lisp
-(package! hass
-  :recipe
-  '(:host github
-    :repo "purplg/hass"))
+(package! hass)
 ```
 
 Then load the package in your main config file.
 
 ``` emacs-lisp
-(use-package! hass)
+(use-package! hass
+  :config
+  (setq hass-url "http://homeassistant:8123"
+        hass-apikey "APIKEY-GOES-IN-HERE")
+  (hass-setup))
 ```
 
 ## Configuration
 
-Both `hass-url` and `hass-apikey` must be set to use this package
+Both `hass-url` and `hass-apikey` must be set to use this package. Set `hass-url` to your Home
+Assistant instance.
 
 ``` emacs-lisp
-(setq hass-url "https://192.168.1.10:8123"
+(setq hass-url "http://homeassistant:8123"
       hass-apikey "APIKEY-GOES-IN-HERE")
 (hass-setup)
 ```
