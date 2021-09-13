@@ -23,7 +23,7 @@
 
 ;; Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home Assistant
 ;; instance and going to your profile by selecting your username in the lower-left corner or going
-;; to this URL: `http://HOME-ASSISTANT-URL:8123/profile'. You can generate an API token at the very
+;; to this URL: `http://HOME-ASSISTANT-URL:8123/profile'.  You can generate an API token at the very
 ;; bottom of this page.
 
 ;; --------------------
