@@ -3,6 +3,8 @@
 
 * Installation
 
+This package is available on [[https://melpa.org/][MELPA]].
+
 ** package.el
 
 #+BEGIN_SRC emacs-lisp :results none

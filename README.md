@@ -1,8 +1,13 @@
+[![MELPA](https://melpa.org/packages/hass-badge.svg)](https://melpa.org/#/hass)
+[![MELPA Stable](https://stable.melpa.org/packages/hass-badge.svg)](https://stable.melpa.org/#/hass)
+
 # hass-mode
 
 `hass` enables you to control Home Assistant entities from Emacs.
 
 ## Installation
+
+This package is available on [MELPA](https://melpa.org/).
 
 ### package.el
 
