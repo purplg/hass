@@ -1,5 +1,5 @@
 #+TITLE: hass
-~hass~ enables you to control Home Assistant entities from Emacs.
+~hass~ enables you to control [[https://www.home-assistant.io/][Home Assistant]] entities from Emacs.
 
 * Installation
 

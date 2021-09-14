@@ -3,7 +3,7 @@
 
 # hass-mode
 
-`hass` enables you to control Home Assistant entities from Emacs.
+`hass` enables you to control [Home Assistant](https://www.home-assistant.io/) entities from Emacs.
 
 ## Installation
 
