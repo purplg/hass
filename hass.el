@@ -11,9 +11,9 @@
 ;; --------------------
 ;; Configuration
 
-;; Both `hass-url' and `hass-apikey' must be set to use this package.
+;; Both `hass-host' and `hass-apikey' must be set to use this package.
 
-;; (setq hass-url "https://192.168.1.10:8123"
+;; (setq hass-host "192.168.1.10"
 ;;       hass-apikey "APIKEY-GOES-IN-HERE"
 ;; (hass-setup)
 
@@ -71,12 +71,23 @@
 (defvar hass-watch-mode-map (make-sparse-keymap)
   "Keymap for hass mode.")
 
-(defcustom hass-url nil
+(defcustom hass-host nil
   "The URL of the Home Assistant instance.
 Set this to the URL of the Home Assistant instance you want to
-control.  (e.g. https://192.168.1.10:8123)"
+control.  (e.g. 192.168.1.10)"
   :group 'hass
   :type 'string)
+
+(defcustom hass-port 8123
+  "The port used for Home Assistant requests."
+  :group 'hass
+  :type 'integer)
+
+(defcustom hass-insecure nil
+  "Whether to use HTTP or HTTPS.
+When Set to non-nil, use HTTP instead of HTTPS when making requests."
+  :group 'hass
+  :type 'boolean)
 
 (defcustom hass-apikey nil
   "API key used for Home Assistant queries.
@@ -130,6 +141,13 @@ entity whose state changed.")
 
 
 ;; Helper functions
+(defun hass--url (&optional path)
+  (format "%s://%s:%s/%s"
+    (if hass-insecure "http" "https")
+    hass-host
+    hass-port
+    path))
+
 (defun hass--apikey ()
   "Return the effective apikey.
 If HASS-APIKEY is a function, execute it to get value.  Otherwise
@@ -141,7 +159,7 @@ return HASS-APIKEY as is."
 (defun hass--entity-url (entity-id)
   "Generate entity state endpoint URLs.
 ENTITY-ID is a string of the entities ID."
-  (format "%s/%s/%s" hass-url "api/states" entity-id))
+  (hass--url (concat "api/states/" entity-id)))
 
 (defun hass--service-url (service)
   "Generate service endpoint URL.
@@ -149,7 +167,7 @@ SERVICE is a string of the service to call."
   (let* ((parts (split-string service "\\."))
          (domain (pop parts))
          (service (pop parts)))
-    (format "%s/api/services/%s/%s" hass-url domain service)))
+    (hass--url (format "api/services/%s/%s" domain service))))
 
 (defun hass--domain-of-entity (entity-id)
   "Convert an ENTITY-ID to its respective domain."
@@ -230,9 +248,9 @@ ENTITY-ID is the id of the entity that was affected and now has STATE."
 ERROR-THROWN is the error thrown from the request.el request."
   (let ((error (cdr error-thrown)))
     (cond ((string= error "exited abnormally with code 7\n")
-           (user-error "Hass: No Home Assistant instance detected at url: %s" hass-url))
+           (user-error "Hass: No Home Assistant instance detected at url: %s" hass-host))
           ((string= error "exited abnormally with code 35\n")
-           (user-error "Hass: Did you mean to use HTTP instead of HTTPS for url %s?" hass-url))
+           (user-error "Hass: Error connecting to url `%s'? Try toggling variable `hass-insecure'." (hass--url)))
           ((error "Hass: unknown error: %S" error-thrown)))))
 
 
@@ -263,7 +281,7 @@ PAYLOAD is contents the body of the request."
 Makes a request to `/api/states' but drops everything except an
 list of entity-ids.
 Optional argument CALLBACK ran after entities are received."
-  (hass--request "GET" (concat hass-url "/api/states")
+  (hass--request "GET" (hass--url "api/states")
      (cl-function
        (lambda (&key response &allow-other-keys)
          (let ((data (request-response-data response)))
@@ -273,7 +291,7 @@ Optional argument CALLBACK ran after entities are received."
 (defun hass--get-available-services (&optional callback)
   "Retrieve the available services from the Home Assistant instance.
 Optional argument CALLBACK ran after services are received."
-  (hass--request "GET" (concat hass-url "/api/services")
+  (hass--request "GET" (hass--url "api/services")
      (cl-function
        (lambda (&key response &allow-other-keys)
          (let ((data (request-response-data response)))
@@ -306,7 +324,7 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
 If called interactively, prompt the user for an ENTITY-ID and
 SERVICE to call.
 
-This will send an API request to the url configure in `hass-url'.
+This will send an API request to the address configure in `hass-host'.
 
 ENTITY-ID is a string of the entity id in Home Assistant you want
 to call the service on.  (e.g. `\"switch.kitchen_light\"').
@@ -325,7 +343,7 @@ SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')"
 
 (defun hass-call-service-with-payload (service payload &optional success-callback)
   "Call service with a custom payload on Home Assistant.
-This will send an API request to the url configure in `hass-url'.
+This will send an API request to the address configure in `hass-host'.
 
 SERVICE is a string of the Home Assistant service to be called.
 
@@ -384,8 +402,8 @@ Check whether necessary variables are set and then query the Home
 Assistant instance for available services and entities."
   (cond ((not (equal (type-of (hass--apikey)) 'string))
          (user-error "HASS-APIKEY must be set to use hass"))
-        ((not (equal (type-of hass-url) 'string))
-         (user-error "HASS-URL must be set to use hass"))
+        ((not (equal (type-of hass-host) 'string))
+         (user-error "hass-host must be set to use hass"))
         ((hass--get-available-services 'hass--get-available-entities))))
 
 (provide 'hass)

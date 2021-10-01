@@ -45,11 +45,11 @@ Then load the package in your main config file.
 
 * Configuration
 
-Both ~hass-url~ and ~hass-apikey~ must be set to use this package. Set ~hass-url~ to your Home
-Assistant instance.
+Both ~hass-host~ and ~hass-apikey~ must be set to use this package. Set ~hass-host~ to the hostname or URL of Home
+Assistant instance. If you are not using SSL/TLS to connect to your Home Assistance instance, set ~hass-insecure~ to ~t~.
 
 #+BEGIN_SRC emacs-lisp :results none
-(setq hass-url "http://homeassistant:8123"
+(setq hass-host "homeassistant"
       hass-apikey "APIKEY-GOES-IN-HERE")
 (hass-setup)
 #+END_SRC
