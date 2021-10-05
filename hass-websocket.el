@@ -73,7 +73,9 @@ MESSAGE is an alist to encoded into a JSON object."
 (defun hass-websocket--connect ()
   (interactive)
   (setq hass-websocket-connection
-    (websocket-open (format "%s://%s:8123/api/websocket" (if hass-insecure "ws" "wss") hass-host)
+    (websocket-open (format "%s://%s:8123/api/websocket"
+                            (if hass-insecure "ws" "wss")
+                            hass-host)
       :on-message #'hass-websocket--handle-message
       :on-open (lambda (_websocket) (setq hass-websocket--interactions 0))
       :on-close (lambda (_websocket) (setq hass-websocket-connection nil)))))
