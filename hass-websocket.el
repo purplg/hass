@@ -26,24 +26,22 @@
 
 (defun hass-websocket--handle-message (_websocket frame)
   "Route messages received from websocket."
-  (let* ((content (json-read-from-string (websocket-frame-text frame)))
+  (let* ((content (json-parse-string (websocket-frame-text frame) :object-type 'alist))
          (type (cdr (assoc 'type content))))
     (cond ((string= "auth_required" type)
            (hass-websocket--send
-            `(("type" . "auth")
-              ("access_token" . ,(hass--apikey)))))
+            `((type . "auth")
+              (access_token . ,(hass--apikey)))))
           ((string= type "auth_ok")
            (message "hass: Connected to websocket")
            (run-hooks 'hass-websocket-connected-hook))
           ((string= type "auth_invalid")
            (user-error "hass: Failed to connect to websocket: %s" (cdr (assoc 'message content))))
           ((string= type "result")
-           (message (if (cdr (assoc 'success content))
-                     "hass: Success"
-                     "hass: Error")))
+           (message (if (cdr (assoc 'success content)) "hass: Success" "hass: Error")))
           ((string= type "event")
            (hass-websocket--handle-event (cdr (assoc 'event content))))
-          ((message "received unhandled frame: %S" (helpful--pretty-print (json-read-from-string content)))))))
+          ((message "received unhandled frame: %S" (helpful--pretty-print (json-parse-string content :object-type 'alist)))))))
 
 (defun hass-websocket--handle-event (event)
   (let* ((event-type (cdr (assoc 'event_type event)))
@@ -58,17 +56,16 @@
 
 (defun hass-websocket--subscribe (event-type)
   (message "hass: Subscribing to [%s]: `%s'" hass-websocket--interactions event-type)
-  (hass-websocket--send `(("id" . ,hass-websocket--interactions)
-                          ("type" . "subscribe_events")
-                          ("event_type" . ,event-type))))
+  (hass-websocket--send `((id . ,hass-websocket--interactions)
+                          (type . "subscribe_events")
+                          (event_type . ,event-type))))
 
 (defun hass-websocket--send (message)
   "Send a message to the websocket.
 MESSAGE is an alist to encoded into a JSON object."
-  (when hass-websocket-connection
-    (message "hass: Sending message to websocket: `%s'" message)
-    (websocket-send-text hass-websocket-connection (json-encode message))
-    (setq hass-websocket--interactions (1+ hass-websocket--interactions))))
+  (message "hass: Sending message to websocket: `%S'" message)
+  (websocket-send-text hass-websocket-connection (json-serialize message))
+  (setq hass-websocket--interactions (1+ hass-websocket--interactions)))
 
 ;;;###autoload
 (defun hass-websocket--connect ()
