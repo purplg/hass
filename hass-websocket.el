@@ -8,6 +8,7 @@
 ;; Homepage: https://github.com/purplg/hass
 
 ;;; Code:
+(require 'hass)
 (require 'json)
 (require 'websocket)
 
