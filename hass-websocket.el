@@ -84,6 +84,12 @@ MESSAGE is an alist to encoded into a JSON object."
   (setq hass-websocket-connection nil)
   (message "hass: Disconnected from websocket"))
 
+(defun hass-websocket--reconnect ()
+  (interactive)
+  (when hass-websocket-connection
+    (hass-websocket--disconnect))
+  (hass-websocket--connect))
+
 (defun hass-websocket-toggle ()
   (if hass-websocket-connection
     (hass-websocket--disconnect)
