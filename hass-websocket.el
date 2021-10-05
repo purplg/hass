@@ -72,7 +72,6 @@ MESSAGE is an alist to encoded into a JSON object."
 ;;;###autoload
 (defun hass-websocket--connect ()
   (interactive)
-  (hass-websocket--disconnect)
   (setq hass-websocket-connection
     (websocket-open (format "%s://%s:8123/api/websocket" (if hass-insecure "ws" "wss") hass-host)
       :on-message #'hass-websocket--handle-message
@@ -81,9 +80,13 @@ MESSAGE is an alist to encoded into a JSON object."
 
 (defun hass-websocket--disconnect ()
   (interactive)
-  (when hass-websocket-connection
-    (websocket-close hass-websocket-connection)
-    (message "hass: Disconnected from websocket")
-    (setq hass-websocket-connection nil)))
+  (websocket-close hass-websocket-connection)
+  (setq hass-websocket-connection nil)
+  (message "hass: Disconnected from websocket"))
+
+(defun hass-websocket-toggle ()
+  (if hass-websocket-connection
+    (hass-websocket--disconnect)
+    (hass-websocket--connect)))
 
 (provide 'hass-websocket)
