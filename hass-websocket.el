@@ -44,12 +44,18 @@
           ((message "received unhandled frame: %S" (helpful--pretty-print (hass--deserialize content)))))))
 
 (defun hass-websocket--handle-event (event)
-  (let* ((event-type (cdr (assoc 'event_type event)))
-         (data (cdr (assoc 'data event)))
-         (entity-id (cdr (assoc 'entity_id data)))
-         (old-state (cdr (assoc 'old_state data)))
-         (new-state (cdr (assoc 'new_state data))))
-    (message "hass: event-type: %s, entity-id: %s" event-type entity-id)))
+  (let ((event-type (cdr (assoc 'event_type event)))
+        (data (cdr (assoc 'data event))))
+    (cond ((string= event-type "state_changed")
+           (hass-websocket--handle-state-change data))
+          ((message "hass: unhandled event-type fired: %s" event-type)))))
+
+(defun hass-websocket--handle-state-change (data)
+  (let ((entity-id (cdr (assoc 'entity_id data))))
+    (when (member entity-id hass-watch-entities)
+      (hass--query-entity-result
+       entity-id
+       (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
 
 (defun hass-websocket--subscribe-to-state-changes ()
   (hass-websocket--subscribe "state_changed"))
