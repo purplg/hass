@@ -26,7 +26,7 @@
 
 (defun hass-websocket--handle-message (_websocket frame)
   "Route messages received from websocket."
-  (let* ((content (json-parse-string (websocket-frame-text frame) :object-type 'alist))
+  (let* ((content (hass--deserialize (websocket-frame-text frame)))
          (type (cdr (assoc 'type content))))
     (cond ((string= "auth_required" type)
            (hass-websocket--send
@@ -41,7 +41,7 @@
            (message (if (cdr (assoc 'success content)) "hass: Success" "hass: Error")))
           ((string= type "event")
            (hass-websocket--handle-event (cdr (assoc 'event content))))
-          ((message "received unhandled frame: %S" (helpful--pretty-print (json-parse-string content :object-type 'alist)))))))
+          ((message "received unhandled frame: %S" (helpful--pretty-print (hass--deserialize content)))))))
 
 (defun hass-websocket--handle-event (event)
   (let* ((event-type (cdr (assoc 'event_type event)))
@@ -64,7 +64,7 @@
   "Send a message to the websocket.
 MESSAGE is an alist to encoded into a JSON object."
   (message "hass: Sending message to websocket: `%S'" message)
-  (websocket-send-text hass-websocket-connection (json-serialize message))
+  (websocket-send-text hass-websocket-connection (hass--serialize message))
   (setq hass-websocket--interactions (1+ hass-websocket--interactions)))
 
 ;;;###autoload
