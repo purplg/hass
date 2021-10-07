@@ -177,6 +177,18 @@ SERVICE is a string of the service to call."
   "Return the services available for an ENTITY-ID."
   (cdr (assoc (hass--domain-of-entity entity-id) hass--available-services)))
 
+(defun hass--deserialize (str-object)
+  "Wrapper function to use native JSON parser when available."
+  (if (fboundp 'json-parse-string)
+    (json-parse-string str-object :object-type 'alist)
+    (json-read-from-string str-object)))
+
+(defun hass--serialize (object)
+  "Wrapper function to use native JSON serializer when available."
+  (if (fboundp 'json-serialize)
+    (json-serialize object)
+    (json-encode object)))
+
 (defun hass-state-of (entity-id)
   "Return the last known state of ENTITY-ID."
   (cdr (assoc entity-id hass--states)))
@@ -272,7 +284,7 @@ PAYLOAD is contents the body of the request."
                   ("Authorization" . ,(concat "Bearer " (hass--apikey)))
                   ("Content-Type" . "application/json"))
        :data payload
-       :parser #'json-read
+       :parser (lambda () (hass--deserialize (buffer-string)))
        :error #'hass--request-error
        :success success))
 
