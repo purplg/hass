@@ -68,9 +68,6 @@
 
 
 ;; Customizable
-(defvar hass-watch-mode-map (make-sparse-keymap)
-  "Keymap for hass mode.")
-
 (defcustom hass-host nil
   "The URL of the Home Assistant instance.
 Set this to the URL of the Home Assistant instance you want to
@@ -96,18 +93,15 @@ requests"
   :group 'hass
   :type 'string)
 
-(defcustom hass-watch-entities nil
+(defcustom hass-watched-entities nil
   "A list of tracked Home Assistant entities.
 Set this to a list of Home Assistant entity ID strings.  An entity ID looks
-something like *switch.bedroom_light*."
+something like *switch.bedroom_light*.
 
+This is used by `hass-polling-mode' and `hass-websocket-mode' to
+detect changes in entity state."
   :group 'hass
   :type '(repeat string))
-
-(defcustom hass-watch-frequency 60
-  "Amount of seconds between watching HASS-ENTITIES."
-  :group 'hass
-  :type 'integer)
 
 
 ;; Hooks
@@ -368,43 +362,6 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
    (lambda (&rest _)
      (run-hooks 'hass-service-called-hook)
      (when success-callback (funcall success-callback)))))
-
-
-;; Watching
-;;;###autoload
-(define-minor-mode hass-watch-mode
-  "Toggle mode for querying Home Assistant periodically.
-Watching is a way to periodically query the state of entities you
-want to hook into to capture when their state changes.
-
-Use the variable `hass-watch-frequency' to change how
-frequently (in seconds) the Home Assistant instance should be
-queried.
-
-Use the variable `hass-watch-entities' to set which entities you want
-to query automatically."
-  :lighter nil
-  :group 'hass
-  :global t
-  (when hass--timer (hass-watch--cancel-timer))
-  (when hass-watch-mode
-    (hass--get-available-services 'hass--get-available-entities)
-    (when hass--timer (hass-watch--cancel-timer))
-    (setq hass--timer (run-with-timer
-                       nil
-                       hass-watch-frequency
-                       'hass-watch--query-entities))))
-
-(defun hass-watch--cancel-timer ()
-  "Cancel watch without disabling it."
-  (when hass--timer
-    (cancel-timer hass--timer)
-    (setq hass--timer nil)))
-
-(defun hass-watch--query-entities ()
-  "Update the current state all of the registered entities."
-  (dolist (entity hass-watch-entities)
-    (hass--get-entity-state entity)))
 
 
 ;;;###autoload
