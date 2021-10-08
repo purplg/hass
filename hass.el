@@ -42,9 +42,9 @@
 ;; Watching entities:
 
 ;; To react to changes in entity states, enable `hass-watch-mode' This mode will periodically poll
-;; the Home Assistant instance to get the state of entities listed in `hass-watch-entities'.
+;; the Home Assistant instance to get the state of entities listed in `hass-watched-entities'.
 
-;; (setq hass-watch-entities '("switch.bedroom_light" "switch.bedroom_fan"))
+;; (setq hass-watched-entities '("switch.bedroom_light" "switch.bedroom_fan"))
 ;; (hass-watch-mode 1)
 
 ;; Use the function hook `hass-entity-state-updated-functions' to react to changes in entity state:

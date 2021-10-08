@@ -49,7 +49,7 @@
 
 (defun hass-websocket--handle-state-change (data)
   (let ((entity-id (cdr (assoc 'entity_id data))))
-    (when (member entity-id hass-watch-entities)
+    (when (member entity-id hass-watched-entities)
       (hass--query-entity-result
        entity-id
        (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
