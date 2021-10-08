@@ -1,6 +1,6 @@
 ;;; hass-websocket.el --- Communicate with Home Assistant over websockets -*- lexical-binding: t; -*-
 
-;; Package-Requires: ((emacs "27.1") (websocket "1.12"))
+;; Package-Requires: ((emacs "25.1") (websocket "1.12"))
 ;; Author: Ben Whitley
 ;; SPDX-License-Identifier: MIT
 ;;; Commentary:
