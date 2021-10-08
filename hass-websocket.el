@@ -21,9 +21,6 @@
 (defvar hass-websocket--interactions '()
   "Number Websocket interactions to use for message IDs.")
 
-(defvar hass-websocket--subscriptions '()
-  "Events to listen for over websocket.")
-
 (defun hass-websocket--handle-message (_websocket frame)
   "Route messages received from websocket."
   (let* ((content (hass--deserialize (websocket-frame-text frame)))
