@@ -93,6 +93,6 @@ MESSAGE is an alist to encoded into a JSON object."
 (defun hass-websocket-toggle ()
   (if hass-websocket-connection
     (hass-websocket--disconnect)
-    (hass-websocket--connect)))
+    (hass-websocket--reconnect)))
 
 (provide 'hass-websocket)
