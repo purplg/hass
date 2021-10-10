@@ -53,5 +53,4 @@ you want to query automatically."
   (dolist (entity hass-watched-entities)
     (hass--get-entity-state entity)))
 
-
 (provide 'hass-polling)
