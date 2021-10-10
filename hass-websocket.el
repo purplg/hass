@@ -12,6 +12,9 @@
 (require 'json)
 (require 'websocket)
 
+(defvar hass-realtime-mode-map (make-sparse-keymap)
+  "Keymap for hass-realtime-mode.")
+
 (defvar hass-websocket-connected-hook #'hass-websocket--subscribe-to-state-changes
  "Hook called after successful authentication to websocket.")
 
@@ -90,20 +93,28 @@ MESSAGE is an alist to be encoded into a JSON object."
 
 (defun hass-websocket--disconnect ()
   "Disconnect the websocket connection to Home Assistant."
-  (websocket-close hass-websocket-connection)
-  (setq hass-websocket-connection nil)
-  (message "hass: Disconnected from websocket"))
+  (when hass-websocket-connection
+    (websocket-close hass-websocket-connection)
+    (setq hass-websocket-connection nil)
+    (message "hass: Disconnected from websocket")))
 
 (defun hass-websocket--reconnect ()
   "Disconnect and reconnect the websocket connection to Home Assistant."
-  (when hass-websocket-connection
-    (hass-websocket--disconnect))
+  (hass-websocket--disconnect)
   (hass-websocket--connect))
 
-(defun hass-websocket-toggle ()
-  "Toggle the websocket connection to Home Assistant."
-  (if hass-websocket-connection
-    (hass-websocket--disconnect)
-    (hass-websocket--reconnect)))
+(define-minor-mode hass-realtime-mode
+  "Toggle mode for a websocket connection to Home Assistant.
+Similar to `hass-polling-mode' but uses websocket to get realtime
+updated from the Home Assistant instance.
+
+Use the variable `hass-watched-entities' to set which entities
+you want to track state updates for."
+  :lighter nil
+  :group 'hass
+  :global t
+  (if hass-realtime-mode
+    (hass-websocket--reconnect)
+    (hass-websocket--disconnect)))
 
 (provide 'hass-websocket)
