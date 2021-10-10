@@ -22,7 +22,7 @@
 
 
 ;; Internal state
-(defvar hass-websocket-connection '()
+(defvar hass-websocket--connection '()
   "Websocket connection info.")
 
 (defvar hass-websocket--interactions '()
@@ -85,7 +85,7 @@ connection."
   "Send a message to the websocket.
 MESSAGE is an alist to be encoded into a JSON object."
   (message "hass: Sending message to websocket: `%S'" message)
-  (websocket-send-text hass-websocket-connection (hass--serialize message))
+  (websocket-send-text hass-websocket--connection (hass--serialize message))
   (setq hass-websocket--interactions (1+ hass-websocket--interactions)))
 
 
@@ -93,19 +93,19 @@ MESSAGE is an alist to be encoded into a JSON object."
 ;;;###autoload
 (defun hass-websocket--connect ()
   "Establish a websocket connection to Home Assistant."
-  (setq hass-websocket-connection
+  (setq hass-websocket--connection
     (websocket-open (format "%s://%s:8123/api/websocket"
                             (if hass-insecure "ws" "wss")
                             hass-host)
       :on-message #'hass-websocket--handle-message
       :on-open (lambda (_websocket) (setq hass-websocket--interactions 0))
-      :on-close (lambda (_websocket) (setq hass-websocket-connection nil)))))
+      :on-close (lambda (_websocket) (setq hass-websocket--connection nil)))))
 
 (defun hass-websocket--disconnect ()
   "Disconnect the websocket connection to Home Assistant."
-  (when hass-websocket-connection
-    (websocket-close hass-websocket-connection)
-    (setq hass-websocket-connection nil)
+  (when hass-websocket--connection
+    (websocket-close hass-websocket--connection)
+    (setq hass-websocket--connection nil)
     (message "hass: Disconnected from websocket")))
 
 (defun hass-websocket--reconnect ()
