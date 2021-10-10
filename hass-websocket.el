@@ -38,9 +38,10 @@
            (message (if (cdr (assoc 'success content)) "hass: Success" "hass: Error")))
           ((string= type "event")
            (hass-websocket--handle-event (cdr (assoc 'event content))))
-          ((message "received unhandled frame: %S" (helpful--pretty-print (hass--deserialize content)))))))
+          ((message "received unhandled frame: %S" (helpful--pretty-print content))))))
 
 (defun hass-websocket--handle-event (event)
+  "Handle a websocket message with the type 'event'."
   (let ((event-type (cdr (assoc 'event_type event)))
         (data (cdr (assoc 'data event))))
     (cond ((string= event-type "state_changed")
@@ -48,6 +49,10 @@
           ((message "hass: unhandled event-type fired: %s" event-type)))))
 
 (defun hass-websocket--handle-state-change (data)
+  "Handle a websocket message for the 'state_changed' event.
+This event is only handled when the `entity-id' of this event is
+in the `hass-watched-entities' list. Otherwise, this event is
+ignored."
   (let ((entity-id (cdr (assoc 'entity_id data))))
     (when (member entity-id hass-watched-entities)
       (hass--query-entity-result
@@ -55,6 +60,8 @@
        (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
 
 (defun hass-websocket--subscribe-to-state-changes ()
+  "Request 'state_changed' events be sent over the websocket
+connection."
   (hass-websocket--subscribe "state_changed"))
 
 (defun hass-websocket--subscribe (event-type)
@@ -65,13 +72,14 @@
 
 (defun hass-websocket--send (message)
   "Send a message to the websocket.
-MESSAGE is an alist to encoded into a JSON object."
+MESSAGE is an alist to be encoded into a JSON object."
   (message "hass: Sending message to websocket: `%S'" message)
   (websocket-send-text hass-websocket-connection (hass--serialize message))
   (setq hass-websocket--interactions (1+ hass-websocket--interactions)))
 
 ;;;###autoload
 (defun hass-websocket--connect ()
+  "Establish a websocket connection to Home Assistant."
   (setq hass-websocket-connection
     (websocket-open (format "%s://%s:8123/api/websocket"
                             (if hass-insecure "ws" "wss")
@@ -81,16 +89,19 @@ MESSAGE is an alist to encoded into a JSON object."
       :on-close (lambda (_websocket) (setq hass-websocket-connection nil)))))
 
 (defun hass-websocket--disconnect ()
+  "Disconnect the websocket connection to Home Assistant."
   (websocket-close hass-websocket-connection)
   (setq hass-websocket-connection nil)
   (message "hass: Disconnected from websocket"))
 
 (defun hass-websocket--reconnect ()
+  "Disconnect and reconnect the websocket connection to Home Assistant."
   (when hass-websocket-connection
     (hass-websocket--disconnect))
   (hass-websocket--connect))
 
 (defun hass-websocket-toggle ()
+  "Toggle the websocket connection to Home Assistant."
   (if hass-websocket-connection
     (hass-websocket--disconnect)
     (hass-websocket--reconnect)))
