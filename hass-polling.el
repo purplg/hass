@@ -21,15 +21,15 @@
 ;;;###autoload
 (define-minor-mode hass-polling-mode
   "Toggle mode for querying Home Assistant periodically.
-Watching is a way to periodically query the state of entities you
-want to hook into to capture when their state changes.
+Similar to `hass-realtime-mode' but is done without requiring
+websockets by periodically polling the API.
 
 Use the variable `hass-polling-frequency' to change how
 frequently (in seconds) the Home Assistant instance should be
 queried.
 
-Use the variable `hass-watched-entities' to set which entities you want
-to query automatically."
+Use the variable `hass-watched-entities' to set which entities
+you want to query automatically."
   :lighter nil
   :group 'hass
   :global t
