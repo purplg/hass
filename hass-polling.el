@@ -11,7 +11,7 @@
 (require 'hass)
 
 (defvar hass-polling-mode-map (make-sparse-keymap)
-  "Keymap for hass mode.")
+  "Keymap for hass-polling-mode.")
 
 (defcustom hass-polling-frequency 60
   "Amount of seconds between watching HASS-ENTITIES."
