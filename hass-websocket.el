@@ -90,7 +90,6 @@ MESSAGE is an alist to be encoded into a JSON object."
 
 
 ;; Manage connection
-;;;###autoload
 (defun hass-websocket--connect ()
   "Establish a websocket connection to Home Assistant."
   (setq hass-websocket--connection
@@ -115,6 +114,7 @@ MESSAGE is an alist to be encoded into a JSON object."
 
 
 ;; Mode toggle
+;;;###autoload
 (define-minor-mode hass-realtime-mode
   "Toggle mode for a websocket connection to Home Assistant.
 Similar to `hass-polling-mode' but uses websocket to get realtime
