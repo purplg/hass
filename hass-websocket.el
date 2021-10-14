@@ -12,15 +12,13 @@
 (require 'json)
 (require 'websocket)
 
-
-;; Customizable
+;; User customizable
 (defvar hass-realtime-mode-map (make-sparse-keymap)
   "Keymap for hass-realtime-mode.")
 
 (defvar hass-websocket-connected-hook #'hass-websocket--subscribe-to-state-changes
  "Hook called after successful authentication to websocket.")
 
-
 ;; Internal state
 (defvar hass-websocket--connection '()
   "Websocket connection info.")
@@ -28,7 +26,6 @@
 (defvar hass-websocket--interactions '()
   "Number Websocket interactions to use for message IDs.")
 
-
 ;; Updates - Received from Home Assistant over websocket
 (defun hass-websocket--handle-message (_websocket frame)
   "Route messages received from websocket."
@@ -68,7 +65,6 @@ ignored."
        entity-id
        (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
 
-
 ;; Requests - Send to Home Assistant over websocket
 (defun hass-websocket--subscribe-to-state-changes ()
   "Request 'state_changed' events be sent over the websocket
@@ -88,8 +84,7 @@ MESSAGE is an alist to be encoded into a JSON object."
   (websocket-send-text hass-websocket--connection (hass--serialize message))
   (setq hass-websocket--interactions (1+ hass-websocket--interactions)))
 
-
-;; Manage connection
+;; Mode toggle
 (defun hass-websocket--connect ()
   "Establish a websocket connection to Home Assistant."
   (setq hass-websocket--connection
@@ -107,8 +102,6 @@ MESSAGE is an alist to be encoded into a JSON object."
     (setq hass-websocket--connection nil)
     (message "hass: Disconnected from websocket")))
 
-
-;; Mode toggle
 ;;;###autoload
 (define-minor-mode hass-realtime-mode
   "Toggle mode for a websocket connection to Home Assistant.
