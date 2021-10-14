@@ -272,15 +272,15 @@ completed.
 
 PAYLOAD is contents the body of the request."
   (request url
-       :sync nil
-       :type type
-       :headers `(("User-Agent" . hass--user-agent)
-                  ("Authorization" . ,(concat "Bearer " (hass--apikey)))
-                  ("Content-Type" . "application/json"))
-       :data payload
-       :parser (lambda () (hass--deserialize (buffer-string)))
-       :error #'hass--request-error
-       :success success))
+   :sync nil
+   :type type
+   :headers `(("User-Agent" . hass--user-agent)
+              ("Authorization" . ,(concat "Bearer " (hass--apikey)))
+              ("Content-Type" . "application/json"))
+   :data payload
+   :parser (lambda () (hass--deserialize (buffer-string)))
+   :error #'hass--request-error
+   :success success))
 
 (defun hass--get-available-entities (&optional callback)
   "Retrieve the available entities from the Home Assistant instance.
