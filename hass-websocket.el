@@ -107,11 +107,6 @@ MESSAGE is an alist to be encoded into a JSON object."
     (setq hass-websocket--connection nil)
     (message "hass: Disconnected from websocket")))
 
-(defun hass-websocket--reconnect ()
-  "Disconnect and reconnect the websocket connection to Home Assistant."
-  (hass-websocket--disconnect)
-  (hass-websocket--connect))
-
 
 ;; Mode toggle
 ;;;###autoload
@@ -125,8 +120,8 @@ you want to track state updates for."
   :lighter nil
   :group 'hass
   :global t
-  (if hass-realtime-mode
-    (hass-websocket--reconnect)
-    (hass-websocket--disconnect)))
+  (hass-websocket--disconnect)
+  (when hass-realtime-mode
+    (hass-websocket--connect)))
 
 (provide 'hass-websocket)
