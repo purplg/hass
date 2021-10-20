@@ -416,7 +416,11 @@ Assistant instance for available services and entities."
          (user-error "HASS-APIKEY must be set to use hass"))
         ((not (equal (type-of hass-host) 'string))
          (user-error "hass-host must be set to use hass"))
-        ((hass--get-available-services 'hass--get-available-entities))))
+        ((hass--get-available-services 'hass--get-available-entities)))
+
+  ; Get current state of watched entities
+  (dolist (entity hass-watched-entities)
+    (hass--get-entity-state entity)))
 
 (provide 'hass)
 
