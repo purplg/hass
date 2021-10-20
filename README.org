@@ -54,10 +54,12 @@ Assistant instance.
 #+END_SRC
 
 Alternatively, you can store a function inside ~hass-apikey~. This will be executed on every
-query.
+query. In turn, this approach requires the token to be stored in your gpg store e.g. =~/.password-store/emacs-apikey.gpg=
 
 #+BEGIN_SRC emacs-lisp :results none
-(setq hass-apikey (lambda () (auth-source-pass-get 'secret "home/hass/emacs-apikey")))
+(setq hass-apikey (lambda () (auth-source-pass-get 'secret "emacs-apikey")))
+(setq hass-url "http://homeassistant:8123")
+(hass-setup)
 #+END_SRC
 
 Once those variables are set, you must call ~(hass-setup)~ before using this package so that it can
