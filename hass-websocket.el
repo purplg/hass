@@ -41,18 +41,16 @@
           ((string= type "auth_invalid")
            (user-error "hass: Failed to connect to websocket: %s" (cdr (assoc 'message content))))
           ((string= type "result")
-           (message (if (cdr (assoc 'success content)) "hass: Success" "hass: Error")))
+           (message (unless (cdr (assoc 'success content)) "hass: Error")))
           ((string= type "event")
-           (hass-websocket--handle-event (cdr (assoc 'event content))))
-          ((message "received unhandled frame: %S" (helpful--pretty-print content))))))
+           (hass-websocket--handle-event (cdr (assoc 'event content)))))))
 
 (defun hass-websocket--handle-event (event)
   "Handle a websocket message with the type 'event'."
   (let ((event-type (cdr (assoc 'event_type event)))
         (data (cdr (assoc 'data event))))
     (cond ((string= event-type "state_changed")
-           (hass-websocket--handle-state-change data))
-          ((message "hass: unhandled event-type fired: %s" event-type)))))
+           (hass-websocket--handle-state-change data)))))
 
 (defun hass-websocket--handle-state-change (data)
   "Handle a websocket message for the 'state_changed' event.
@@ -72,7 +70,6 @@ connection."
   (hass-websocket--subscribe "state_changed"))
 
 (defun hass-websocket--subscribe (event-type)
-  (message "hass: Subscribing to [%s]: `%s'" hass-websocket--interactions event-type)
   (hass-websocket--send `((id . ,hass-websocket--interactions)
                           (type . "subscribe_events")
                           (event_type . ,event-type))))
@@ -80,7 +77,6 @@ connection."
 (defun hass-websocket--send (message)
   "Send a message to the websocket.
 MESSAGE is an alist to be encoded into a JSON object."
-  (message "hass: Sending message to websocket: `%S'" message)
   (websocket-send-text hass-websocket--connection (hass--serialize message))
   (setq hass-websocket--interactions (1+ hass-websocket--interactions)))
 
