@@ -152,7 +152,7 @@ return HASS-APIKEY as is."
 
 (defun hass--entity-url (entity-id)
   "Generate entity state endpoint URLs.
-ENTITY-ID is a string of the entities ID."
+ENTITY-ID is the id of the entity in Home Assistant."
   (hass--url (concat "api/states/" entity-id)))
 
 (defun hass--service-url (service)
@@ -184,7 +184,8 @@ SERVICE is a string of the service to call."
     (json-encode object)))
 
 (defun hass-state-of (entity-id)
-  "Return the last known state of ENTITY-ID."
+  "Return the last known state of ENTITY-ID.
+ENTITY-ID is the id of the entity in Home Assistant."
   (cdr (assoc entity-id hass--states)))
 
 
@@ -236,7 +237,7 @@ returns a list of domains and their available services."
 
 (defun hass--query-entity-result (entity-id state)
   "Callback when an entity state data is received from API.
-ENTITY-ID is the id of the entity that has STATE."
+ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   (let ((previous-state (hass-state-of entity-id)))
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
@@ -245,7 +246,7 @@ ENTITY-ID is the id of the entity that has STATE."
 
 (defun hass--call-service-result (entity-id state)
   "Callback when a successful service request is received from API.
-ENTITY-ID is the id of the entity that was affected and now has STATE."
+ENTITY-ID is the id of the entity in Home Assistant that was affected and now has STATE."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass-service-called-hook))
 
@@ -332,7 +333,7 @@ SERVICE to call.
 
 This will send an API request to the address configure in `hass-host'.
 
-ENTITY-ID is a string of the entity id in Home Assistant you want
+ENTITY-ID is the id of the entity in Home Assistant.
 to call the service on.  (e.g. `\"switch.kitchen_light\"').
 
 SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')"
