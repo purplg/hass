@@ -188,6 +188,11 @@ SERVICE is a string of the service to call."
 ENTITY-ID is the id of the entity in Home Assistant."
   (cdr (assoc entity-id hass--states)))
 
+(defun hass-switch-p (entity-id)
+  "Return `t' if switch status is `on' of ENTITY-ID.
+ENTITY-ID is the id of the entity in Home Assistant."
+  (string= (hass-state-of entity-id) "on"))
+
 
 ;; API parsing
 (defun hass--parse-all-entities (entities)
