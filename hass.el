@@ -258,7 +258,7 @@ ENTITY-ID is the id of the entity in Home Assistant that was affected and now ha
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
   "Error handler for invalid requests.
 ERROR-THROWN is the error thrown from the request.el request."
-  (let ((error (cdr error-thrown)))
+  (let ((error (replace-regexp-in-string "\n$" "" (cdr error-thrown))))
     (cond ((string= error "exited abnormally with code 7\n")
            (user-error "Hass: No Home Assistant instance detected at url: %s" hass-host))
           ((string= error "exited abnormally with code 35\n")
