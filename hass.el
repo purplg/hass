@@ -39,20 +39,6 @@
 ;;  (json-encode '(("payload" . "PERFORM")
 ;;                 ("topic" . "valetudo/vacuum/LocateCapability/locate/set"))))
 
-;; Watching entities:
-
-;; To react to changes in entity states, enable `hass-watch-mode' This mode will periodically poll
-;; the Home Assistant instance to get the state of entities listed in `hass-watched-entities'.
-
-;; (setq hass-watched-entities '("switch.bedroom_light" "switch.bedroom_fan"))
-;; (hass-watch-mode 1)
-
-;; Use the function hook `hass-entity-state-updated-functions' to react to changes in entity state:
-
-;; (add-hook 'hass-entity-state-updated-functions
-;;   (lambda (entity-id)
-;;     (message "The entity %s state has changed to %s." entity-id (hass-state-of entity-id))))
-
 ;; See README.org for more information.
 ;;
 ;; Homepage: https://github.com/purplg/hass
