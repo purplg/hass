@@ -49,8 +49,8 @@ Both ~hass-host~ and ~hass-apikey~ must be set to use this package. Set ~hass-ho
 Assistant instance. If you are not using SSL/TLS to connect to your Home Assistance instance, set ~hass-insecure~ to ~t~.
 
 #+BEGIN_SRC emacs-lisp :results none
-(setq hass-host "homeassistant"
-      hass-apikey "APIKEY-GOES-IN-HERE")
+(setq hass-host "homeassistant")
+(setq hass-apikey "APIKEY-GOES-IN-HERE")
 (hass-setup)
 #+END_SRC
 
