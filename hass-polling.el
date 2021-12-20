@@ -40,7 +40,7 @@ you want to query automatically."
     (setq hass--timer (run-with-timer
                        nil
                        hass-polling-frequency
-                       'hass-watch--query-entities))))
+                       'hass-polling--query-entities))))
 
 (defun hass-polling--cancel-timer ()
   "Cancel watch without disabling it."
