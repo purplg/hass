@@ -89,6 +89,14 @@ detect changes in entity state."
   :group 'hass
   :type '(repeat string))
 
+(defvar hass-polling-mode-map (make-sparse-keymap)
+  "Keymap for hass-polling-mode.")
+
+(defcustom hass-polling-frequency 60
+  "Amount of seconds between watching HASS-ENTITIES."
+  :group 'hass
+  :type 'integer)
+
 
 ;; Hooks
 (defvar hass-entity-state-updated-functions nil
@@ -354,6 +362,42 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
    (lambda (&rest _)
      (run-hooks 'hass-service-called-hook)
      (when success-callback (funcall success-callback)))))
+
+
+;; Polling
+(defun hass-polling--cancel-timer ()
+  "Cancel watch without disabling it."
+  (when hass--timer
+    (cancel-timer hass--timer)
+    (setq hass--timer nil)))
+
+(defun hass-polling--query-entities ()
+  "Update the current state all of the registered entities."
+  (dolist (entity hass-watched-entities)
+    (hass--get-entity-state entity)))
+
+(define-minor-mode hass-polling-mode
+  "Toggle mode for querying Home Assistant periodically.
+Similar to `hass-realtime-mode' but is done without requiring
+websockets by periodically polling the API.
+
+Use the variable `hass-polling-frequency' to change how
+frequently (in seconds) the Home Assistant instance should be
+queried.
+
+Use the variable `hass-watched-entities' to set which entities
+you want to query automatically."
+  :lighter nil
+  :group 'hass
+  :global t
+  (when hass--timer (hass-watch--cancel-timer))
+  (when hass-polling-mode
+    (hass--get-available-services 'hass--get-available-entities)
+    (when hass--timer (hass-watch--cancel-timer))
+    (setq hass--timer (run-with-timer
+                       nil
+                       hass-polling-frequency
+                       'hass-polling--query-entities))))
 
 
 ;;;###autoload
