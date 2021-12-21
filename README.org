@@ -9,7 +9,7 @@
 
 This package is available on [[https://melpa.org/][MELPA]].
 
-** package.el
+** use-package
 
 #+BEGIN_SRC emacs-lisp :results none
 (use-package hass
