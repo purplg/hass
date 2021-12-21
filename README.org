@@ -61,8 +61,8 @@ Alternatively, you can store a function inside ~hass-apikey~. This will be execu
 query. In turn, this approach requires the token to be stored in your gpg store e.g. =~/.password-store/emacs-apikey.gpg=
 
 #+BEGIN_SRC emacs-lisp :results none
-(setq hass-apikey (lambda () (auth-source-pass-get 'secret "emacs-apikey")))
 (setq hass-host "homeassistant")
+(setq hass-apikey (lambda () (auth-source-pass-get 'secret "emacs-apikey")))
 (hass-setup)
 #+END_SRC
 
