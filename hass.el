@@ -3,6 +3,7 @@
 ;; Package-Requires: ((emacs "25.1") (request "0.3.3"))
 ;; Version: 2.0.0
 ;; Author: Ben Whitley
+;; Homepage: https://github.com/purplg/hass
 ;; SPDX-License-Identifier: MIT
 ;;; Commentary:
 
@@ -40,8 +41,6 @@
 ;;                 ("topic" . "valetudo/vacuum/LocateCapability/locate/set"))))
 
 ;; See README.org for more information.
-;;
-;; Homepage: https://github.com/purplg/hass
 
 ;;; Code:
 (require 'json)
