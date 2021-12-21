@@ -41,7 +41,7 @@ Then load the package in your main config file.
 
 #+BEGIN_SRC emacs-lisp :results none
 (use-package! hass
-  :config
+  :init
   (setq hass-url "http://homeassistant:8123"
         hass-apikey "APIKEY-GOES-IN-HERE")
   (hass-setup))
