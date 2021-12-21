@@ -59,7 +59,7 @@ non-default port number, ~hass-port~ must be set to the port number.
 ;; Is now this
 (setq hass-host "homeassistant")
 (setq hass-insecure t)
-(setq hass-port "8123") ; Not necessary to set since `8123' is default.
+(setq hass-port 8123) ; Not necessary to set since `8123' is default.
 (hass-setup)
 #+END_SRC
 
@@ -98,7 +98,7 @@ specify the port number with ~hass-port~.
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-host "homeassistant")
 (setq hass-apikey "APIKEY-GOES-IN-HERE")
-(setq hass-port "8123")
+(setq hass-port 8123)
 (hass-setup)
 #+END_SRC
 
