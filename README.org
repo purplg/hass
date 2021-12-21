@@ -48,8 +48,9 @@ Then load the package in your main config file.
 ** Deprecated hass-url
 
 The ~hass-url~ variable is now deprecated. This has been split up into 3 variables ~hass-host~,
-~hass-insecure~, and ~hass-port~. ~hass-host~ must always be set. Hass is secure by default, so ~hass-insecure~ needs to be ~t~ if
-SSL is not being used (i.e HTTP and not HTTPS). If using a non-default port number, ~hass-port~ must be set to the port number.
+~hass-insecure~, and ~hass-port~. ~hass-host~ must always be set. Hass is secure by default, so
+~hass-insecure~ needs to be ~t~ if SSL is not being used (i.e HTTP and not HTTPS). If using a
+non-default port number, ~hass-port~ must be set to the port number.
 
 #+BEGIN_SRC emacs-lisp :results none
 ;; The old URL variable
