@@ -76,6 +76,18 @@ This change was implemented to support the ~hass-websockets~ extension package. 
 different protocol and splitting out the URL into components makes it much easier to generate the
 websocket URL automatically.
 
+** Renamed hass-watch-mode
+
+~hass-watch-mode~ is now ~hass-polling-mode~. This new name is clearer on what it functionally does,
+periodically poll the Home Assistant instance.
+
+** hass-watch-entities
+
+~hass-watch-entities~ was named to have a prefix of ~hass-watch-~ as part of the ~hass-watch-mode~
+functionality. Since ~hass-watch-mode~ was renamed and the variable will be used outside of the
+~hass-polling~ functionality, the variable was renamed to ~hass-watched-entities~ to indicate the
+entities will be "watched", or in other words "tracked".
+
 * Configuration
 
 Both ~hass-host~ and ~hass-apikey~ must be set to use this package. Set ~hass-host~ to the hostname
