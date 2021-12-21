@@ -94,7 +94,7 @@ detect changes in entity state."
   "Keymap for `hass-polling-mode'.")
 
 (defcustom hass-polling-frequency 60
-  "Amount of seconds between watching HASS-ENTITIES."
+  "Amount of seconds between querying HASS-ENTITIES."
   :group 'hass
   :type 'integer)
 
@@ -372,7 +372,7 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
 
 ;; Polling
 (defun hass-polling--cancel-timer ()
-  "Cancel watch without disabling it."
+  "Cancel polling without disabling it."
   (when hass--timer
     (cancel-timer hass--timer)
     (setq hass--timer nil)))
@@ -397,10 +397,10 @@ you want to query automatically."
   :lighter nil
   :group 'hass
   :global t
-  (when hass--timer (hass-watch--cancel-timer))
+  (when hass--timer (hass-polling--cancel-timer))
   (when hass-polling-mode
     (hass--get-available-services 'hass--get-available-entities)
-    (when hass--timer (hass-watch--cancel-timer))
+    (when hass--timer (hass-polling--cancel-timer))
     (setq hass--timer (run-with-timer
                        nil
                        hass-polling-frequency
@@ -428,7 +428,7 @@ Assistant instance for available services and entities."
          (user-error "hass-host must be set to use hass"))
         ((hass--get-available-services 'hass--get-available-entities)))
 
-  ; Get current state of watched entities
+  ; Get current state of tracked entities
   (dolist (entity hass-tracked-entities)
     (hass--get-entity-state entity)))
 
