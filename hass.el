@@ -376,6 +376,7 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
   (dolist (entity hass-watched-entities)
     (hass--get-entity-state entity)))
 
+;;;###autoload
 (define-minor-mode hass-polling-mode
   "Toggle mode for querying Home Assistant periodically.
 Similar to `hass-realtime-mode' but is done without requiring
