@@ -62,7 +62,7 @@ query. In turn, this approach requires the token to be stored in your gpg store 
 
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-apikey (lambda () (auth-source-pass-get 'secret "emacs-apikey")))
-(setq hass-url "http://homeassistant:8123")
+(setq hass-host "homeassistant")
 (hass-setup)
 #+END_SRC
 
