@@ -76,6 +76,9 @@ This change was implemented to support the ~hass-websockets~ extension package. 
 different protocol and splitting out the URL into components makes it much easier to generate the
 websocket URL automatically.
 
+The package will currently parse ~hass-url~ if it is set and convert it into its appropriate
+configuration variables. This will be removed in the future.
+
 ** Renamed hass-watch-mode
 
 ~hass-watch-mode~ is now ~hass-polling-mode~. This new name is clearer on what it functionally does,
