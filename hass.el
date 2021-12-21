@@ -80,7 +80,7 @@ requests"
   :group 'hass
   :type 'string)
 
-(defcustom hass-watched-entities nil
+(defcustom hass-tracked-entities nil
   "A list of tracked Home Assistant entities.
 Set this to a list of Home Assistant entity ID strings.  An entity ID looks
 something like *switch.bedroom_light*.
@@ -379,7 +379,7 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
 
 (defun hass-polling--query-entities ()
   "Update the current state all of the registered entities."
-  (dolist (entity hass-watched-entities)
+  (dolist (entity hass-tracked-entities)
     (hass--get-entity-state entity)))
 
 ;;;###autoload
@@ -392,7 +392,7 @@ Use the variable `hass-polling-frequency' to change how
 frequently (in seconds) the Home Assistant instance should be
 queried.
 
-Use the variable `hass-watched-entities' to set which entities
+Use the variable `hass-tracked-entities' to set which entities
 you want to query automatically."
   :lighter nil
   :group 'hass
@@ -429,7 +429,7 @@ Assistant instance for available services and entities."
         ((hass--get-available-services 'hass--get-available-entities)))
 
   ; Get current state of watched entities
-  (dolist (entity hass-watched-entities)
+  (dolist (entity hass-tracked-entities)
     (hass--get-entity-state entity)))
 
 (provide 'hass)

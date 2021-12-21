@@ -88,8 +88,8 @@ periodically poll the Home Assistant instance.
 
 ~hass-watch-entities~ was named to have a prefix of ~hass-watch-~ as part of the ~hass-watch-mode~
 functionality. Since ~hass-watch-mode~ was renamed and the variable will be used outside of the
-~hass-polling~ functionality, the variable was renamed to ~hass-watched-entities~ to indicate the
-entities will be "watched", or in other words "tracked".
+~hass-polling~ functionality, the variable was renamed to ~hass-tracked-entities~ to indicate the
+entities will be tracked, or in other words, queried for updates.
 
 * Configuration
 
