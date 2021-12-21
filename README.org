@@ -72,6 +72,10 @@ non-default port number, ~hass-port~ must be set to the port number.
 (hass-setup)
 #+END_SRC
 
+This change was implemented to support the ~hass-websockets~ extension package. This uses a
+different protocol and splitting out the URL into components makes it much easier to generate the
+websocket URL automatically.
+
 * Configuration
 
 Both ~hass-host~ and ~hass-apikey~ must be set to use this package. Set ~hass-host~ to the hostname
