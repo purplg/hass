@@ -405,6 +405,16 @@ you want to query automatically."
   "Run before using any hass features.
 Check whether necessary variables are set and then query the Home
 Assistant instance for available services and entities."
+
+  ;; Backwards compability. Split `hass-url', into appropriate variables.
+  (when (boundp 'hass-url)
+    (message "`hass-url' is deprecated as of v2.0. Please use `hass-host'. https://github.com/purplg/hass/blob/master/README.org#configuration")
+    (save-match-data
+      (string-match "http\\(s?\\)://\\(.*\\):\\([0-9]*\\)$" hass-url)
+      (setq hass-insecure (string-empty-p (match-string 1 hass-url)))
+      (setq hass-host (match-string 2 hass-url))
+      (setq hass-port (match-string 3 hass-url))))
+
   (cond ((not (equal (type-of (hass--apikey)) 'string))
          (user-error "HASS-APIKEY must be set to use hass"))
         ((not (equal (type-of hass-host) 'string))
