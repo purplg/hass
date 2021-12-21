@@ -15,18 +15,15 @@ This package is available on [[https://melpa.org/][MELPA]].
 (use-package hass
   :ensure t
   :init
-  (setq hass-url "http://homeassistant:8123"
-        hass-apikey "APIKEY-GOES-IN-HERE")
-  (hass-setup))
+  ;; -- Configuration goes here --
+  )
 #+END_SRC
 
 ** straight.el
 
 #+BEGIN_SRC emacs-lisp :results none
 (straight-use-package 'hass)
-(setq hass-url "http://homeassistant:8123"
-      hass-apikey "APIKEY-GOES-IN-HERE")
-(hass-setup)
+;; -- Configuration goes here --
 #+END_SRC
 
 ** Doom Emacs
@@ -42,9 +39,8 @@ Then load the package in your main config file.
 #+BEGIN_SRC emacs-lisp :results none
 (use-package! hass
   :init
-  (setq hass-url "http://homeassistant:8123"
-        hass-apikey "APIKEY-GOES-IN-HERE")
-  (hass-setup))
+  ;; -- Configuration goes here --
+  )
 #+END_SRC
 
 * Configuration
