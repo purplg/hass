@@ -408,7 +408,7 @@ Assistant instance for available services and entities."
 
   ;; Backwards compability. Split `hass-url', into appropriate variables.
   (when (boundp 'hass-url)
-    (message "`hass-url' is deprecated as of v2.0. Please use `hass-host'. https://github.com/purplg/hass/blob/master/README.org#configuration")
+    (message "`hass-url' is deprecated as of v2.0. Please use `hass-host'. https://github.com/purplg/hass/blob/master/README.org#deprecated-hass-url")
     (save-match-data
       (string-match "http\\(s?\\)://\\(.*\\):\\([0-9]*\\)$" hass-url)
       (setq hass-insecure (string-empty-p (match-string 1 hass-url)))
