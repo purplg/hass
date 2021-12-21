@@ -46,7 +46,7 @@ Then load the package in your main config file.
 * Configuration
 
 Both ~hass-host~ and ~hass-apikey~ must be set to use this package. Set ~hass-host~ to the hostname
-or URL of Home Assistant instance. If you are not using SSL/TLS to connect to your Home Assistance
+or IP of Home Assistant instance. If you are not using SSL/TLS to connect to your Home Assistance
 instance, set ~hass-insecure~ to ~t~. If you are using a port number other than the default =8123=,
 specify the port number with ~hass-port~.
 
