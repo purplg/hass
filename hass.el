@@ -90,7 +90,7 @@ detect changes in entity state."
   :type '(repeat string))
 
 (defvar hass-polling-mode-map (make-sparse-keymap)
-  "Keymap for hass-polling-mode.")
+  "Keymap for `hass-polling-mode'.")
 
 (defcustom hass-polling-frequency 60
   "Amount of seconds between watching HASS-ENTITIES."
@@ -130,6 +130,8 @@ entity whose state changed.")
 
 ;; Helper functions
 (defun hass--url (&optional path)
+  "Formats a Home Assistant API request path to its' full URL.
+PATH is the Home Assistant endpoint path."
   (format "%s://%s:%s/%s"
     (if hass-insecure "http" "https")
     hass-host
@@ -166,13 +168,16 @@ SERVICE is a string of the service to call."
   (cdr (assoc (hass--domain-of-entity entity-id) hass--available-services)))
 
 (defun hass--deserialize (str-object)
-  "Wrapper function to use native JSON parser when available."
+  "Wrapper function to use native JSON parser when available.
+STR-OBJECT is a JSON object in as a string to be deserialzied
+into a JSON object."
   (if (fboundp 'json-parse-string)
     (json-parse-string str-object :object-type 'alist)
     (json-read-from-string str-object)))
 
 (defun hass--serialize (object)
-  "Wrapper function to use native JSON serializer when available."
+  "Wrapper function to use native JSON serializer when available.
+OBJECT is a JSON object to be serialized into string."
   (if (fboundp 'json-serialize)
     (json-serialize object)
     (json-encode object)))
@@ -183,7 +188,7 @@ ENTITY-ID is the id of the entity in Home Assistant."
   (cdr (assoc entity-id hass--states)))
 
 (defun hass-switch-p (entity-id)
-  "Return `t' if switch status is `on' of ENTITY-ID.
+  "Return t if switch status is 'on' of ENTITY-ID.
 ENTITY-ID is the id of the entity in Home Assistant."
   (string= (hass-state-of entity-id) "on"))
 
@@ -256,7 +261,7 @@ ERROR-THROWN is the error thrown from the request.el request."
     (cond ((string= error "exited abnormally with code 7\n")
            (user-error "Hass: No Home Assistant instance detected at url: %s" hass-host))
           ((string= error "exited abnormally with code 35\n")
-           (user-error "Hass: Error connecting to url `%s'? Try toggling variable `hass-insecure'." (hass--url)))
+           (user-error "Hass: Error connecting to url `%s'? Try toggling variable `hass-insecure'" (hass--url)))
           ((error "Hass: unknown error: %S" error)))))
 
 
