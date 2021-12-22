@@ -43,14 +43,65 @@ Then load the package in your main config file.
   )
 #+END_SRC
 
-* Configuration
+* Breaking Changes
 
-Both ~hass-url~ and ~hass-apikey~ must be set to use this package. Set ~hass-url~ to your Home
-Assistant instance.
+** Deprecated hass-url
+
+The ~hass-url~ variable is now deprecated. This has been split up into 3 variables ~hass-host~,
+~hass-insecure~, and ~hass-port~. ~hass-host~ must always be set. Hass is secure by default, so
+~hass-insecure~ needs to be ~t~ if SSL is not being used (i.e HTTP and not HTTPS). If using a
+non-default port number, ~hass-port~ must be set to the port number.
 
 #+BEGIN_SRC emacs-lisp :results none
-(setq hass-url "http://homeassistant:8123"
-      hass-apikey "APIKEY-GOES-IN-HERE")
+;; The old URL variable
+;; (setq hass-url "http://homeassistant:8123")
+
+;; Is now this
+(setq hass-host "homeassistant")
+(setq hass-insecure t)
+(setq hass-port 8123) ; Not necessary to set since `8123' is default.
+(hass-setup)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :results none
+;; An SSL-enabled instance can just configure `hass-host'.
+;; (setq hass-url "http://homeassistant:8123")
+
+;; Is now this
+(setq hass-host "homeassistant")
+(hass-setup)
+#+END_SRC
+
+This change was implemented to support the ~hass-websockets~ extension package. This uses a
+different protocol and splitting out the URL into components makes it much easier to generate the
+websocket URL automatically.
+
+The package will currently parse ~hass-url~ if it is set and convert it into its appropriate
+configuration variables. This will be removed in the future.
+
+** Renamed hass-watch-mode
+
+~hass-watch-mode~ is now ~hass-polling-mode~. This new name is clearer on what it functionally does,
+periodically poll the Home Assistant instance.
+
+** hass-watch-entities
+
+~hass-watch-entities~ was named to have a prefix of ~hass-watch-~ as part of the ~hass-watch-mode~
+functionality. Since ~hass-watch-mode~ was renamed and the variable will be used outside of the
+~hass-polling~ functionality, the variable was renamed to ~hass-tracked-entities~ to indicate the
+entities will be tracked, or in other words, queried for updates.
+
+* Configuration
+
+Both ~hass-host~ and ~hass-apikey~ must be set to use this package. Set ~hass-host~ to the hostname
+or IP of Home Assistant instance. If you are not using SSL/TLS to connect to your Home Assistance
+instance, set ~hass-insecure~ to ~t~. If you are using a port number other than the default =8123=,
+specify the port number with ~hass-port~.
+
+#+BEGIN_SRC emacs-lisp :results none
+(setq hass-host "homeassistant")
+(setq hass-apikey "APIKEY-GOES-IN-HERE")
+(setq hass-port 8123)
 (hass-setup)
 #+END_SRC
 
@@ -58,8 +109,8 @@ Alternatively, you can store a function inside ~hass-apikey~. This will be execu
 query. In turn, this approach requires the token to be stored in your gpg store e.g. =~/.password-store/emacs-apikey.gpg=
 
 #+BEGIN_SRC emacs-lisp :results none
+(setq hass-host "homeassistant")
 (setq hass-apikey (lambda () (auth-source-pass-get 'secret "emacs-apikey")))
-(setq hass-url "http://homeassistant:8123")
 (hass-setup)
 #+END_SRC
 

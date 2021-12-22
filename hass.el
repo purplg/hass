@@ -1,8 +1,9 @@
 ;;; hass.el --- Interact with Home Assistant -*- lexical-binding: t; -*-
 
 ;; Package-Requires: ((emacs "25.1") (request "0.3.3"))
-;; Version: 1.2.1
+;; Version: 2.0.0
 ;; Author: Ben Whitley
+;; Homepage: https://github.com/purplg/hass
 ;; SPDX-License-Identifier: MIT
 ;;; Commentary:
 
@@ -11,10 +12,12 @@
 ;; --------------------
 ;; Configuration
 
-;; Both `hass-url' and `hass-apikey' must be set to use this package.
+;; Both `hass-host' and `hass-apikey' must be set to use this package.
 
-;; (setq hass-url "https://192.168.1.10:8123"
-;;       hass-apikey "APIKEY-GOES-IN-HERE"
+;; (setq hass-host "192.168.1.10") ; Required
+;; (setq hass-insecure t) ; If using HTTP and not HTTPS
+;; (setq hass-port 8123) ; If using a different port other than the default 8123
+;; (setq hass-apikey "APIKEY-GOES-IN-HERE") ; Required. See below.
 ;; (hass-setup)
 
 ;; Getting an API Key:
@@ -39,23 +42,7 @@
 ;;  (json-encode '(("payload" . "PERFORM")
 ;;                 ("topic" . "valetudo/vacuum/LocateCapability/locate/set"))))
 
-;; Watching entities:
-
-;; To react to changes in entity states, enable `hass-watch-mode' This mode will periodically poll
-;; the Home Assistant instance to get the state of entities listed in `hass-watch-entities'.
-
-;; (setq hass-watch-entities '("switch.bedroom_light" "switch.bedroom_fan"))
-;; (hass-watch-mode 1)
-
-;; Use the function hook `hass-entity-state-updated-functions' to react to changes in entity state:
-
-;; (add-hook 'hass-entity-state-updated-functions
-;;   (lambda (entity-id)
-;;     (message "The entity %s state has changed to %s." entity-id (hass-state-of entity-id))))
-
 ;; See README.org for more information.
-;;
-;; Homepage: https://github.com/purplg/hass
 
 ;;; Code:
 (require 'json)
@@ -68,15 +55,23 @@
 
 
 ;; Customizable
-(defvar hass-watch-mode-map (make-sparse-keymap)
-  "Keymap for hass mode.")
-
-(defcustom hass-url nil
+(defcustom hass-host nil
   "The URL of the Home Assistant instance.
 Set this to the URL of the Home Assistant instance you want to
-control.  (e.g. https://192.168.1.10:8123)"
+control.  (e.g. 192.168.1.10)"
   :group 'hass
   :type 'string)
+
+(defcustom hass-port 8123
+  "The port used for Home Assistant requests."
+  :group 'hass
+  :type 'integer)
+
+(defcustom hass-insecure nil
+  "Whether to use HTTP or HTTPS.
+When Set to non-nil, use HTTP instead of HTTPS when making requests."
+  :group 'hass
+  :type 'boolean)
 
 (defcustom hass-apikey nil
   "API key used for Home Assistant queries.
@@ -85,16 +80,21 @@ requests"
   :group 'hass
   :type 'string)
 
-(defcustom hass-watch-entities nil
+(defcustom hass-tracked-entities nil
   "A list of tracked Home Assistant entities.
 Set this to a list of Home Assistant entity ID strings.  An entity ID looks
-something like *switch.bedroom_light*."
+something like *switch.bedroom_light*.
 
+This is used by `hass-polling-mode' and `hass-websocket-mode' to
+detect changes in entity state."
   :group 'hass
   :type '(repeat string))
 
-(defcustom hass-watch-frequency 60
-  "Amount of seconds between watching HASS-ENTITIES."
+(defvar hass-polling-mode-map (make-sparse-keymap)
+  "Keymap for `hass-polling-mode'.")
+
+(defcustom hass-polling-frequency 60
+  "Amount of seconds between querying HASS-ENTITIES."
   :group 'hass
   :type 'integer)
 
@@ -130,6 +130,15 @@ entity whose state changed.")
 
 
 ;; Helper functions
+(defun hass--url (&optional path)
+  "Formats a Home Assistant API request path to its' full URL.
+PATH is the Home Assistant endpoint path."
+  (format "%s://%s:%s/%s"
+    (if hass-insecure "http" "https")
+    hass-host
+    hass-port
+    path))
+
 (defun hass--apikey ()
   "Return the effective apikey.
 If HASS-APIKEY is a function, execute it to get value.  Otherwise
@@ -140,8 +149,8 @@ return HASS-APIKEY as is."
 
 (defun hass--entity-url (entity-id)
   "Generate entity state endpoint URLs.
-ENTITY-ID is a string of the entities ID."
-  (format "%s/%s/%s" hass-url "api/states" entity-id))
+ENTITY-ID is the id of the entity in Home Assistant."
+  (hass--url (concat "api/states/" entity-id)))
 
 (defun hass--service-url (service)
   "Generate service endpoint URL.
@@ -149,7 +158,7 @@ SERVICE is a string of the service to call."
   (let* ((parts (split-string service "\\."))
          (domain (pop parts))
          (service (pop parts)))
-    (format "%s/api/services/%s/%s" hass-url domain service)))
+    (hass--url (format "api/services/%s/%s" domain service))))
 
 (defun hass--domain-of-entity (entity-id)
   "Convert an ENTITY-ID to its respective domain."
@@ -159,9 +168,30 @@ SERVICE is a string of the service to call."
   "Return the services available for an ENTITY-ID."
   (cdr (assoc (hass--domain-of-entity entity-id) hass--available-services)))
 
+(defun hass--deserialize (str-object)
+  "Wrapper function to use native JSON parser when available.
+STR-OBJECT is a JSON object in as a string to be deserialzied
+into a JSON object."
+  (if (fboundp 'json-parse-string)
+    (json-parse-string str-object :object-type 'alist)
+    (json-read-from-string str-object)))
+
+(defun hass--serialize (object)
+  "Wrapper function to use native JSON serializer when available.
+OBJECT is a JSON object to be serialized into string."
+  (if (fboundp 'json-serialize)
+    (json-serialize object)
+    (json-encode object)))
+
 (defun hass-state-of (entity-id)
-  "Return the last known state of ENTITY-ID."
+  "Return the last known state of ENTITY-ID.
+ENTITY-ID is the id of the entity in Home Assistant."
   (cdr (assoc entity-id hass--states)))
+
+(defun hass-switch-p (entity-id)
+  "Return t if switch status is 'on' of ENTITY-ID.
+ENTITY-ID is the id of the entity in Home Assistant."
+  (string= (hass-state-of entity-id) "on"))
 
 
 ;; API parsing
@@ -212,7 +242,7 @@ returns a list of domains and their available services."
 
 (defun hass--query-entity-result (entity-id state)
   "Callback when an entity state data is received from API.
-ENTITY-ID is the id of the entity that has STATE."
+ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   (let ((previous-state (hass-state-of entity-id)))
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
@@ -221,19 +251,19 @@ ENTITY-ID is the id of the entity that has STATE."
 
 (defun hass--call-service-result (entity-id state)
   "Callback when a successful service request is received from API.
-ENTITY-ID is the id of the entity that was affected and now has STATE."
+ENTITY-ID is the id of the entity in Home Assistant that was affected and now has STATE."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass-service-called-hook))
 
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
   "Error handler for invalid requests.
 ERROR-THROWN is the error thrown from the request.el request."
-  (let ((error (cdr error-thrown)))
+  (let ((error (replace-regexp-in-string "\n$" "" (cdr error-thrown))))
     (cond ((string= error "exited abnormally with code 7\n")
-           (user-error "Hass: No Home Assistant instance detected at url: %s" hass-url))
+           (user-error "Hass: No Home Assistant instance detected at url: %s" hass-host))
           ((string= error "exited abnormally with code 35\n")
-           (user-error "Hass: Did you mean to use HTTP instead of HTTPS for url %s?" hass-url))
-          ((error "Hass: unknown error: %S" error-thrown)))))
+           (user-error "Hass: Error connecting to url `%s'? Try toggling variable `hass-insecure'" (hass--url)))
+          ((error "Hass: unknown error: %S" error)))))
 
 
 ;; Requests
@@ -248,22 +278,22 @@ completed.
 
 PAYLOAD is contents the body of the request."
   (request url
-       :sync nil
-       :type type
-       :headers `(("User-Agent" . hass--user-agent)
-                  ("Authorization" . ,(concat "Bearer " (hass--apikey)))
-                  ("Content-Type" . "application/json"))
-       :data payload
-       :parser #'json-read
-       :error #'hass--request-error
-       :success success))
+   :sync nil
+   :type type
+   :headers `(("User-Agent" . hass--user-agent)
+              ("Authorization" . ,(concat "Bearer " (hass--apikey)))
+              ("Content-Type" . "application/json"))
+   :data payload
+   :parser (lambda () (hass--deserialize (buffer-string)))
+   :error #'hass--request-error
+   :success success))
 
 (defun hass--get-available-entities (&optional callback)
   "Retrieve the available entities from the Home Assistant instance.
 Makes a request to `/api/states' but drops everything except an
 list of entity-ids.
 Optional argument CALLBACK ran after entities are received."
-  (hass--request "GET" (concat hass-url "/api/states")
+  (hass--request "GET" (hass--url "api/states")
      (cl-function
        (lambda (&key response &allow-other-keys)
          (let ((data (request-response-data response)))
@@ -273,7 +303,7 @@ Optional argument CALLBACK ran after entities are received."
 (defun hass--get-available-services (&optional callback)
   "Retrieve the available services from the Home Assistant instance.
 Optional argument CALLBACK ran after services are received."
-  (hass--request "GET" (concat hass-url "/api/services")
+  (hass--request "GET" (hass--url "api/services")
      (cl-function
        (lambda (&key response &allow-other-keys)
          (let ((data (request-response-data response)))
@@ -306,9 +336,9 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
 If called interactively, prompt the user for an ENTITY-ID and
 SERVICE to call.
 
-This will send an API request to the url configure in `hass-url'.
+This will send an API request to the address configure in `hass-host'.
 
-ENTITY-ID is a string of the entity id in Home Assistant you want
+ENTITY-ID is the id of the entity in Home Assistant.
 to call the service on.  (e.g. `\"switch.kitchen_light\"').
 
 SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')"
@@ -325,7 +355,7 @@ SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')"
 
 (defun hass-call-service-with-payload (service payload &optional success-callback)
   "Call service with a custom payload on Home Assistant.
-This will send an API request to the url configure in `hass-url'.
+This will send an API request to the address configure in `hass-host'.
 
 SERVICE is a string of the Home Assistant service to be called.
 
@@ -340,41 +370,41 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
      (when success-callback (funcall success-callback)))))
 
 
-;; Watching
-;;;###autoload
-(define-minor-mode hass-watch-mode
-  "Toggle mode for querying Home Assistant periodically.
-Watching is a way to periodically query the state of entities you
-want to hook into to capture when their state changes.
-
-Use the variable `hass-watch-frequency' to change how
-frequently (in seconds) the Home Assistant instance should be
-queried.
-
-Use the variable `hass-watch-entities' to set which entities you want
-to query automatically."
-  :lighter nil
-  :group 'hass
-  :global t
-  (when hass--timer (hass-watch--cancel-timer))
-  (when hass-watch-mode
-    (hass--get-available-services 'hass--get-available-entities)
-    (when hass--timer (hass-watch--cancel-timer))
-    (setq hass--timer (run-with-timer
-                       nil
-                       hass-watch-frequency
-                       'hass-watch--query-entities))))
-
-(defun hass-watch--cancel-timer ()
-  "Cancel watch without disabling it."
+;; Polling
+(defun hass-polling--cancel-timer ()
+  "Cancel polling without disabling it."
   (when hass--timer
     (cancel-timer hass--timer)
     (setq hass--timer nil)))
 
-(defun hass-watch--query-entities ()
+(defun hass-polling--query-entities ()
   "Update the current state all of the registered entities."
-  (dolist (entity hass-watch-entities)
+  (dolist (entity hass-tracked-entities)
     (hass--get-entity-state entity)))
+
+;;;###autoload
+(define-minor-mode hass-polling-mode
+  "Toggle mode for querying Home Assistant periodically.
+Similar to `hass-realtime-mode' but is done without requiring
+websockets by periodically polling the API.
+
+Use the variable `hass-polling-frequency' to change how
+frequently (in seconds) the Home Assistant instance should be
+queried.
+
+Use the variable `hass-tracked-entities' to set which entities
+you want to query automatically."
+  :lighter nil
+  :group 'hass
+  :global t
+  (when hass--timer (hass-polling--cancel-timer))
+  (when hass-polling-mode
+    (hass--get-available-services 'hass--get-available-entities)
+    (when hass--timer (hass-polling--cancel-timer))
+    (setq hass--timer (run-with-timer
+                       nil
+                       hass-polling-frequency
+                       'hass-polling--query-entities))))
 
 
 ;;;###autoload
@@ -382,11 +412,25 @@ to query automatically."
   "Run before using any hass features.
 Check whether necessary variables are set and then query the Home
 Assistant instance for available services and entities."
+
+  ;; Backwards compability. Split `hass-url', into appropriate variables.
+  (when (boundp 'hass-url)
+    (message "hass: `hass-url' is deprecated as of v2.0. Please use `hass-host'. https://github.com/purplg/hass/blob/master/README.org#deprecated-hass-url")
+    (save-match-data
+      (string-match "http\\(s?\\)://\\(.*\\):\\([0-9]*\\)$" hass-url)
+      (setq hass-insecure (string-empty-p (match-string 1 hass-url)))
+      (setq hass-host (match-string 2 hass-url))
+      (setq hass-port (match-string 3 hass-url))))
+
   (cond ((not (equal (type-of (hass--apikey)) 'string))
          (user-error "HASS-APIKEY must be set to use hass"))
-        ((not (equal (type-of hass-url) 'string))
-         (user-error "HASS-URL must be set to use hass"))
-        ((hass--get-available-services 'hass--get-available-entities))))
+        ((not (equal (type-of hass-host) 'string))
+         (user-error "hass-host must be set to use hass"))
+        ((hass--get-available-services 'hass--get-available-entities)))
+
+  ; Get current state of tracked entities
+  (dolist (entity hass-tracked-entities)
+    (hass--get-entity-state entity)))
 
 (provide 'hass)
 
