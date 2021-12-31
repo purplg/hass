@@ -47,10 +47,7 @@ Then load the package in your main config file.
 
 ** Deprecated hass-url
 
-The ~hass-url~ variable is now deprecated. This has been split up into 3 variables ~hass-host~,
-~hass-insecure~, and ~hass-port~. ~hass-host~ must always be set. Hass is secure by default, so
-~hass-insecure~ needs to be ~t~ if SSL is not being used (i.e HTTP and not HTTPS). If using a
-non-default port number, ~hass-port~ must be set to the port number.
+The ~hass-url~ variable is now deprecated. This has been split up into 3 variables ~hass-host~, ~hass-insecure~, and ~hass-port~. ~hass-host~ must always be set. Hass is secure by default, so ~hass-insecure~ needs to be ~t~ if SSL is not being used (i.e HTTP and not HTTPS). If using a non-default port number, ~hass-port~ must be set to the port number.
 
 #+BEGIN_SRC emacs-lisp :results none
 ;; The old URL variable
@@ -72,12 +69,9 @@ non-default port number, ~hass-port~ must be set to the port number.
 (hass-setup)
 #+END_SRC
 
-This change was implemented to support the ~hass-websockets~ extension package. This uses a
-different protocol and splitting out the URL into components makes it much easier to generate the
-websocket URL automatically.
+This change was implemented to support the ~hass-websockets~ extension package. This uses a different protocol and splitting out the URL into components makes it much easier to generate the websocket URL automatically.
 
-The package will currently parse ~hass-url~ if it is set and convert it into its appropriate
-configuration variables. This will be removed in the future.
+The package will currently parse ~hass-url~ if it is set and convert it into its appropriate configuration variables. This will be removed in the future.
 
 ** Renamed hass-watch-mode
 
@@ -86,16 +80,11 @@ periodically poll the Home Assistant instance.
 
 ** hass-watch-entities
 
-~hass-watch-entities~ was named to have a prefix of ~hass-watch-~ as part of the ~hass-watch-mode~
-functionality. Since ~hass-watch-mode~ was renamed and the variable will be used outside of the
-~hass-polling~ functionality, the variable was renamed to ~hass-tracked-entities~ to indicate the
-entities will be tracked, or in other words, queried for updates.
+~hass-watch-entities~ was named to have a prefix of ~hass-watch-~ as part of the ~hass-watch-mode~ functionality. Since ~hass-watch-mode~ was renamed and the variable will be used outside of the ~hass-polling~ functionality, the variable was renamed to ~hass-tracked-entities~ to indicate the entities will be tracked, or in other words, queried for updates.
 
 * Configuration
 
-Both ~hass-host~ and ~hass-apikey~ must be set to use this package. Set ~hass-host~ to the hostname
-or IP of Home Assistant instance. If you are not using SSL/TLS to connect to your Home Assistance
-instance, set ~hass-insecure~ to ~t~. If you are using a port number other than the default =8123=,
+Both ~hass-host~ and ~hass-apikey~ must be set to use this package. Set ~hass-host~ to the hostname or IP of Home Assistant instance. If you are not using SSL/TLS to connect to your Home Assistance instance, set ~hass-insecure~ to ~t~. If you are using a port number other than the default =8123=,
 specify the port number with ~hass-port~.
 
 #+BEGIN_SRC emacs-lisp :results none
@@ -105,8 +94,7 @@ specify the port number with ~hass-port~.
 (hass-setup)
 #+END_SRC
 
-Alternatively, you can store a function inside ~hass-apikey~. This will be executed on every
-query. In turn, this approach requires the token to be stored in your gpg store e.g. =~/.password-store/emacs-apikey.gpg=
+Alternatively, you can store a function inside ~hass-apikey~. This will be executed on every query. In turn, this approach requires the token to be stored in your gpg store e.g. =~/.password-store/emacs-apikey.gpg=
 
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-host "homeassistant")
@@ -114,35 +102,27 @@ query. In turn, this approach requires the token to be stored in your gpg store 
 (hass-setup)
 #+END_SRC
 
-Once those variables are set, you must call ~(hass-setup)~ before using this package so that it can
-query the Home Assistance instance and populate available entities and services.
+Once those variables are set, you must call ~(hass-setup)~ before using this package so that it can query the Home Assistance instance and populate available entities and services.
 
 ** Getting an API Key
 
-Ensure that your Home Assistant instance is configured to support API calls by following the
-instructions [[https://www.home-assistant.io/integrations/api/][here]].
+Ensure that your Home Assistant instance is configured to support API calls by following the instructions [[https://www.home-assistant.io/integrations/api/][here]].
 
-Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home Assistant instance
-and going to your profile by selecting your username in the lower-left corner or going to this URL:
-=http://HOME-ASSISTANT-URL:8123/profile=. You can generate an API token at the very bottom of this
-page.
+Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home Assistant instance and going to your profile by selecting your username in the lower-left corner or going to this URL: =http://HOME-ASSISTANT-URL:8123/profile=. You can generate an API token at the very bottom of this page.
 
 * Usage
 
-To call a service on Home Assistant, use the ~hass-call-service~ function which has two required
-arguments: ~entity-id~ and ~service~.
+To call a service on Home Assistant, use the ~hass-call-service~ function which has two required arguments: ~entity-id~ and ~service~.
 
 #+BEGIN_SRC emacs-lisp :results none
 (hass-call-service "switch.bedroom_light" "switch.toggle")
 #+END_SRC
 
-If you call ~hass-call-service~ interactively, it will prompt you for an entity ID and then the
-respective service you want to call.
+If you call ~hass-call-service~ interactively, it will prompt you for an entity ID and then the respective service you want to call.
 
 ** Payloads
 
-For services that require additional data use the ~hass-call-service-with-payload~ function. The
-second argument, ~payload~, requires an JSON encoded string.
+For services that require additional data use the ~hass-call-service-with-payload~ function. The second argument, ~payload~, requires an JSON encoded string.
 
 This example publishes to an MQTT topic:
 
@@ -153,8 +133,7 @@ This example publishes to an MQTT topic:
                 ("topic" . "valetudo/vacuum/LocateCapability/locate/set"))))
 #+END_SRC
 
-You could pass a JSON string directly, but that would require escaping every quote which can be
-cumbersome. Here's what the encoded list above looks like in JSON:
+You could pass a JSON string directly, but that would require escaping every quote which can be cumbersome. Here's what the encoded list above looks like in JSON:
 
 #+BEGIN_SRC javascript
 {
@@ -165,26 +144,19 @@ cumbersome. Here's what the encoded list above looks like in JSON:
 
 ** Tracking entities
 
-~hass-polling-mode~ is a mode that periodically queries the Home Assistant instance to get the current
-state of a list of entities. The list of entity IDs that will be queried are found in the variable
-~hass-tracked-entities~.
+~hass-polling-mode~ is a mode that periodically queries the Home Assistant instance to get the current state of a list of entities. The list of entity IDs that will be queried are found in the variable ~hass-tracked-entities~.
 
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-tracked-entities '("switch.bedroom_light" "switch.bedroom_fan"))
 #+END_SRC
 
-The frequency of the query can be adjusted by setting ~hass-polling-frequency~ to the number of
-seconds you'd like. Defaults to 60.
+The frequency of the query can be adjusted by setting ~hass-polling-frequency~ to the number of seconds you'd like. Defaults to 60.
 
-Tracking entities is most useful with the function hook ~hass-entity-state-updated-functions~ explained in
-the [[*Hooks][Hooks]] section.
+Tracking entities is most useful with the function hook ~hass-entity-state-updated-functions~ explained in the [[*Hooks][Hooks]] section.
 
 ** Hooks
 
-The most useful hook is a function list named ~hass-entity-state-updated-functions~. Functions in
-this list are passed a single argument ~entity-id~ which is the entity id of the entity whose state
-has changed since it was last updated. Using this function hook along side [[*Tracking entities][tracking entities]] enables
-Emacs to react to changes to Home Assistant entities.
+The most useful hook is a function list named ~hass-entity-state-updated-functions~. Functions in this list are passed a single argument ~entity-id~ which is the entity id of the entity whose state has changed since it was last updated. Using this function hook along side [[*Tracking entities][tracking entities]] enables Emacs to react to changes to Home Assistant entities.
 
 This example will display the state of an entity when it changes:
 
@@ -194,9 +166,7 @@ This example will display the state of an entity when it changes:
     (message "The entity %s state has changed to %s." entity-id (hass-state-of entity-id))))
 #+END_SRC
 
-The other two hooks available are ~hass-entity-state-updated-hook~ and
-~hass-service-called-hook~. ~hass-entity-state-updated-hook~ is called when the state of an entity
-is updated, regardless of if it changed or not. ~hass-service-called-hook~ is called when a service
+The other two hooks available are ~hass-entity-state-updated-hook~ and ~hass-service-called-hook~. ~hass-entity-state-updated-hook~ is called when the state of an entity is updated, regardless of if it changed or not. ~hass-service-called-hook~ is called when a service
 is called.
 
 #+BEGIN_SRC emacs-lisp :results none
