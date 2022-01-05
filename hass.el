@@ -207,7 +207,7 @@ ENTITY-STATE is an individual entity state data return from the
 `/api/states' endpoint.
 
 Only returns entities that have callable services available."
-  (let ((entity-id (cdr (car entity-state))))
+  (let ((entity-id (cdr (assoc 'entity_id entity-state))))
     (when (hass--services-for-entity entity-id)
       entity-id)))
 
