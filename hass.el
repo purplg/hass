@@ -193,6 +193,11 @@ ENTITY-ID is the id of the entity in Home Assistant."
 ENTITY-ID is the id of the entity in Home Assistant."
   (string= (hass-state-of entity-id) "on"))
 
+(defun hass-friendly-name (entity-id)
+  "Get the friendly name of an entity.
+ENTITY-ID is the id of the entity in Home Assistant."
+  (cdr (assoc entity-id hass--available-entities)))
+
 
 ;; API parsing
 (defun hass--parse-all-entities (entities)
@@ -207,9 +212,11 @@ ENTITY-STATE is an individual entity state data return from the
 `/api/states' endpoint.
 
 Only returns entities that have callable services available."
-  (let ((entity-id (cdr (assoc 'entity_id entity-state))))
+  (let* ((entity-id (cdr (assoc 'entity_id entity-state)))
+         (friendly-name (or (cdr (assoc 'friendly_name (cdr (assoc 'attributes entity-state))))
+                            entity-id)))
     (when (hass--services-for-entity entity-id)
-      entity-id)))
+      `(,entity-id . ,friendly-name))))
 
 (defun hass--parse-all-domains (domains)
   "Collect DOMAINS into an alist of their associated services.
