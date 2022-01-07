@@ -80,6 +80,15 @@ requests"
   :group 'hass
   :type 'string)
 
+(defcustom hass-icons '(("default" . "")
+                        ("automation" . "")
+                        ("switch" . "")
+                        ("input_boolean" . "")
+                        ("vacuum" .""))
+  "An alist of entity domains to icons to be used."
+  :group 'hass
+  :type '(repeat (cons symbol string)))
+
 (defcustom hass-tracked-entities nil
   "A list of tracked Home Assistant entities.
 Set this to a list of Home Assistant entity ID strings.  An entity ID looks
@@ -183,6 +192,10 @@ OBJECT is a JSON object to be serialized into string."
     (json-serialize object)
     (json-encode object)))
 
+(defun hass--icon-of-entity (entity-id)
+  (or (cdr (assoc (hass--domain-of-entity entity-id) hass-icons))
+      (cdr (assoc "default" hass-icons))))
+
 (defun hass-state-of (entity-id)
   "Return the last known state of ENTITY-ID.
 ENTITY-ID is the id of the entity in Home Assistant."
@@ -196,7 +209,9 @@ ENTITY-ID is the id of the entity in Home Assistant."
 (defun hass-friendly-name (entity-id)
   "Get the friendly name of an entity.
 ENTITY-ID is the id of the entity in Home Assistant."
-  (cdr (assoc entity-id hass--available-entities)))
+  (plist-get
+   (cdr (assoc entity-id hass--available-entities))
+   ':friendly_name))
 
 
 ;; API parsing
@@ -216,7 +231,8 @@ Only returns entities that have callable services available."
          (friendly-name (or (cdr (assoc 'friendly_name (cdr (assoc 'attributes entity-state))))
                             entity-id)))
     (when (hass--services-for-entity entity-id)
-      `(,entity-id . ,friendly-name))))
+      `(,entity-id . (:friendly_name ,friendly-name
+                      :icon ,(hass--icon-of-entity entity-id))))))
 
 (defun hass--parse-all-domains (domains)
   "Collect DOMAINS into an alist of their associated services.
