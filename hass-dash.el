@@ -20,7 +20,7 @@
   "Keymap for hass-dash-mode.")
 
 (defgroup hass-dash '()
-  "Minor mode for hass."
+  "Customization group for hass-dash."
   :group 'hass-dash
   :prefix "hass-dash-")
 
