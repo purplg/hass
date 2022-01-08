@@ -62,7 +62,14 @@ Example usage:
                          (\"vacuum.valetudo_vacuum\"
                           :name \"Vacuum return home\"
                           :service \"vacuum.return_to_base\")))"
- :group 'hass-dash)
+ :group 'hass-dash
+ :type '(alist :key-type (string :tag "Entity ID")
+               :value-type (plist :tag "Properties"
+                                  :key-type (choice :tag "Property"
+                                              (symbol :tag "Name" ":name")
+                                              (symbol :tag "Service" ":service")
+                                              (symbol :tag "Icon" ":icon"))
+                                  :value-type (string :tag "Value"))))
 
 (cl-defun hass-dash--create-widget (entity-id &key name service icon)
   (unless name ; If no name is set, try to resolve its 'friendly_name' or otherwise just set it to its id.
