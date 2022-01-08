@@ -10,6 +10,8 @@
 ;;; Code:
 (require 'hass)
 
+
+;; Customizable
 (defvar hass-dash-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") 'hass-dash-refresh)
@@ -66,6 +68,16 @@ Full example:
  :group 'hass-dash
  :type 'list)
 
+
+;; Helper functions
+(defun hass-dash--default-service-of (entity-id)
+  (let ((domain (hass--domain-of-entity entity-id)))
+    (or (cdr (assoc domain hass-dash--default-services))
+        (lambda (entity-id)
+          (message "hass: No service assigned for entity: %s" entity-id)))))
+
+
+;; Dashboard rendering
 (cl-defun hass-dash--create-widget (entity-id &key name service icon)
   "Insert a widget into the dashboard."
   (unless name ; If no name is set, try to resolve its 'friendly_name' or otherwise just set it to its id.
@@ -80,12 +92,6 @@ Full example:
     :format (concat "%[" icon " " name " - %t%]")
     :value (hass-state-of entity-id)
     :action (lambda (&rest _) (hass-call-service entity-id service))))
-
-(defun hass-dash--default-service-of (entity-id)
-  (let ((domain (hass--domain-of-entity entity-id)))
-    (or (cdr (assoc domain hass-dash--default-services))
-        (lambda (entity-id)
-          (message "hass: No service assigned for entity: %s" entity-id)))))
 
 (defun hass-dash--insert-groups ()
   (dolist (group hass-dash-layout)
@@ -105,6 +111,8 @@ Full example:
    :service (plist-get (cdr item) ':service)
    :icon (plist-get (cdr item) ':icon)))
 
+
+;; User functions
 (defun hass-dash-refresh ()
   (interactive)
   (let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
@@ -123,6 +131,7 @@ Full example:
   (let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
     (switch-to-buffer-other-window dash-buffer)))
 
+
 (define-derived-mode hass-dash-mode special-mode "Home Assistant Dash"
   "Dashboard for Home Assistant."
   :group 'hass-dash
@@ -130,8 +139,11 @@ Full example:
   :abbrev-table nil
   :interactive t)
 
+;; Refresh dashboard when entity state is updated
 (add-hook 'hass-entity-state-updated-functions (lambda (_) (hass-dash-refresh)))
 
+
+;; To be removed. Just for easy iteration during development (`eval-buffer`)
 (hass-dash-refresh)
 
 (provide 'hass-dash)
