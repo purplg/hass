@@ -109,6 +109,7 @@ Example usage:
          (goto-char prev-point))
       (hass-dash-mode))))
 
+;;;###autoload
 (defun hass-dash-open ()
   (interactive)
   (hass-dash-refresh)
