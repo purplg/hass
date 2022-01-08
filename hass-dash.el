@@ -24,20 +24,48 @@
   :group 'hass-dash
   :type 'string)
 
+(defcustom hass-dash-layout nil
+ "A list of cons of entity ID's to their function in the order, top to bottom, to show on the dashboard."
+ :group 'hass-dash)
+
 (defgroup hass-dash '()
   "Minor mode for hass."
   :group 'hass-dash
   :prefix "hass-dash-")
 
-(defun hass-dash--create-widget-switch (entity-id)
+(cl-defun hass-dash--create-widget (entity-id &key name action type icon)
+  (unless name
+    (setq name (or (plist-get (cdr (assoc entity-id hass--available-entities))
+                              ':friendly_name)
+                   entity-id)))
+  (unless type
+    (setq type (intern (hass--domain-of-entity entity-id))))
+  (unless action
+    (setq action (hass-dash--default-action-of type)))
+  (unless icon
+    (setq icon (hass--icon-of-entity entity-id)))
   (widget-create 'toggle
     :tag (concat "hass-dash--entity-" entity-id)
-    :format (concat entity-id "\n%[%v%]")
+    :format (format "%s %s %s %s" "%[" icon name "- %v%]")
     :value (hass-switch-p entity-id)
-    :action (lambda (widget &rest ignore)
-              (hass-call-service
-                entity-id
-                (concat (hass--domain-of-entity entity-id) ".toggle")))))
+    :action (lambda (&rest _) (funcall action entity-id))))
+
+(defun hass-dash--default-action-of (domain)
+  (cond ((string= "switch" domain)
+         #'hass-dash--switch-toggle)
+        ((string= "input_boolean" domain)
+         #'hass-dash--boolean-toggle)
+        ((string= "automation" domain)
+         #'hass-dash--automation-trigger)))
+
+(defun hass-dash--switch-toggle (entity-id)
+  (hass-call-service entity-id "switch.toggle"))
+
+(defun hass-dash--boolean-toggle (entity-id)
+  (hass-call-service entity-id "input_boolean.toggle"))
+
+(defun hass-dash--automation-trigger (entity-id)
+  (hass-call-service entity-id "automation.toggle"))
 
 (defun hass-dash-refresh ()
   (interactive)
@@ -46,10 +74,15 @@
       (let ((inhibit-read-only t)
             (prev-point (progn (beginning-of-line) (point))))
          (erase-buffer)
-         (mapc (lambda (entity-id)
-                 (hass-dash--create-widget-switch entity-id)
+         (mapc (lambda (layout-item)
+                 (let ((entity-id (car layout-item)))
+                   (hass-dash--create-widget entity-id
+                     :name (plist-get (cdr layout-item) ':name)
+                     :action (plist-get (cdr layout-item) ':action)
+                     :type (plist-get (cdr layout-item) ':type)
+                     :icon (plist-get (cdr layout-item) ':icon)))
                  (insert "\n\n"))
-               hass-tracked-entities)
+               hass-dash-layout)
          (goto-char prev-point))
       (hass-dash-mode))))
 
