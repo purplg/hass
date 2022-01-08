@@ -39,39 +39,35 @@
 
 (defcustom hass-dash-layout nil
  "A list of widgets to show on the dashboard.
-Each element in the list is a plist of entity IDs with their properties.
+Each element in the `list' is an `alist' of a Group name to a `plist' of entity IDs with their properties.
 
+The `car' of a list is the group name while the `cdr' is a list of widget definitions for that group.
+
+'((\"Group Name\" . ((\"entity.id_example\" :name \"Human Readable Name\"))))
+
+Widget properties:
 NAME sets the displayed name of the widget on the dashboard.
 
-SERVICE is the called Home Assistant service when the widget is pressed.
+SERVICE is the service to be called on Home Assistant when the widget is pressed.
 
 ICON is the icon displayed on the widget. Requires `all-the-icons' package.
 
-Example usage:
+Full example:
 
-(setq hass-dash-layout '((\"input_boolean.test_boolean_entity\")
-                          :name \"Toggle test boolean entity\"
-                         (\"switch.bedroom_light\"
-                          :name \"Bedroom Light\")
-                         (\"input_boolean.test_boolean_entity\"
-                          :name \"Turn off test boolean entity\"
-                          :service \"input_boolean.turn_off\")
-                         (\"automation.some_automation\")
-                         (\"vacuum.valetudo_vacuum\"
-                          :name \"Vacuum\")
-                         (\"vacuum.valetudo_vacuum\"
-                          :name \"Vacuum return home\"
-                          :service \"vacuum.return_to_base\")))"
+(setq hass-dash-layout
+ '((\"Group One\" . ((\"input_boolean.test_boolean_entity\" :name \"Toggle test boolean entity\")
+                   (\"switch.bedroom_light\" :name \"Bedroom Light\")
+                   (\"input_boolean.test_boolean_entity\" :name \"Turn off test boolean entity\"
+                                                        :service \"input_boolean.turn_off\")
+                   (\"automation.some_automation\")))
+   (\"Vacuum Group\" . ((\"vacuum.valetudo_vacuum\" :name \"Vacuum\")
+                      (\"vacuum.valetudo_vacuum\" :name \"Vacuum return home\"
+                                                :service \"vacuum.return_to_base\")))))"
  :group 'hass-dash
- :type '(alist :key-type (string :tag "Entity ID")
-               :value-type (plist :tag "Properties"
-                                  :key-type (choice :tag "Property"
-                                              (symbol :tag "Name" ":name")
-                                              (symbol :tag "Service" ":service")
-                                              (symbol :tag "Icon" ":icon"))
-                                  :value-type (string :tag "Value"))))
+ :type 'list)
 
 (cl-defun hass-dash--create-widget (entity-id &key name service icon)
+  "Insert a widget into the dashboard."
   (unless name ; If no name is set, try to resolve its 'friendly_name' or otherwise just set it to its id.
     (setq name (or (plist-get (cdr (assoc entity-id hass--available-entities))
                               ':friendly_name)
@@ -91,6 +87,26 @@ Example usage:
         (lambda (entity-id)
           (message "hass: No service assigned for entity: %s" entity-id)))))
 
+(defun hass-dash--insert-groups ()
+  (mapc (lambda (group)
+          (insert (propertize (car group) 'face 'shr-h1))
+          (insert "\n")
+          (hass-dash--insert-group (cdr group))
+          (insert "\n"))
+   hass-dash-layout))
+ 
+(defun hass-dash--insert-group (group)
+  (mapc (lambda (item)
+          (hass-dash--insert-widget item)
+          (insert "\n"))
+   group))
+
+(defun hass-dash--insert-widget (item)
+  (hass-dash--create-widget (car item)
+   :name (plist-get (cdr item) ':name)
+   :service (plist-get (cdr item) ':service)
+   :icon (plist-get (cdr item) ':icon)))
+
 (defun hass-dash-refresh ()
   (interactive)
   (let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
@@ -98,16 +114,9 @@ Example usage:
       (let ((inhibit-read-only t)
             (prev-point (progn (beginning-of-line) (point))))
          (erase-buffer)
-         (mapc (lambda (layout-item)
-                 (let ((entity-id (car layout-item)))
-                   (hass-dash--create-widget entity-id
-                     :name (plist-get (cdr layout-item) ':name)
-                     :service (plist-get (cdr layout-item) ':service)
-                     :icon (plist-get (cdr layout-item) ':icon)))
-                 (insert "\n\n"))
-               hass-dash-layout)
-         (goto-char prev-point))
-      (hass-dash-mode))))
+         (hass-dash--insert-groups)
+         (goto-char prev-point)
+         (hass-dash-mode)))))
 
 ;;;###autoload
 (defun hass-dash-open ()
