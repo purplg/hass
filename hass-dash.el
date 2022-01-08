@@ -24,10 +24,10 @@
   :group 'hass-dash
   :prefix "hass-dash-")
 
-(defcustom hass-dash--default-actions '(("switch" . hass-dash--switch-toggle)
-                                        ("input_boolean" . hass-dash--boolean-toggle)
-                                        ("automation" . hass-dash--automation-trigger))
-  "An alist of entity domains to their default actions."
+(defcustom hass-dash--default-services '(("switch" . "switch.toggle")
+                                         ("input_boolean" . "input_boolean.toggle")
+                                         ("automation" . "automation.trigger"))
+  "An alist of entity domains to their default services."
   :group 'hass-dash
   :type '(repeat (cons string function)))
 
@@ -40,36 +40,27 @@
  "A list of cons of entity ID's to their function in the order, top to bottom, to show on the dashboard."
  :group 'hass-dash)
 
-(cl-defun hass-dash--create-widget (entity-id &key name action type icon)
+(cl-defun hass-dash--create-widget (entity-id &key name service type icon)
   (unless name ; If no name is set, try to resolve its 'friendly_name' or otherwise just set it to its id.
     (setq name (or (plist-get (cdr (assoc entity-id hass--available-entities))
                               ':friendly_name)
                    entity-id)))
   (unless type ; If no type is set, resolve to the domain portion of its id.
     (setq type (hass--domain-of-entity entity-id)))
-  (unless action ; If no action is set, resolve to is default action based on its type.
-    (setq action (hass-dash--default-action-of type)))
+  (unless service ; If no service is set, resolve to is default service based on its type.
+    (setq service (hass-dash--default-service-of type)))
   (unless icon ; If no icon is set, resolve to is default icon based on the entities domain.
     (setq icon (hass--icon-of-entity entity-id)))
   (widget-create 'toggle
     :tag (concat "hass-dash--entity-" entity-id)
     :format (format "%s %s %s %s" "%[" icon name "- %v%]")
     :value (hass-switch-p entity-id)
-    :action (lambda (&rest _) (funcall action entity-id))))
+    :action (lambda (&rest _) (hass-call-service entity-id service))))
 
-(defun hass-dash--default-action-of (domain)
-  (or (cdr (assoc domain hass-dash--default-actions))
+(defun hass-dash--default-service-of (domain)
+  (or (cdr (assoc domain hass-dash--default-services))
       (lambda (entity-id)
-        (message "hass: No action assigned for domain: %s" domain))))
-
-(defun hass-dash--switch-toggle (entity-id)
-  (hass-call-service entity-id "switch.toggle"))
-
-(defun hass-dash--boolean-toggle (entity-id)
-  (hass-call-service entity-id "input_boolean.toggle"))
-
-(defun hass-dash--automation-trigger (entity-id)
-  (hass-call-service entity-id "automation.toggle"))
+        (message "hass: No service assigned for domain: %s" domain))))
 
 (defun hass-dash-refresh ()
   (interactive)
@@ -82,7 +73,7 @@
                  (let ((entity-id (car layout-item)))
                    (hass-dash--create-widget entity-id
                      :name (plist-get (cdr layout-item) ':name)
-                     :action (plist-get (cdr layout-item) ':action)
+                     :service (plist-get (cdr layout-item) ':service)
                      :type (plist-get (cdr layout-item) ':type)
                      :icon (plist-get (cdr layout-item) ':icon)))
                  (insert "\n\n"))
