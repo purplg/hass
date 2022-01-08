@@ -193,10 +193,11 @@ OBJECT is a JSON object to be serialized into string."
     (json-encode object)))
 
 (defun hass--icon-of-entity (entity-id)
-  (let ((parts (split-string (or (cdr (assoc (hass--domain-of-entity entity-id) hass-icons))
-                                 (cdr (assoc "default" hass-icons)))
-                ":")))
-    (funcall (intern (concat "all-the-icons-" (pop parts))) (pop parts) :face 'all-the-icons-blue)))
+  (when (require 'all-the-icons nil 'noerror)
+    (let ((parts (split-string (or (cdr (assoc (hass--domain-of-entity entity-id) hass-icons))
+                                   (cdr (assoc "default" hass-icons)))
+                  ":")))
+      (funcall (intern (concat "all-the-icons-" (pop parts))) (pop parts) :face 'all-the-icons-blue))))
 
 (defun hass-state-of (entity-id)
   "Return the last known state of ENTITY-ID.

@@ -89,7 +89,8 @@ Full example:
   (unless icon ; If no icon is set, resolve to is default icon based on the entities domain.
     (setq icon (hass--icon-of-entity entity-id)))
   (widget-create 'push-button
-    :format (concat "%[" icon " " name " - %t%]")
+    :format (if icon (concat "%[" icon " " name " - %t%]")
+                     (concat "%[" name " - %t%]"))
     :value (hass-state-of entity-id)
     :action (lambda (&rest _) (hass-call-service entity-id service))))
 
