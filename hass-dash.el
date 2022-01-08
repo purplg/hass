@@ -1,4 +1,4 @@
-;;; hass-dash.el --- Dash for Home Assistant -*- lexical-binding: t; -*-
+;;; hass-dash.el --- Dashboard for Home Assistant -*- lexical-binding: t; -*-
 
 ;; Package-Requires: ((emacs "25.1") (hass "2.0.0")
 ;; Version: 1.0.0
