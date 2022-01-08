@@ -19,6 +19,11 @@
     map)
   "Keymap for hass-dash-mode.")
 
+(defgroup hass-dash '()
+  "Minor mode for hass."
+  :group 'hass-dash
+  :prefix "hass-dash-")
+
 (defcustom hass-dash--default-actions '(("switch" . hass-dash--switch-toggle)
                                         ("input_boolean" . hass-dash--boolean-toggle)
                                         ("automation" . hass-dash--automation-trigger))
@@ -34,11 +39,6 @@
 (defcustom hass-dash-layout nil
  "A list of cons of entity ID's to their function in the order, top to bottom, to show on the dashboard."
  :group 'hass-dash)
-
-(defgroup hass-dash '()
-  "Minor mode for hass."
-  :group 'hass-dash
-  :prefix "hass-dash-")
 
 (cl-defun hass-dash--create-widget (entity-id &key name action type icon)
   (unless name ; If no name is set, try to resolve its 'friendly_name' or otherwise just set it to its id.
