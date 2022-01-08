@@ -38,7 +38,30 @@
   :type 'string)
 
 (defcustom hass-dash-layout nil
- "A list of cons of entity ID's to their function in the order, top to bottom, to show on the dashboard."
+ "A list of widgets to show on the dashboard.
+Each element in the list is a plist of entity IDs with their properties.
+
+NAME sets the displayed name of the widget on the dashboard.
+
+SERVICE is the called Home Assistant service when the widget is pressed.
+
+ICON is the icon displayed on the widget. Requires `all-the-icons' package.
+
+Example usage:
+
+(setq hass-dash-layout '((\"input_boolean.test_boolean_entity\")
+                          :name \"Toggle test boolean entity\"
+                         (\"switch.bedroom_light\"
+                          :name \"Bedroom Light\")
+                         (\"input_boolean.test_boolean_entity\"
+                          :name \"Turn off test boolean entity\"
+                          :service \"input_boolean.turn_off\")
+                         (\"automation.some_automation\")
+                         (\"vacuum.valetudo_vacuum\"
+                          :name \"Vacuum\")
+                         (\"vacuum.valetudo_vacuum\"
+                          :name \"Vacuum return home\"
+                          :service \"vacuum.return_to_base\")))"
  :group 'hass-dash)
 
 (cl-defun hass-dash--create-widget (entity-id &key name service icon)
