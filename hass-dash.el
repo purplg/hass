@@ -41,15 +41,13 @@
  "A list of cons of entity ID's to their function in the order, top to bottom, to show on the dashboard."
  :group 'hass-dash)
 
-(cl-defun hass-dash--create-widget (entity-id &key name service type icon)
+(cl-defun hass-dash--create-widget (entity-id &key name service icon)
   (unless name ; If no name is set, try to resolve its 'friendly_name' or otherwise just set it to its id.
     (setq name (or (plist-get (cdr (assoc entity-id hass--available-entities))
                               ':friendly_name)
                    entity-id)))
-  (unless type ; If no type is set, resolve to the domain portion of its id.
-    (setq type (hass--domain-of-entity entity-id)))
-  (unless service ; If no service is set, resolve to is default service based on its type.
-    (setq service (hass-dash--default-service-of type)))
+  (unless service ; If no service is set, resolve to is default service based on the entity's ID.
+    (setq service (hass-dash--default-service-of entity-id)))
   (unless icon ; If no icon is set, resolve to is default icon based on the entities domain.
     (setq icon (hass--icon-of-entity entity-id)))
   (widget-create 'push-button
@@ -57,10 +55,11 @@
     :value (hass-state-of entity-id)
     :action (lambda (&rest _) (hass-call-service entity-id service))))
 
-(defun hass-dash--default-service-of (domain)
-  (or (cdr (assoc domain hass-dash--default-services))
-      (lambda (entity-id)
-        (message "hass: No service assigned for domain: %s" domain))))
+(defun hass-dash--default-service-of (entity-id)
+  (let ((domain (hass--domain-of-entity entity-id)))
+    (or (cdr (assoc domain hass-dash--default-services))
+        (lambda (entity-id)
+          (message "hass: No service assigned for entity: %s" entity-id)))))
 
 (defun hass-dash-refresh ()
   (interactive)
@@ -74,7 +73,6 @@
                    (hass-dash--create-widget entity-id
                      :name (plist-get (cdr layout-item) ':name)
                      :service (plist-get (cdr layout-item) ':service)
-                     :type (plist-get (cdr layout-item) ':type)
                      :icon (plist-get (cdr layout-item) ':icon)))
                  (insert "\n\n"))
                hass-dash-layout)
