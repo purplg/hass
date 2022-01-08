@@ -19,6 +19,13 @@
     map)
   "Keymap for hass-dash-mode.")
 
+(defcustom hass-dash--default-actions '(("switch" . hass-dash--switch-toggle)
+                                        ("input_boolean" . hass-dash--boolean-toggle)
+                                        ("automation" . hass-dash--automation-trigger))
+  "An alist of entity domains to their default actions."
+  :group 'hass-dash
+  :type '(repeat (cons string function)))
+
 (defcustom hass-dash-buffer-name "*hass-dash*"
   "The name of the hass-dash buffer."
   :group 'hass-dash
@@ -34,15 +41,15 @@
   :prefix "hass-dash-")
 
 (cl-defun hass-dash--create-widget (entity-id &key name action type icon)
-  (unless name
+  (unless name ; If no name is set, try to resolve its 'friendly_name' or otherwise just set it to its id.
     (setq name (or (plist-get (cdr (assoc entity-id hass--available-entities))
                               ':friendly_name)
                    entity-id)))
-  (unless type
-    (setq type (intern (hass--domain-of-entity entity-id))))
-  (unless action
+  (unless type ; If no type is set, resolve to the domain portion of its id.
+    (setq type (hass--domain-of-entity entity-id)))
+  (unless action ; If no action is set, resolve to is default action based on its type.
     (setq action (hass-dash--default-action-of type)))
-  (unless icon
+  (unless icon ; If no icon is set, resolve to is default icon based on the entities domain.
     (setq icon (hass--icon-of-entity entity-id)))
   (widget-create 'toggle
     :tag (concat "hass-dash--entity-" entity-id)
@@ -51,12 +58,9 @@
     :action (lambda (&rest _) (funcall action entity-id))))
 
 (defun hass-dash--default-action-of (domain)
-  (cond ((string= "switch" domain)
-         #'hass-dash--switch-toggle)
-        ((string= "input_boolean" domain)
-         #'hass-dash--boolean-toggle)
-        ((string= "automation" domain)
-         #'hass-dash--automation-trigger)))
+  (or (cdr (assoc domain hass-dash--default-actions))
+      (lambda (entity-id)
+        (message "hass: No action assigned for domain: %s" domain))))
 
 (defun hass-dash--switch-toggle (entity-id)
   (hass-call-service entity-id "switch.toggle"))
