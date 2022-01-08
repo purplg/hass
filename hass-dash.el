@@ -26,7 +26,8 @@
 
 (defcustom hass-dash--default-services '(("switch" . "switch.toggle")
                                          ("input_boolean" . "input_boolean.toggle")
-                                         ("automation" . "automation.trigger"))
+                                         ("automation" . "automation.trigger")
+                                         ("vacuum" . "vacuum.start"))
   "An alist of entity domains to their default services."
   :group 'hass-dash
   :type '(repeat (cons string function)))
@@ -51,10 +52,9 @@
     (setq service (hass-dash--default-service-of type)))
   (unless icon ; If no icon is set, resolve to is default icon based on the entities domain.
     (setq icon (hass--icon-of-entity entity-id)))
-  (widget-create 'toggle
-    :tag (concat "hass-dash--entity-" entity-id)
-    :format (format "%s %s %s %s" "%[" icon name "- %v%]")
-    :value (hass-switch-p entity-id)
+  (widget-create 'push-button
+    :format (format "%s %s %s %s" "%[" icon name "- %t%]")
+    :value (hass-state-of entity-id)
     :action (lambda (&rest _) (hass-call-service entity-id service))))
 
 (defun hass-dash--default-service-of (domain)
