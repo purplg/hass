@@ -117,6 +117,9 @@ entity whose state changed.")
 (defvar hass-entity-state-refreshed-hook nil
  "Hook called after an entity state data was received.")
 
+(defvar hass-api-connected-hook nil
+ "Hook called after a successful Home Assistant API connection check is made.")
+
 (defvar hass-service-called-hook nil
  "Hook called after a service has been called.")
 
@@ -136,6 +139,9 @@ entity whose state changed.")
 
 (defvar hass--available-services nil
   "The services retrieved from the Home Assistant instance.")
+
+(defvar hass--api-running nil
+  "Whether a successful connection to Home Assistant API has been made.")
 
 
 ;; Helper functions
@@ -314,6 +320,17 @@ PAYLOAD is contents the body of the request."
    :error #'hass--request-error
    :success success))
 
+(defun hass--check-api-connection ()
+  "Sets `hass--api-running' to `t' when a successful connection is made."
+  (setq hass--api-running nil)
+  (hass--request "GET" (hass--url "api/")
+    (cl-function
+      (lambda (&key response &allow-other-keys)
+        (let ((data (request-response-data response)))
+          (when (string= "API running." (cdr (assoc 'message data)))
+            (setq hass--api-running t)
+            (run-hooks 'hass-api-connected-hook)))))))
+
 (defun hass--get-available-entities (&optional callback)
   "Retrieve the available entities from the Home Assistant instance.
 Makes a request to `/api/states' but drops everything except an
@@ -459,7 +476,9 @@ Assistant instance for available services and entities."
          (user-error "hass-host must be set to use hass"))
         ((hass--get-available-services 'hass--get-available-entities)))
   
-  (hass--update-all-entities))
+  (add-hook 'hass-api-connected-hook #'hass--update-all-entities)
+
+  (hass--check-api-connection))
 
 (provide 'hass)
 
