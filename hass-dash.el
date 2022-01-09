@@ -73,6 +73,13 @@ Full example:
         (lambda (entity-id)
           (message "hass: No service assigned for entity: %s" entity-id)))))
 
+(defun hass-dash--track-layout-entities ()
+  "Tracks referenced entities in `hass-dash-layout' and updates their state."
+  (dolist (group hass-dash-layout)
+    (dolist (item (cdr group))
+      (add-to-list 'hass-tracked-entities (car item))))
+  (hass--update-all-entities))
+
 
 ;; Dashboard rendering
 (cl-defun hass-dash--create-widget (entity-id &key
@@ -145,9 +152,9 @@ STATE is an entity id of the state to show on the widget. If set to `nil', no st
 ;; Refresh dashboard when entity state is updated
 (add-hook 'hass-entity-state-updated-functions (lambda (_) (hass-dash-refresh)))
 
-
-;; To be removed. Just for easy iteration during development (`eval-buffer`)
-(hass-dash-refresh)
+;; After successful connection entities of widgets to tracked entities list
+(add-hook 'hass-api-connected-hook #'hass-dash--track-layout-entities)
+(when hass--api-running (hass-dash--track-layout-entities))
 
 (provide 'hass-dash)
 
