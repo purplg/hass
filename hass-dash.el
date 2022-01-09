@@ -47,12 +47,7 @@ The `car' of a list is the group name while the `cdr' is a list of widget defini
 
 '((\"Group Name\" . ((\"entity.id_example\" :name \"Human Readable Name\"))))
 
-Widget properties:
-NAME sets the displayed name of the widget on the dashboard.
-
-SERVICE is the service to be called on Home Assistant when the widget is pressed.
-
-ICON is the icon displayed on the widget. Requires `all-the-icons' package.
+See `hass-dash--create-widget' for widget properties.
 
 Full example:
 
@@ -85,7 +80,16 @@ Full example:
                                     (service (hass-dash--default-service-of entity-id))
                                     (icon (hass--icon-of-entity entity-id))
                                     (state entity-id))
-  "Insert a widget into the dashboard."
+  "Insert a widget into the dashboard.
+ENTITY-ID is the id of the entity in Home Assistant.
+
+NAME sets the displayed name of the widget on the dashboard.
+
+SERVICE is the service to be called on Home Assistant when the widget is pressed.
+
+ICON is the icon displayed on the widget. Set to `nil' to not show an icon. Requires `all-the-icons' package.
+
+STATE is an entity id of the state to show on the widget. If set to `nil', no state is shown."
   (let ((format (concat "%["
                         (when icon (concat icon " "))
                         name
