@@ -78,16 +78,14 @@ Full example:
 
 
 ;; Dashboard rendering
-(cl-defun hass-dash--create-widget (entity-id &key name service icon)
+(cl-defun hass-dash--create-widget (entity-id &key
+                                    (name (or (plist-get (cdr (assoc entity-id hass--available-entities))
+                                                         ':friendly_name)
+                                              entity-id))
+                                    (service (hass-dash--default-service-of entity-id))
+                                    (icon (hass--icon-of-entity entity-id))
+                                    no-state)
   "Insert a widget into the dashboard."
-  (unless name ; If no name is set, try to resolve its 'friendly_name' or otherwise just set it to its id.
-    (setq name (or (plist-get (cdr (assoc entity-id hass--available-entities))
-                              ':friendly_name)
-                   entity-id)))
-  (unless service ; If no service is set, resolve to is default service based on the entity's ID.
-    (setq service (hass-dash--default-service-of entity-id)))
-  (unless icon ; If no icon is set, resolve to is default icon based on the entities domain.
-    (setq icon (hass--icon-of-entity entity-id)))
   (widget-create 'push-button
     :format (if icon (concat "%[" icon " " name " - %t%]")
                      (concat "%[" name " - %t%]"))
@@ -103,14 +101,8 @@ Full example:
  
 (defun hass-dash--insert-group (group)
   (dolist (item group)
-    (hass-dash--insert-widget item)
+    (apply 'hass-dash--create-widget item)
     (insert "\n")))
-
-(defun hass-dash--insert-widget (item)
-  (hass-dash--create-widget (car item)
-   :name (plist-get (cdr item) ':name)
-   :service (plist-get (cdr item) ':service)
-   :icon (plist-get (cdr item) ':icon)))
 
 
 ;; User functions
