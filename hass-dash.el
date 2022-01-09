@@ -84,13 +84,17 @@ Full example:
                                               entity-id))
                                     (service (hass-dash--default-service-of entity-id))
                                     (icon (hass--icon-of-entity entity-id))
-                                    no-state)
+                                    (state entity-id))
   "Insert a widget into the dashboard."
-  (widget-create 'push-button
-    :format (if icon (concat "%[" icon " " name " - %t%]")
-                     (concat "%[" name " - %t%]"))
-    :value (hass-state-of entity-id)
-    :action (lambda (&rest _) (hass-call-service entity-id service))))
+  (let ((format (concat "%["
+                        (when icon (concat icon " "))
+                        name
+                        (when state " - %t")
+                        "%]")))
+    (widget-create 'push-button
+      :format format
+      :value (when state (hass-state-of state))
+      :action (lambda (&rest _) (hass-call-service entity-id service)))))
 
 (defun hass-dash--insert-groups ()
   (dolist (group hass-dash-layout)
