@@ -59,7 +59,9 @@ Full example:
                    (\"automation.some_automation\")))
    (\"Vacuum Group\" . ((\"vacuum.valetudo_vacuum\" :name \"Vacuum\")
                       (\"vacuum.valetudo_vacuum\" :name \"Vacuum return home\"
-                                                :service \"vacuum.return_to_base\")))))"
+                                                :service \"vacuum.return_to_base\"
+                                                :state nil
+                                                :icon nil)))))"
  :group 'hass-dash
  :type 'list)
 
