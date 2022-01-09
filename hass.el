@@ -344,6 +344,11 @@ Optional argument CALLBACK ran after services are received."
         (let ((data (request-response-data response)))
           (hass--query-entity-result entity-id (cdr (assoc 'state data))))))))
 
+(defun hass--update-all-entities ()
+  "Update current state of tracked entities."
+  (dolist (entity hass-tracked-entities)
+    (hass--get-entity-state entity)))
+
 (defun hass--call-service (service payload &optional success-callback)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
 
@@ -453,10 +458,8 @@ Assistant instance for available services and entities."
         ((not (equal (type-of hass-host) 'string))
          (user-error "hass-host must be set to use hass"))
         ((hass--get-available-services 'hass--get-available-entities)))
-
-  ; Get current state of tracked entities
-  (dolist (entity hass-tracked-entities)
-    (hass--get-entity-state entity)))
+  
+  (hass--update-all-entities))
 
 (provide 'hass)
 
