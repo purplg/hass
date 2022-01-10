@@ -29,7 +29,8 @@
 (defcustom hass-dash--default-services '(("switch" . "switch.toggle")
                                          ("input_boolean" . "input_boolean.toggle")
                                          ("automation" . "automation.trigger")
-                                         ("vacuum" . "vacuum.start"))
+                                         ("vacuum" . "vacuum.start")
+                                         ("scene" . "scene.turn_on"))
   "An alist of entity domains to their default services."
   :group 'hass-dash
   :type '(repeat (cons string function)))
