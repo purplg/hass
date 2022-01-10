@@ -474,10 +474,11 @@ Assistant instance for available services and entities."
   (cond ((not (equal (type-of (hass--apikey)) 'string))
          (user-error "HASS-APIKEY must be set to use hass"))
         ((not (equal (type-of hass-host) 'string))
-         (user-error "hass-host must be set to use hass"))
-        ((hass--get-available-services 'hass--get-available-entities)))
+         (user-error "hass-host must be set to use hass")))
   
-  (add-hook 'hass-api-connected-hook #'hass--update-all-entities)
+  (add-hook 'hass-api-connected-hook
+   (lambda ()
+     (hass--get-available-services #'hass--get-available-entities)))
 
   (hass--check-api-connection))
 
