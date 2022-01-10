@@ -102,7 +102,7 @@ ICON is the icon displayed on the widget. Set to `nil' to not show an icon. Requ
 STATE is an entity id of the state to show on the widget. If set to `nil', no state is shown."
   (let ((format (concat "%["
                         (when icon (concat icon " "))
-                        name
+                        (replace-regexp-in-string "%" "%%" name)
                         (when state " - %t")
                         "%]")))
     (widget-create 'push-button
