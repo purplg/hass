@@ -318,7 +318,8 @@ PAYLOAD is contents the body of the request."
    :data payload
    :parser (lambda () (hass--deserialize (buffer-string)))
    :error #'hass--request-error
-   :success success))
+   :success success)
+  nil)
 
 (defun hass--check-api-connection ()
   "Sets `hass--api-running' to `t' when a successful connection is made."
