@@ -74,6 +74,7 @@ Full example:
 
 ;; Helper functions
 (defun hass-dash--default-service-of (entity-id)
+  "Returns the default service to be called for ENTITY-ID"
   (let ((domain (hass--domain-of-entity entity-id)))
     (or (cdr (assoc domain hass-dash--default-services))
         (lambda (entity-id)
@@ -116,6 +117,7 @@ STATE is an entity id of the state to show on the widget. If set to `nil', no st
       :action (lambda (&rest _) (hass-call-service entity-id service)))))
 
 (defun hass-dash--insert-groups ()
+  "Insert all widgets in `hass-dash-layout'"
   (dolist (group hass-dash-layout)
     (insert (propertize (car group) 'face 'shr-h1))
     (insert "\n")
@@ -123,6 +125,9 @@ STATE is an entity id of the state to show on the widget. If set to `nil', no st
     (insert "\n")))
  
 (defun hass-dash--insert-group (group)
+  "Insert all widgets in a group
+
+GROUP is a list of widget definitions to be inserted into the buffer."
   (dolist (item group)
     (apply 'hass-dash--create-widget item)
     (insert "\n")))
@@ -130,6 +135,7 @@ STATE is an entity id of the state to show on the widget. If set to `nil', no st
 
 ;; User functions
 (defun hass-dash-refresh ()
+  "Rerender the hass-dash buffer"
   (interactive)
   (let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
     (with-current-buffer dash-buffer
@@ -142,6 +148,7 @@ STATE is an entity id of the state to show on the widget. If set to `nil', no st
 
 ;;;###autoload
 (defun hass-dash-open ()
+  "Open the hass-dash buffer"
   (interactive)
   (hass-dash-refresh)
   (let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
