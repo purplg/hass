@@ -18,7 +18,7 @@
     (define-key map (kbd "RET") 'widget-button-press)
     (define-key map [tab] 'widget-forward)
     (define-key map [backtab] 'widget-backward)
-    map)
+   map)
   "Keymap for hass-dash-mode.")
 
 (defgroup hass-dash '()
