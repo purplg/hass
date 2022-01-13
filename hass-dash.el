@@ -165,7 +165,7 @@ GROUP is a list of widget definitions to be inserted into the buffer."
 ;; Refresh dashboard when entity state is updated
 (add-hook 'hass-entity-state-updated-functions (lambda (_) (hass-dash-refresh)))
 
-;; After successful connection entities of widgets to tracked entities list
+;; After successful connection update the `hass-tracked-entities' list to include the entities in `hass-dash-layout'.
 (add-hook 'hass-api-connected-hook #'hass-dash--track-layout-entities)
 (when hass--api-running (hass-dash--track-layout-entities))
 
