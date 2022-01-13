@@ -14,7 +14,7 @@
 ;; Customizable
 (defvar hass-dash-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "r") 'hass-dash-refresh)
+    (define-key map (kbd "g r") 'hass-dash-refresh)
     (define-key map (kbd "RET") 'widget-button-press)
     (define-key map [tab] 'widget-forward)
     (define-key map [backtab] 'widget-backward)
