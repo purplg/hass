@@ -38,7 +38,7 @@
                                          ("vacuum" . "vacuum.start"))
   "An alist of entity domains to their default services."
   :group 'hass-dash
-  :type '(repeat (cons string function)))
+  :type '(repeat (cons string string)))
 
 (defcustom hass-dash-buffer-name "*hass-dash*"
   "The name of the hass-dash buffer."
