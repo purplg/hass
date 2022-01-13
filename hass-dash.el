@@ -26,11 +26,16 @@
   :group 'hass-dash
   :prefix "hass-dash-")
 
-(defcustom hass-dash--default-services '(("switch" . "switch.toggle")
+(defcustom hass-dash--default-services '(("automation" . "automation.trigger")
+                                         ("counter" . "counter.increment")
+                                         ("cover" . "cover.toggle")
+                                         ("fan" . "fan.toggle")
                                          ("input_boolean" . "input_boolean.toggle")
-                                         ("automation" . "automation.trigger")
-                                         ("vacuum" . "vacuum.start")
-                                         ("scene" . "scene.turn_on"))
+                                         ("light" . "light.toggle")
+                                         ("media_player" . "media_player.media_play_pause")
+                                         ("scene" . "scene.turn_on")
+                                         ("switch" . "switch.toggle")
+                                         ("vacuum" . "vacuum.start"))
   "An alist of entity domains to their default services."
   :group 'hass-dash
   :type '(repeat (cons string function)))
