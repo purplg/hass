@@ -140,10 +140,10 @@ GROUP is a list of widget definitions to be inserted into the buffer."
   (let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
     (with-current-buffer dash-buffer
       (let ((inhibit-read-only t)
-            (prev-point (progn (beginning-of-line) (point))))
+            (prev-line (line-number-at-pos)))
          (erase-buffer)
          (hass-dash--insert-groups)
-         (goto-char prev-point)
+         (goto-line prev-line)
          (hass-dash-mode)))))
 
 ;;;###autoload
