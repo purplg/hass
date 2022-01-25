@@ -114,8 +114,8 @@ detect changes in entity state."
 Each function is called with one argument: the ENTITY-ID of the
 entity whose state changed.")
 
-(defvar hass-entity-state-refreshed-hook nil
- "Hook called after an entity state data was received.")
+(defvar hass-entity-updated-hook nil
+ "Hook called when any entity information is updated.")
 
 (defvar hass-api-connected-hook nil
  "Hook called after a successful Home Assistant API connection check is made.")
@@ -264,7 +264,8 @@ endpoint."
 ;; Request Callbacks
 (defun hass--get-entities-result (entities)
   "Callback when states of all ENTITIES is received from API."
-  (setq hass--available-entities (hass--parse-all-entities entities)))
+  (setq hass--available-entities (hass--parse-all-entities entities))
+  (run-hooks 'hass-entity-updated-hook))
 
 (defun hass--get-available-services-result (domains)
   "Callback when all service information is received from API.
@@ -278,8 +279,8 @@ ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   (let ((previous-state (hass-state-of entity-id)))
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
-  (run-hooks 'hass-entity-state-refreshed-hook))
       (run-hook-with-args 'hass-entity-state-changed-functions entity-id)
+      (run-hooks 'hass-entity-updated-hook))))
 
 (defun hass--call-service-result (entity-id state)
   "Callback when a successful service request is received from API.

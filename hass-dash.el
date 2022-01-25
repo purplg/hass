@@ -162,7 +162,7 @@ STATE is an entity id of the state to show on the widget. If set to `nil', no st
   :interactive t)
 
 ;; Refresh dashboard when entity state is updated
-(add-hook 'hass-entity-state-updated-functions (lambda (_) (hass-dash-refresh)))
+(add-hook 'hass-entity-updated-hook 'hass-dash-refresh)
 
 ;; After successful connection update the `hass-tracked-entities' list to include the entities in `hass-dash-layout'.
 (add-hook 'hass-api-connected-hook #'hass-dash--track-layout-entities)
