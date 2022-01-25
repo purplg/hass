@@ -109,7 +109,7 @@ detect changes in entity state."
 
 
 ;; Hooks
-(defvar hass-entity-state-updated-functions nil
+(defvar hass-entity-state-changed-functions nil
  "List of functions called when an entity state changes.
 Each function is called with one argument: the ENTITY-ID of the
 entity whose state changed.")
@@ -278,8 +278,8 @@ ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   (let ((previous-state (hass-state-of entity-id)))
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
-      (run-hook-with-args 'hass-entity-state-updated-functions entity-id)))
   (run-hooks 'hass-entity-state-refreshed-hook))
+      (run-hook-with-args 'hass-entity-state-changed-functions entity-id)
 
 (defun hass--call-service-result (entity-id state)
   "Callback when a successful service request is received from API.
