@@ -82,9 +82,12 @@ Full example:
 
 (defun hass-dash--track-layout-entities ()
   "Tracks referenced entities in `hass-dash-layout' and updates their state."
-  (dolist (group hass-dash-layout)
-    (dolist (item (cdr group))
-      (add-to-list 'hass-tracked-entities (car item))))
+  (dolist (layout-entry hass-dash-layout)
+    (when-let ((group (cond ((listp layout-entry) layout-entry)
+                            ((boundp layout-entry) (symbol-value layout-entry))
+                            ((fboundp layout-entry) (funcall layout-entry)))))
+      (dolist (item (cdr group))
+        (add-to-list 'hass-tracked-entities (car item)))))
   (hass--update-all-entities))
 
 
@@ -118,20 +121,17 @@ STATE is an entity id of the state to show on the widget. If set to `nil', no st
 
 (defun hass-dash--insert-groups ()
   "Insert all widgets in `hass-dash-layout'"
-  (dolist (group hass-dash-layout)
-    (insert (propertize (car group) 'face 'shr-h1))
-    (insert "\n")
-    (hass-dash--insert-group (cdr group))
-    (insert "\n")))
+  (dolist (layout-entry hass-dash-layout)
+    (when-let ((group (cond ((listp layout-entry) layout-entry)
+                            ((boundp layout-entry) (symbol-value layout-entry))
+                            ((fboundp layout-entry) (funcall layout-entry)))))
+      (insert (propertize (car group) 'face 'shr-h1))
+      (insert "\n")
+      (dolist (item (cdr group))
+        (apply 'hass-dash--create-widget item)
+        (insert "\n"))
+      (insert "\n"))))
  
-(defun hass-dash--insert-group (group)
-  "Insert all widgets in a group
-
-GROUP is a list of widget definitions to be inserted into the buffer."
-  (dolist (item group)
-    (apply 'hass-dash--create-widget item)
-    (insert "\n")))
-
 
 ;; User functions
 (defun hass-dash-refresh ()
