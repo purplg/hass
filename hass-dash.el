@@ -137,14 +137,13 @@ GROUP is a list of widget definitions to be inserted into the buffer."
 (defun hass-dash-refresh ()
   "Rerender the hass-dash buffer"
   (interactive)
-  (let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
-    (with-current-buffer dash-buffer
-      (let ((inhibit-read-only t)
-            (prev-line (line-number-at-pos)))
-         (erase-buffer)
-         (hass-dash--insert-groups)
-         (goto-line prev-line)
-         (hass-dash-mode)))))
+  (with-current-buffer (get-buffer-create hass-dash-buffer-name)
+    (let ((inhibit-read-only t)
+          (prev-line (line-number-at-pos)))
+       (erase-buffer)
+       (hass-dash--insert-groups)
+       (goto-line prev-line)
+       (hass-dash-mode))))
 
 ;;;###autoload
 (defun hass-dash-open ()
