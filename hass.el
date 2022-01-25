@@ -111,7 +111,7 @@ detect changes in entity state."
 ;; Hooks
 (defvar hass-entity-state-updated-functions nil
  "List of functions called when an entity state changes.
-Each function is called with one arguments: the ENTITY-ID of the
+Each function is called with one argument: the ENTITY-ID of the
 entity whose state changed.")
 
 (defvar hass-entity-state-refreshed-hook nil
