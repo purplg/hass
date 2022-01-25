@@ -235,7 +235,7 @@ ENTITIES is the data returned from the `/api/states' endpoint."
 ENTITY-STATE is an individual entity state data return from the
 `/api/states' endpoint.
 
-Only returns entities that have callable services available."
+Filters out entities that do not have callable services available."
   (let* ((entity-id (cdr (assoc 'entity_id entity-state)))
          (friendly-name (or (cdr (assoc 'friendly_name (cdr (assoc 'attributes entity-state))))
                             entity-id)))
