@@ -144,6 +144,7 @@ STATE is an entity id of the state to show on the widget. If set to `nil', no st
  
 
 ;; User functions
+;;;###autoload
 (defun hass-dash-refresh ()
   "Rerender the hass-dash buffer"
   (interactive)
