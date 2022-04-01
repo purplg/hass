@@ -8,29 +8,33 @@
 
 ;;; Commentary:
 
-;; This mode is an extension to the `hass' package to provide realtime updates via websockets to a
-;; Home Assistant instance.
+;; This mode is an extension to the `hass' package to provide realtime updates
+;; via websockets to a Home Assistant instance.
 
-;; Alternatively, the `hass' package has a 'polling mode' that will periodically query the Home
-;; Assistant instance to get state updates of the configured tracked entities.  This package enables
-;; the use of websockets to get updates instantly.
+;; Alternatively, the `hass' package has a 'polling mode' that will periodically
+;; query the Home Assistant instance to get state updates of the configured
+;; tracked entities.  This package enables the use of websockets to get updates
+;; instantly.
 
 ;; --------------------
 ;; Configuration
 
 ;; First, `hass' must be configured properly.
 
-;; Since we don't want Emacs keeping track of /every/ entity in Home Assistant, you must tell hass
-;; which entities you want to track using `hass-polling-mode'.  `hass-polling-mode' takes a list of
-;; strings of Home Assistant entity IDs.
+;; Since we don't want Emacs keeping track of /every/ entity in Home Assistant,
+;; you must tell hass which entities you want to track using
+;; `hass-polling-mode'.  `hass-polling-mode' takes a list of strings of Home
+;; Assistant entity IDs.
 
 ;;  (setq hass-tracked-entities '("switch.bedroom_light" "switch.bedroom_fan"))
 
-;; Then, you can use the function hook `hass-entity-state-updated-functions' react to changes in
-;; Home Assistant.  The lambda added to `hass-entity-state-updated-functions' takes one argument.  A
-;; string that contains the entity id that changed state.  You can get the current state of the
-;; entity using `hass-state-of'.  For a switch entity or other entity that have an on/off state, it
-;; can be conventient to use `hass-switch-p' which returns 't' if the entity's state is 'on',
+;; Then, you can use the function hook `hass-entity-state-updated-functions'
+;; react to changes in Home Assistant.  The lambda added to
+;; `hass-entity-state-updated-functions' takes one argument.  A string that
+;; contains the entity id that changed state.  You can get the current state of
+;; the entity using `hass-state-of'.  For a switch entity or other entity that
+;; have an on/off state, it can be conventient to use `hass-switch-p' which
+;; returns 't' if the entity's state is 'on',
 
 ;; This example changes Emacs' theme based on whether or not a light is on:
 
@@ -41,10 +45,11 @@
 ;;               (set-theme 'doom-one-light)
 ;;               (set-theme 'doom-one))))))
 
-;; NOTE: This function hook is only called when an entity ID listed in `hass-tracked-entities' is updated.
+;; NOTE: This function hook is only called when an entity ID listed in
+;; `hass-tracked-entities' is updated.
 
-;; Lastly, enable websocket mode.  This intializes the websocket connect from Emacs to the Home
-;; Assistant instance.
+;; Lastly, enable websocket mode.  This intializes the websocket connect from
+;; Emacs to the Home Assistant instance.
 
 ;;  (hass-websocket-mode t)
 

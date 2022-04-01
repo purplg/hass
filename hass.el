@@ -260,7 +260,8 @@ endpoint."
         (hass--parse-services (cdr (assoc 'services domain)))))
   
 (defun hass--parse-services (services)
-  "Flattens the SERVICES return from `/api/services' endpoint to just the service name."
+  "Flattens the SERVICES return from `/api/services' endpoint to
+just the service name."
   (mapcar (lambda (service) (car service))
           services))
 
@@ -288,7 +289,8 @@ ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
 
 (defun hass--call-service-result (entity-id state)
   "Callback when a successful service request is received from API.
-ENTITY-ID is the id of the entity in Home Assistant that was affected and now has STATE."
+ENTITY-ID is the id of the entity in Home Assistant that was
+affected and now has STATE."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass-service-called-hook))
 
