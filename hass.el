@@ -80,6 +80,15 @@ requests"
   :group 'hass
   :type 'string)
 
+(defcustom hass-icons '(("default" . "faicon:cog")
+                        ("automation" . "faicon:bolt")
+                        ("switch" . "faicon:toggle-on")
+                        ("input_boolean" . "faicon:toggle-on")
+                        ("vacuum" ."fileicon:robot"))
+  "An alist of entity domains to icons to be used."
+  :group 'hass
+  :type '(repeat (cons symbol string)))
+
 (defcustom hass-tracked-entities nil
   "A list of tracked Home Assistant entities.
 Set this to a list of Home Assistant entity ID strings.  An entity ID looks
@@ -98,15 +107,22 @@ detect changes in entity state."
   :group 'hass
   :type 'integer)
 
+(defface hass-icon-face
+  '((t (:inherit all-the-icons-lsilver)))
+  "Face for widgets in HASS's dashboard.")
+
 
 ;; Hooks
-(defvar hass-entity-state-updated-functions nil
+(defvar hass-entity-state-changed-functions nil
  "List of functions called when an entity state changes.
-Each function is called with one arguments: the ENTITY-ID of the
+Each function is called with one argument: the ENTITY-ID of the
 entity whose state changed.")
 
-(defvar hass-entity-state-refreshed-hook nil
- "Hook called after an entity state data was received.")
+(defvar hass-entity-updated-hook nil
+ "Hook called when any entity information is updated.")
+
+(defvar hass-api-connected-hook nil
+ "Hook called after a successful Home Assistant API connection check is made.")
 
 (defvar hass-service-called-hook nil
  "Hook called after a service has been called.")
@@ -127,6 +143,9 @@ entity whose state changed.")
 
 (defvar hass--available-services nil
   "The services retrieved from the Home Assistant instance.")
+
+(defvar hass--api-running nil
+  "Whether a successful connection to Home Assistant API has been made.")
 
 
 ;; Helper functions
@@ -183,6 +202,13 @@ OBJECT is a JSON object to be serialized into string."
     (json-serialize object)
     (json-encode object)))
 
+(defun hass--icon-of-entity (entity-id)
+  (when (require 'all-the-icons nil 'noerror)
+    (let ((parts (split-string (or (cdr (assoc (hass--domain-of-entity entity-id) hass-icons))
+                                   (cdr (assoc "default" hass-icons)))
+                  ":")))
+      (funcall (intern (concat "all-the-icons-" (pop parts))) (pop parts) :face 'hass-icon-face))))
+
 (defun hass-state-of (entity-id)
   "Return the last known state of ENTITY-ID.
 ENTITY-ID is the id of the entity in Home Assistant."
@@ -192,6 +218,13 @@ ENTITY-ID is the id of the entity in Home Assistant."
   "Return t if switch status is 'on' of ENTITY-ID.
 ENTITY-ID is the id of the entity in Home Assistant."
   (string= (hass-state-of entity-id) "on"))
+
+(defun hass-friendly-name (entity-id)
+  "Get the friendly name of an entity.
+ENTITY-ID is the id of the entity in Home Assistant."
+  (plist-get
+   (cdr (assoc entity-id hass--available-entities))
+   ':friendly_name))
 
 
 ;; API parsing
@@ -206,10 +239,13 @@ ENTITIES is the data returned from the `/api/states' endpoint."
 ENTITY-STATE is an individual entity state data return from the
 `/api/states' endpoint.
 
-Only returns entities that have callable services available."
-  (let ((entity-id (cdr (car entity-state))))
+Filters out entities that do not have callable services available."
+  (let* ((entity-id (cdr (assoc 'entity_id entity-state)))
+         (friendly-name (or (cdr (assoc 'friendly_name (cdr (assoc 'attributes entity-state))))
+                            entity-id)))
     (when (hass--services-for-entity entity-id)
-      entity-id)))
+      `(,entity-id . (:friendly_name ,friendly-name
+                      :icon ,(hass--icon-of-entity entity-id))))))
 
 (defun hass--parse-all-domains (domains)
   "Collect DOMAINS into an alist of their associated services.
@@ -224,7 +260,8 @@ endpoint."
         (hass--parse-services (cdr (assoc 'services domain)))))
   
 (defun hass--parse-services (services)
-  "Flattens the SERVICES return from `/api/services' endpoint to just the service name."
+  "Flattens the SERVICES return from `/api/services' endpoint to
+just the service name."
   (mapcar (lambda (service) (car service))
           services))
 
@@ -232,7 +269,8 @@ endpoint."
 ;; Request Callbacks
 (defun hass--get-entities-result (entities)
   "Callback when states of all ENTITIES is received from API."
-  (setq hass--available-entities (hass--parse-all-entities entities)))
+  (setq hass--available-entities (hass--parse-all-entities entities))
+  (run-hooks 'hass-entity-updated-hook))
 
 (defun hass--get-available-services-result (domains)
   "Callback when all service information is received from API.
@@ -246,12 +284,13 @@ ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   (let ((previous-state (hass-state-of entity-id)))
     (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
     (unless (equal previous-state state)
-      (run-hook-with-args 'hass-entity-state-updated-functions entity-id)))
-  (run-hooks 'hass-entity-state-refreshed-hook))
+      (run-hook-with-args 'hass-entity-state-changed-functions entity-id)
+      (run-hooks 'hass-entity-updated-hook))))
 
 (defun hass--call-service-result (entity-id state)
   "Callback when a successful service request is received from API.
-ENTITY-ID is the id of the entity in Home Assistant that was affected and now has STATE."
+ENTITY-ID is the id of the entity in Home Assistant that was
+affected and now has STATE."
   (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
   (run-hooks 'hass-service-called-hook))
 
@@ -286,7 +325,19 @@ PAYLOAD is contents the body of the request."
    :data payload
    :parser (lambda () (hass--deserialize (buffer-string)))
    :error #'hass--request-error
-   :success success))
+   :success success)
+  nil)
+
+(defun hass--check-api-connection ()
+  "Sets `hass--api-running' to `t' when a successful connection is made."
+  (setq hass--api-running nil)
+  (hass--request "GET" (hass--url "api/")
+    (cl-function
+      (lambda (&key response &allow-other-keys)
+        (let ((data (request-response-data response)))
+          (when (string= "API running." (cdr (assoc 'message data)))
+            (setq hass--api-running t)
+            (run-hooks 'hass-api-connected-hook)))))))
 
 (defun hass--get-available-entities (&optional callback)
   "Retrieve the available entities from the Home Assistant instance.
@@ -317,6 +368,11 @@ Optional argument CALLBACK ran after services are received."
       (lambda (&key response &allow-other-keys)
         (let ((data (request-response-data response)))
           (hass--query-entity-result entity-id (cdr (assoc 'state data))))))))
+
+(defun hass--update-all-entities ()
+  "Update current state of tracked entities."
+  (dolist (entity hass-tracked-entities)
+    (hass--get-entity-state entity)))
 
 (defun hass--call-service (service payload &optional success-callback)
   "Call service SERVICE for ENTITY-ID on the Home Assistant server.
@@ -425,12 +481,13 @@ Assistant instance for available services and entities."
   (cond ((not (equal (type-of (hass--apikey)) 'string))
          (user-error "HASS-APIKEY must be set to use hass"))
         ((not (equal (type-of hass-host) 'string))
-         (user-error "hass-host must be set to use hass"))
-        ((hass--get-available-services 'hass--get-available-entities)))
+         (user-error "HASS-HOST must be set to use hass")))
+  
+  (add-hook 'hass-api-connected-hook
+   (lambda ()
+     (hass--get-available-services #'hass--get-available-entities)))
 
-  ; Get current state of tracked entities
-  (dolist (entity hass-tracked-entities)
-    (hass--get-entity-state entity)))
+  (hass--check-api-connection))
 
 (provide 'hass)
 
