@@ -41,7 +41,7 @@
     (define-key map [tab] 'widget-forward)
     (define-key map [backtab] 'widget-backward)
    map)
-  "Keymap for hass-dash-mode.")
+  "Keymap for `hass-dash-mode'.")
 
 (defface hass-dash-group-face
   '((t (:inherit info-title-2)))
@@ -96,7 +96,7 @@ See `hass-dash--create-widget' for widget properties.
 
 Full example:
 
-(setq hass-dash-layout
+\(setq `hass-dash-layout'
  '((\"Group One\" . ((\"input_boolean.test_boolean\"
                     :name \"Toggle entity\")
                    (\"switch.bedroom_light\"
@@ -118,14 +118,14 @@ Full example:
 
 ;; Helper functions
 (defun hass-dash--default-service-of (entity-id)
-  "Returns the default service to be called for ENTITY-ID"
+  "Return the default service to be called for ENTITY-ID."
   (let ((domain (hass--domain-of-entity entity-id)))
     (or (cdr (assoc domain hass-dash--default-services))
         (lambda (entity-id)
           (message "hass: No service assigned for entity: %s" entity-id)))))
 
 (defun hass-dash--track-layout-entities ()
-  "Tracks referenced entities in `hass-dash-layout' and updates their state."
+  "Tracks referenced entities in `hass-dash-layout' and update their state."
   (dolist (layout-entry hass-dash-layout)
     (when-let ((group (cond ((listp layout-entry) layout-entry)
                             ((boundp layout-entry) (symbol-value layout-entry))
@@ -151,10 +151,10 @@ NAME sets the displayed name of the widget on the dashboard.
 SERVICE is the service to be called on Home Assistant when the widget is
 pressed.
 
-ICON is the icon displayed on the widget. Set to `nil' to not show an icon.
+ICON is the icon displayed on the widget.  Set to nil to not show an icon.
 Requires `all-the-icons' package.
 
-STATE is an entity id of the state to show on the widget. If set to `nil', no
+STATE is an entity id of the state to show on the widget.  If set to nil, no
 state is shown."
   (widget-create 'push-button
     :tag (concat (when icon (concat icon " "))
@@ -165,7 +165,7 @@ state is shown."
     :action (lambda (&rest _) (hass-call-service entity-id service))))
 
 (defun hass-dash--insert-groups ()
-  "Insert all widgets in `hass-dash-layout'"
+  "Insert all widgets in `hass-dash-layout'."
   (dolist (layout-entry hass-dash-layout)
     (when-let ((group (cond ((listp layout-entry) layout-entry)
                             ((boundp layout-entry) (symbol-value layout-entry))
@@ -181,7 +181,7 @@ state is shown."
 ;; User functions
 ;;;###autoload
 (defun hass-dash-refresh ()
-  "Rerender the hass-dash buffer"
+  "Rerender the hass-dash buffer."
   (interactive)
   (with-current-buffer (get-buffer-create hass-dash-buffer-name)
     (let ((inhibit-read-only t)
@@ -194,7 +194,7 @@ state is shown."
 
 ;;;###autoload
 (defun hass-dash-open ()
-  "Open the hass-dash buffer"
+  "Open the hass-dash buffer."
   (interactive)
   (hass-dash-refresh)
   (let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
