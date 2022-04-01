@@ -166,7 +166,8 @@ state is shown."
           (prev-line (line-number-at-pos)))
        (erase-buffer)
        (hass-dash--insert-groups)
-       (goto-line prev-line)
+       (goto-char (point-min))
+       (forward-line (1- prev-line))
        (hass-dash-mode))))
 
 ;;;###autoload
