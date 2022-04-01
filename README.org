@@ -104,6 +104,37 @@ Alternatively, you can store a function inside ~hass-apikey~. This will be execu
 
 Once those variables are set, you must call ~(hass-setup)~ before using this package so that it can query the Home Assistance instance and populate available entities and services.
 
+** Dashboard layout
+
+To use the dashboard feature, ~hass-dash-layout~ must be configure to tell ~hass~ what the layout should look like.
+
+Each element in ~hass-dash-layout~ is a group.
+
+A group is an alist of the name of the group to a list widgets.
+
+A widget is a list where the first symbol is the entity id and the rest are the properties:
+
+| Property   | Description                                                         |
+|------------+---------------------------------------------------------------------|
+| ~:name~    | The human readable name of the widget to be shown on the dashboard. |
+| ~:service~ | The service to be called when the widget is selected.               |
+| ~:icon~    | The icon to be shown prefix to the widget.                          |
+| ~:state~   | An entity id of the state to be shown next to the widget.           |
+
+*** Full example
+#+BEGIN_SRC emacs-lisp :results none
+(setq `hass-dash-layout'
+ '(("Group One" . (("input_boolean.test_boolean" :name "Toggle entity")
+                   ("switch.bedroom_light" :name "Bedroom Light")
+                   ("input_boolean.test_boolean" :name "Turn off test boolean" :service "input_boolean.turn_off")
+                   ("automation.some_automation")))
+   ("Vacuum Group" . (("vacuum.valetudo_vacuum" :name "Vacuum")
+                      ("vacuum.valetudo_vacuum" :name "Vacuum return home"
+                                                :service "vacuum.return_to_base"
+                                                :state nil
+                                                :icon nil)))))
+#+END_SRC
+
 ** Getting an API Key
 
 Ensure that your Home Assistant instance is configured to support API calls by following the instructions [[https://www.home-assistant.io/integrations/api/][here]].
@@ -119,6 +150,10 @@ To call a service on Home Assistant, use the ~hass-call-service~ function which 
 #+END_SRC
 
 If you call ~hass-call-service~ interactively, it will prompt you for an entity ID and then the respective service you want to call.
+
+** Dashboard
+
+After configuring the ~hass-dash-layout~, use the function ~hass-dash-open~ to pop open the dashboard. This can be enhanced with standard buffer management configuration or packages like =popper= and/or =shackle=.
 
 ** Payloads
 
@@ -144,15 +179,23 @@ You could pass a JSON string directly, but that would require escaping every quo
 
 ** Tracking entities
 
-~hass-polling-mode~ is a mode that periodically queries the Home Assistant instance to get the current state of a list of entities. The list of entity IDs that will be queried are found in the variable ~hass-tracked-entities~.
+To retrieve automatic updates of specific entities, you must configure the ~hass-tracked-entities~ variable with a list of entities.
 
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-tracked-entities '("switch.bedroom_light" "switch.bedroom_fan"))
 #+END_SRC
 
-The frequency of the query can be adjusted by setting ~hass-polling-frequency~ to the number of seconds you'd like. Defaults to 60.
+Then you can enable either ~hass-websocket-mode~ or ~hass-polling-mode~.
 
-Tracking entities is most useful with the function hook ~hass-entity-state-updated-functions~ explained in the [[*Hooks][Hooks]] section.
+~hass-websocket-mode~ is a mode that receives updates from Home Assistant over websockets. This enables realtime updates to entity states. Highly recommended if using the dashboard feature.
+
+#+BEGIN_SRC emacs-lisp :results none
+(hass-websocket-mode t)
+#+END_SRC
+
+~hass-polling-mode~ is a mode that periodically queries the Home Assistant instance to get the current state of a list of entities.
+
+The frequency of the query can be adjusted by setting ~hass-polling-frequency~ to the number of seconds you'd like. Defaults to 60.
 
 ** Hooks
 
