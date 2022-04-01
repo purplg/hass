@@ -59,9 +59,11 @@
 
 (defcustom hass-dash-layout nil
  "A list of widgets to show on the dashboard.
-Each element in the `list' is an `alist' of a Group name to a `plist' of entity IDs with their properties.
+Each element in the `list' is an `alist' of a Group name to a `plist' of entity
+IDs with their properties.
 
-The `car' of a list is the group name while the `cdr' is a list of widget definitions for that group.
+The `car' of a list is the group name while the `cdr' is a list of widget
+definitions for that group.
 
 '((\"Group Name\" . ((\"entity.id_example\" :name \"Human Readable Name\"))))
 
@@ -70,16 +72,21 @@ See `hass-dash--create-widget' for widget properties.
 Full example:
 
 (setq hass-dash-layout
- '((\"Group One\" . ((\"input_boolean.test_boolean_entity\" :name \"Toggle test boolean entity\")
-                   (\"switch.bedroom_light\" :name \"Bedroom Light\")
-                   (\"input_boolean.test_boolean_entity\" :name \"Turn off test boolean entity\"
-                                                        :service \"input_boolean.turn_off\")
+ '((\"Group One\" . ((\"input_boolean.test_boolean\"
+                    :name \"Toggle entity\")
+                   (\"switch.bedroom_light\"
+                    :name \"Bedroom Light\")
+                   (\"input_boolean.test_boolean\"
+                    :name \"Turn off test boolean\"
+                    :service \"input_boolean.turn_off\")
                    (\"automation.some_automation\")))
-   (\"Vacuum Group\" . ((\"vacuum.valetudo_vacuum\" :name \"Vacuum\")
-                      (\"vacuum.valetudo_vacuum\" :name \"Vacuum return home\"
-                                                :service \"vacuum.return_to_base\"
-                                                :state nil
-                                                :icon nil)))))"
+   (\"Vacuum Group\" . ((\"vacuum.valetudo_vacuum\"
+                       :name \"Vacuum\")
+                      (\"vacuum.valetudo_vacuum\"
+                       :name \"Vacuum return home\"
+                       :service \"vacuum.return_to_base\"
+                       :state nil
+                       :icon nil)))))"
  :group 'hass-dash
  :type 'list)
 
@@ -116,11 +123,14 @@ ENTITY-ID is the id of the entity in Home Assistant.
 
 NAME sets the displayed name of the widget on the dashboard.
 
-SERVICE is the service to be called on Home Assistant when the widget is pressed.
+SERVICE is the service to be called on Home Assistant when the widget is
+pressed.
 
-ICON is the icon displayed on the widget. Set to `nil' to not show an icon. Requires `all-the-icons' package.
+ICON is the icon displayed on the widget. Set to `nil' to not show an icon.
+Requires `all-the-icons' package.
 
-STATE is an entity id of the state to show on the widget. If set to `nil', no state is shown."
+STATE is an entity id of the state to show on the widget. If set to `nil', no
+state is shown."
   (widget-create 'push-button
     :tag (concat (when icon (concat icon " "))
                  (propertize name 'face 'hass-dash-widget-name-face)
@@ -175,7 +185,8 @@ STATE is an entity id of the state to show on the widget. If set to `nil', no st
 ;; Refresh dashboard when entity state is updated
 (add-hook 'hass-entity-updated-hook 'hass-dash-refresh)
 
-;; After successful connection update the `hass-tracked-entities' list to include the entities in `hass-dash-layout'.
+;; After successful connection update the `hass-tracked-entities' list to
+;; include the entities in `hass-dash-layout'.
 (add-hook 'hass-api-connected-hook #'hass-dash--track-layout-entities)
 (when hass--api-running (hass-dash--track-layout-entities))
 
