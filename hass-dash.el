@@ -23,15 +23,18 @@
 
 (defface hass-dash-group-face
   '((t (:inherit info-title-2)))
-  "Face for widget group names in HASS's dashboard.")
+  "Face for widget group names in HASS's dashboard."
+  :group 'hass-dash)
 
 (defface hass-dash-widget-name-face
   '((t (:inherit widget-button)))
-  "Face for widgets in HASS's dashboard.")
+  "Face for widgets in HASS's dashboard."
+  :group 'hass-dash)
 
 (defface hass-dash-widget-state-face
   '((t (:inherit hass-dash-widget-name-face)))
-  "Face for widgets in HASS's dashboard.")
+  "Face for widgets in HASS's dashboard."
+  :group 'hass-dash)
 
 (defgroup hass-dash '()
   "Customization group for hass-dash."
