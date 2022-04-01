@@ -17,16 +17,16 @@
 ;; this dashboard feature.
 
 ;; The main configuration for the dashboard takes place with the
-;; `hass-dash-layout' variable. `hass-dash-layout' declares how the widgets are
-;; laid out, what they display, and what they do. See the docstring for
+;; `hass-dash-layout' variable.  `hass-dash-layout' declares how the widgets are
+;; laid out, what they display, and what they do.  See the docstring for
 ;; `hass-dash-layout' for details.
 
 ;; --------------------
 ;; Usage
 
-;; To show the dashboard, call the `hass-dash-open' function. Nothing fancy is
+;; To show the dashboard, call the `hass-dash-open' function.  Nothing fancy is
 ;; done to show this buffer so standard buffer management configuration
-;; applies. It can be handy to use packages like `popper' and/or `shackle' to
+;; applies.  It can be handy to use packages like `popper' and/or `shackle' to
 ;; configure how the dashboard is displayed.
 
 ;;; Code:
