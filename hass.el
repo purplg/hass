@@ -107,6 +107,10 @@ detect changes in entity state."
   :group 'hass
   :type 'integer)
 
+(defface hass-icon-face
+  '((t (:inherit all-the-icons-lsilver)))
+  "Face for widgets in HASS's dashboard.")
+
 
 ;; Hooks
 (defvar hass-entity-state-changed-functions nil
@@ -203,7 +207,7 @@ OBJECT is a JSON object to be serialized into string."
     (let ((parts (split-string (or (cdr (assoc (hass--domain-of-entity entity-id) hass-icons))
                                    (cdr (assoc "default" hass-icons)))
                   ":")))
-      (funcall (intern (concat "all-the-icons-" (pop parts))) (pop parts) :face 'all-the-icons-blue))))
+      (funcall (intern (concat "all-the-icons-" (pop parts))) (pop parts) :face 'hass-icon-face))))
 
 (defun hass-state-of (entity-id)
   "Return the last known state of ENTITY-ID.

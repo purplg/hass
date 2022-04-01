@@ -21,6 +21,18 @@
    map)
   "Keymap for hass-dash-mode.")
 
+(defface hass-dash-group-face
+  '((t (:inherit info-title-2)))
+  "Face for widget group names in HASS's dashboard.")
+
+(defface hass-dash-widget-name-face
+  '((t (:inherit widget-button)))
+  "Face for widgets in HASS's dashboard.")
+
+(defface hass-dash-widget-state-face
+  '((t (:inherit hass-dash-widget-name-face)))
+  "Face for widgets in HASS's dashboard.")
+
 (defgroup hass-dash '()
   "Customization group for hass-dash."
   :group 'hass-dash
@@ -109,15 +121,13 @@ SERVICE is the service to be called on Home Assistant when the widget is pressed
 ICON is the icon displayed on the widget. Set to `nil' to not show an icon. Requires `all-the-icons' package.
 
 STATE is an entity id of the state to show on the widget. If set to `nil', no state is shown."
-  (let ((format (concat "%["
-                        (when icon (concat icon " "))
-                        (replace-regexp-in-string "%" "%%" name)
-                        (when state " - %t")
-                        "%]")))
-    (widget-create 'push-button
-      :format format
-      :value (when state (hass-state-of state))
-      :action (lambda (&rest _) (hass-call-service entity-id service)))))
+  (widget-create 'push-button
+    :tag (concat (when icon (concat icon " "))
+                 (propertize name 'face 'hass-dash-widget-name-face)
+                 (when state (propertize (concat " - "  (hass-state-of state))
+                                'face 'hass-dash-widget-state-face)))
+    :format "%[%t%]"
+    :action (lambda (&rest _) (hass-call-service entity-id service))))
 
 (defun hass-dash--insert-groups ()
   "Insert all widgets in `hass-dash-layout'"
@@ -125,7 +135,7 @@ STATE is an entity id of the state to show on the widget. If set to `nil', no st
     (when-let ((group (cond ((listp layout-entry) layout-entry)
                             ((boundp layout-entry) (symbol-value layout-entry))
                             ((fboundp layout-entry) (funcall layout-entry)))))
-      (insert (propertize (car group) 'face 'shr-h1))
+      (insert (propertize (car group) 'face 'hass-dash-group-face))
       (insert "\n")
       (dolist (item (cdr group))
         (apply 'hass-dash--create-widget item)
