@@ -69,7 +69,7 @@ The ~hass-url~ variable is now deprecated. This has been split up into 3 variabl
 (hass-setup)
 #+END_SRC
 
-This change was implemented to support the ~hass-websockets~ extension package. This uses a different protocol and splitting out the URL into components makes it much easier to generate the websocket URL automatically.
+This change was implemented to support the ~hass-websockets~ extension. This uses a different protocol and splitting out the URL into components makes it much easier to generate the websocket URL automatically.
 
 The package will currently parse ~hass-url~ if it is set and convert it into its appropriate configuration variables. This will be removed in the future.
 
@@ -187,7 +187,7 @@ To retrieve automatic updates of specific entities, you must configure the ~hass
 
 Then you can enable either ~hass-websocket-mode~ or ~hass-polling-mode~.
 
-~hass-websocket-mode~ is a mode that receives updates from Home Assistant over websockets. This enables realtime updates to entity states. Highly recommended if using the dashboard feature.
+~hass-websocket-mode~, requires =websocket= package, is a mode that receives updates from Home Assistant over a websocket. This enables real-time updates to entity states. Highly recommended if using the dashboard feature.
 
 #+BEGIN_SRC emacs-lisp :results none
 (hass-websocket-mode t)
