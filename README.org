@@ -169,7 +169,7 @@ A simple implementation of a *formatter* can just modify the string itself, for 
 
 **** Widget formatters
 
-A *widget formatter* is slightly more complicated since it has to take all the components of a widget and fit them together. The following example re-arranges the widgets to have the *state* displayed first, then the *label*, and then suffixes it with the *icon*. It may be important, but not required, to remember to apply the *formatters* using ~funcall~, though this is technically optional (see next example). Also note that *state* and *icon* are being checked to be non-nil before used. These two arguments are optional and may not be set.
+A *widget formatter* is slightly more complicated since it has to take all the components of a widget and fit them together. The following example re-arranges the widgets to have the *state* displayed first, then the *label*, and then suffixes it with the *icon*. It may be important, but not required, to remember to apply the *formatters* using ~funcall~, though this is technically optional (see the 'bland' example). Also note that *state* and *icon* are being checked to be non-nil before used. These two arguments are optional and may not be set.
 
 #+BEGIN_SRC emacs-lisp :results none
 (defun state-label-icon (label state icon label-formatter state-formatter icon-formatter)
