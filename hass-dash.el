@@ -45,16 +45,16 @@
 
 (defface hass-dash-group-face
   '((t (:inherit info-title-2)))
-  "Face for widget group names in HASS's dashboard."
+  "Face for widget group labels in HASS's dashboard."
   :group 'hass-dash)
 
-(defface hass-dash-widget-name-face
+(defface hass-dash-widget-label-face
   '((t (:inherit widget-button)))
   "Face for widgets in HASS's dashboard."
   :group 'hass-dash)
 
 (defface hass-dash-widget-state-face
-  '((t (:inherit hass-dash-widget-name-face)))
+  '((t (:inherit hass-dash-widget-label-face)))
   "Face for widgets in HASS's dashboard."
   :group 'hass-dash)
 
@@ -87,10 +87,10 @@
 Each element in the `list' is an `alist' of a Group name to a `plist' of entity
 IDs with their properties.
 
-The `car' of a list is the group name while the `cdr' is a list of widget
+The `car' of a list is the group label while the `cdr' is a list of widget
 definitions for that group.
 
-'((\"Group Name\" . ((\"entity.id_example\" :name \"Human Readable Name\"))))
+'((\"Group Label\" . ((\"entity.id_example\" :label \"Human Readable Name\"))))
 
 See `hass-dash--create-widget' for widget properties.
 
@@ -98,17 +98,17 @@ Full example:
 
 \(setq `hass-dash-layout'
  '((\"Group One\" . ((\"input_boolean.test_boolean\"
-                    :name \"Toggle entity\")
+                    :label \"Toggle entity\")
                    (\"switch.bedroom_light\"
-                    :name \"Bedroom Light\")
+                    :label \"Bedroom Light\")
                    (\"input_boolean.test_boolean\"
-                    :name \"Turn off test boolean\"
+                    :label \"Turn off test boolean\"
                     :service \"input_boolean.turn_off\")
                    (\"automation.some_automation\")))
    (\"Vacuum Group\" . ((\"vacuum.valetudo_vacuum\"
-                       :name \"Vacuum\")
+                       :label \"Vacuum\")
                       (\"vacuum.valetudo_vacuum\"
-                       :name \"Vacuum return home\"
+                       :label \"Vacuum return home\"
                        :service \"vacuum.return_to_base\"
                        :state nil
                        :icon nil)))))"
@@ -121,8 +121,8 @@ Full example:
   :group 'hass-dash
   :type 'function)
 
-(defcustom hass-dash-name-formatter #'hass-dash-default-name-formatter
-  "The function called to format the name of widgets on the dashboard."
+(defcustom hass-dash-label-formatter #'hass-dash-default-label-formatter
+  "The function called to format the label of widgets on the dashboard."
   :group 'hass-dash
   :type 'function)
 
@@ -157,18 +157,18 @@ Full example:
 
 
 ;; Dashboard rendering
-(defun hass-dash-default-widget-formatter (name state icon
-                                           name-formatter
+(defun hass-dash-default-widget-formatter (label state icon
+                                           label-formatter
                                            state-formatter
                                            icon-formatter)
   (concat (when icon (funcall icon-formatter icon))
-          (funcall name-formatter name)
+          (funcall label-formatter label)
           (when state (funcall state-formatter state))))
 
-(defun hass-dash-default-name-formatter (name)
-  "The default implementation of a widget name formatter.
-NAME is a string of the human-readable name of the widget to be rendered."
-  (propertize name 'face 'hass-dash-widget-name-face))
+(defun hass-dash-default-label-formatter (label)
+  "The default implementation of a widget label formatter.
+LABEL is a string of the label of the widget to be rendered."
+  (propertize label 'face 'hass-dash-widget-label-face))
 
 (defun hass-dash-default-state-formatter (state)
   "The default implementation of a widget state formatter.
@@ -183,13 +183,15 @@ ICON is the icon of the widget to be rendered."
 
 (cl-defun hass-dash--create-widget (entity-id &key
                                     (service (hass-dash--default-service-of entity-id))
+                                    ;; `:name' keyword is deprecated. Use `:label' instead.
                                     (name (or (plist-get (cdr (assoc entity-id hass--available-entities))
                                                          ':friendly_name)
                                               entity-id))
+                                    (label name)
                                     (state entity-id)
                                     (icon (hass--icon-of-entity entity-id))
                                     (widget-formatter hass-dash-widget-formatter)
-                                    (name-formatter hass-dash-name-formatter)
+                                    (label-formatter hass-dash-label-formatter)
                                     (state-formatter hass-dash-state-formatter)
                                     (icon-formatter hass-dash-icon-formatter))
   "Insert a widget into the dashboard.
@@ -198,7 +200,9 @@ ENTITY-ID is the id of the entity in Home Assistant.
 SERVICE is the service to be called on Home Assistant when the widget is
 pressed.
 
-NAME sets the displayed name of the widget on the dashboard.
+LABEL sets the displayed label of the widget on the dashboard.
+
+NAME is deprecated. Use LABEL instead.
 
 STATE is an entity id of the state to show on the widget.  If set
 to nil, no state is shown.
@@ -208,20 +212,21 @@ Requires `all-the-icons' package.
 
 WIDGET-FORMATTER is the function used to format the entire widget. Can be used
 to re-arrange the elements of the widget. For example, displaying the STATE
-before the NAME. See `hass-dash-default-widget-formatter' for an example
+before the LABEL. See `hass-dash-default-widget-formatter' for an example
 implementation.
 
-NAME-FORMATTER is the function used to format the human-readable name of the
-widget. See `hass-dash-default-name-formatter' for an example implementation.
+LABEL-FORMATTER is the function used to format the label of the widget. See
+`hass-dash-default-label-formatter' for an example implementation.
 
 STATE-FORMATTER is the function used to format the state of the widget. See
 `hass-dash-default-state-formatter' for an example implementation.
 
 ICON-FORMATTER is the function used to format the icon of the widget. See
 `hass-dash-default-icon-formatter' for an example implementation."
+  ;; Backwards compabilibility with `:name' keyword.
   (widget-create 'push-button
-    :tag (funcall widget-formatter name (hass-state-of state) icon
-                                   name-formatter state-formatter icon-formatter)
+    :tag (funcall widget-formatter label (hass-state-of state) icon
+                                   label-formatter state-formatter icon-formatter)
     :format "%[%t%]"
     :action (lambda (&rest _) (hass-call-service entity-id service))))
 

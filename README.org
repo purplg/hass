@@ -45,6 +45,10 @@ Then load the package in your main config file.
 
 * Breaking Changes
 
+** Deprecated ~:name~ keyword argument on widgets
+
+When defining widgets, the ~:name~ keyword argument has been replaced with ~:label~. The word 'label' is clearer to describe that the value will be rendered to the dashboard.
+
 ** Deprecated hass-url
 
 The ~hass-url~ variable is now deprecated. This has been split up into 3 variables ~hass-host~, ~hass-insecure~, and ~hass-port~. ~hass-host~ must always be set. Hass is secure by default, so ~hass-insecure~ needs to be ~t~ if SSL is not being used (i.e HTTP and not HTTPS). If using a non-default port number, ~hass-port~ must be set to the port number.
