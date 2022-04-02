@@ -121,11 +121,6 @@ Full example:
   :group 'hass-dash
   :type 'function)
 
-(defcustom hass-dash-icon-formatter #'hass-dash-default-icon-formatter
-  "The function called to format the icon of widgets on the dashboard."
-  :group 'hass-dash
-  :type 'function)
-
 (defcustom hass-dash-name-formatter #'hass-dash-default-name-formatter
   "The function called to format the name of widgets on the dashboard."
   :group 'hass-dash
@@ -133,6 +128,11 @@ Full example:
 
 (defcustom hass-dash-state-formatter #'hass-dash-default-state-formatter
   "The function called to format the state of widgets on the dashboard."
+  :group 'hass-dash
+  :type 'function)
+
+(defcustom hass-dash-icon-formatter #'hass-dash-default-icon-formatter
+  "The function called to format the icon of widgets on the dashboard."
   :group 'hass-dash
   :type 'function)
 
@@ -165,11 +165,6 @@ Full example:
           (funcall name-formatter name)
           (when state (funcall state-formatter state))))
 
-(defun hass-dash-default-icon-formatter (icon)
-  "The default implementation of a widget icon formatter.
-ICON is the icon of the widget to be rendered."
-  (concat icon " "))
-
 (defun hass-dash-default-name-formatter (name)
   "The default implementation of a widget name formatter.
 NAME is a string of the human-readable name of the widget to be rendered."
@@ -181,13 +176,18 @@ STATE is a string of the current state of the widget to be rendered."
   (propertize (concat " - "  state)
               'face 'hass-dash-widget-state-face))
 
+(defun hass-dash-default-icon-formatter (icon)
+  "The default implementation of a widget icon formatter.
+ICON is the icon of the widget to be rendered."
+  (concat icon " "))
+
 (cl-defun hass-dash--create-widget (entity-id &key
+                                    (service (hass-dash--default-service-of entity-id))
                                     (name (or (plist-get (cdr (assoc entity-id hass--available-entities))
                                                          ':friendly_name)
                                               entity-id))
-                                    (service (hass-dash--default-service-of entity-id))
-                                    (icon (hass--icon-of-entity entity-id))
                                     (state entity-id)
+                                    (icon (hass--icon-of-entity entity-id))
                                     (widget-formatter hass-dash-widget-formatter)
                                     (name-formatter hass-dash-name-formatter)
                                     (state-formatter hass-dash-state-formatter)
@@ -195,16 +195,16 @@ STATE is a string of the current state of the widget to be rendered."
   "Insert a widget into the dashboard.
 ENTITY-ID is the id of the entity in Home Assistant.
 
-NAME sets the displayed name of the widget on the dashboard.
-
 SERVICE is the service to be called on Home Assistant when the widget is
 pressed.
 
-ICON is the icon displayed on the widget.  Set to nil to not show an icon.
-Requires `all-the-icons' package.
+NAME sets the displayed name of the widget on the dashboard.
 
 STATE is an entity id of the state to show on the widget.  If set
 to nil, no state is shown.
+
+ICON is the icon displayed on the widget.  Set to nil to not show an icon.
+Requires `all-the-icons' package.
 
 WIDGET-FORMATTER is the function used to format the entire widget. Can be used
 to re-arrange the elements of the widget. For example, displaying the STATE
