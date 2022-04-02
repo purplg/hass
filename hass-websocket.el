@@ -57,7 +57,7 @@
 (require 'hass)
 (require 'json)
 (unless (require 'websocket nil 'noerror)
-  (user-error "`hass-websockets-mode' requires package `websocket'"))
+  (user-error "`hass-websocket-mode' requires package `websocket'"))
 
 ;; User customizable
 (defvar hass-websocket-mode-map (make-sparse-keymap)
