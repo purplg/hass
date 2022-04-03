@@ -195,6 +195,7 @@ ICON is the icon of the widget to be rendered."
                                     (label-formatter hass-dash-label-formatter)
                                     (state-formatter hass-dash-state-formatter)
                                     (icon-formatter hass-dash-icon-formatter)
+                                    confirm
                                     &allow-other-keys)
   "Insert a widget into the dashboard.
 ENTITY-ID is the id of the entity in Home Assistant.
@@ -230,7 +231,8 @@ ICON-FORMATTER is the function used to format the icon of the widget. See
     :tag (funcall widget-formatter label (hass-state-of state) icon
                                    label-formatter state-formatter icon-formatter)
     :format (if service "%[%t%]" "%t")
-    :action (lambda (&rest _) (hass-call-service entity-id service))))
+    :action (if confirm (lambda (&rest _) (when (yes-or-no-p confirm) (hass-call-service entity-id service)))
+                        (lambda (&rest _) (hass-call-service entity-id service)))))
 
 (defun hass-dash--insert-groups ()
   "Insert all widgets in `hass-dash-layout'."
