@@ -228,7 +228,7 @@ ICON-FORMATTER is the function used to format the icon of the widget. See
   (widget-create 'push-button
     :tag (funcall widget-formatter label (hass-state-of state) icon
                                    label-formatter state-formatter icon-formatter)
-    :format "%[%t%]"
+    :format (if service "%[%t%]" "%t")
     :action (lambda (&rest _) (hass-call-service entity-id service))))
 
 (defun hass-dash--insert-groups ()
