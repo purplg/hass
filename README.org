@@ -5,8 +5,38 @@
 
 ~hass~ enables you to control [[https://www.home-assistant.io/][Home Assistant]] entities from Emacs.
 
-* Installation
+* Table of Contents
+:PROPERTIES:
+:TOC:      :include all :force ((nothing)) :ignore (this) :local (nothing)
+:END:
+:CONTENTS:
+- [[#installation][Installation]]
+  - [[#use-package][use-package]]
+  - [[#straightel][straight.el]]
+  - [[#doom-emacs][Doom Emacs]]
+- [[#breaking-changes][Breaking Changes]]
+  - [[#deprecated-name-keyword-argument-on-widgets][Deprecated :name keyword argument on widgets]]
+  - [[#deprecated-hass-url][Deprecated hass-url]]
+  - [[#renamed-hass-watch-mode][Renamed hass-watch-mode]]
+  - [[#hass-watch-entities][hass-watch-entities]]
+- [[#configuration][Configuration]]
+  - [[#dashboard-layout][Dashboard layout]]
+    - [[#full-example][Full example]]
+    - [[#structure][Structure]]
+    - [[#formatters][Formatters]]
+      - [[#component-formatters][Component formatters]]
+      - [[#widget-formatters][Widget formatters]]
+      - [[#default-formatters][Default formatters]]
+  - [[#getting-an-api-key][Getting an API Key]]
+- [[#usage][Usage]]
+  - [[#dashboard][Dashboard]]
+  - [[#payloads][Payloads]]
+  - [[#tracking-entities][Tracking entities]]
+  - [[#hooks][Hooks]]
+- [[#license][License]]
+:END:
 
+* Installation
 This package is available on [[https://melpa.org/][MELPA]].
 
 ** use-package
