@@ -157,6 +157,7 @@ Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home
 
 (setq hass-dash-layout
  '(("Group One" . (("input_boolean.test_boolean" :label "Toggle entity"
+                                                 :hide-fn (lambda (_widget) (= 1 (random 2)))
                                                  :widget-formatter state-label-icon
                                                  :label-formatter prefix-with-arrow
                                                  :state-formatter prefix-with-arrow
@@ -178,16 +179,17 @@ To use the dashboard feature, ~hass-dash-layout~ must be configure to tell ~hass
 - A *group* is an alist of the string of the *group*'s label to a list *widgets*.
 - A *widget* is a plist where the first symbol is the entity id string and the rest are the *properties*.
 
-| Widget Property     | Description                                                          |
-|---------------------+----------------------------------------------------------------------|
-| ~:label~            | The human readable label of the widget to be shown on the dashboard. |
-| ~:service~          | The service to be called when the widget is selected.                |
-| ~:icon~             | The icon to be shown prefix to the widget.                           |
-| ~:state~            | An entity id of the state to be shown next to the widget.            |
-| ~:widget-formatter~ | The function used to format the widgets on the dashboard.            |
-| ~:label-formatter~  | The function used to format the label of the widget.                 |
-| ~:state-formatter~  | The function used to format the state of the widget.                 |
-| ~:icon-formatter~   | The function used to format the icon of the widget.                  |
+| Widget Property     | Description                                                                                  |
+|---------------------+----------------------------------------------------------------------------------------------|
+| ~:label~            | The human readable label of the widget to be shown on the dashboard.                         |
+| ~:service~          | The service to be called when the widget is selected.                                        |
+| ~:icon~             | The icon to be shown prefix to the widget.                                                   |
+| ~:state~            | An entity id of the state to be shown next to the widget.                                    |
+| ~:widget-formatter~ | The function used to format the widgets on the dashboard.                                    |
+| ~:label-formatter~  | The function used to format the label of the widget.                                         |
+| ~:state-formatter~  | The function used to format the state of the widget.                                         |
+| ~:icon-formatter~   | The function used to format the icon of the widget.                                          |
+| ~:hide-fn~          | A function with single argument which is the widget definition. When t, don't render widget. |
 
 *** Formatters
 

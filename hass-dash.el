@@ -194,7 +194,8 @@ ICON is the icon of the widget to be rendered."
                                     (widget-formatter hass-dash-widget-formatter)
                                     (label-formatter hass-dash-label-formatter)
                                     (state-formatter hass-dash-state-formatter)
-                                    (icon-formatter hass-dash-icon-formatter))
+                                    (icon-formatter hass-dash-icon-formatter)
+                                    &allow-other-keys)
   "Insert a widget into the dashboard.
 ENTITY-ID is the id of the entity in Home Assistant.
 
@@ -239,9 +240,11 @@ ICON-FORMATTER is the function used to format the icon of the widget. See
                             ((fboundp layout-entry) (funcall layout-entry)))))
       (insert (propertize (car group) 'face 'hass-dash-group-face))
       (insert "\n")
-      (dolist (item (cdr group))
-        (apply 'hass-dash--create-widget item)
-        (insert "\n"))
+      (dolist (widget (cdr group))
+        (unless (if-let ((hide-fn (plist-get (cdr widget) ':hide-fn)))
+                   (funcall hide-fn widget))
+          (apply 'hass-dash--create-widget widget)
+          (insert "\n")))
       (insert "\n"))))
  
 
