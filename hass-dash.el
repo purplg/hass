@@ -152,7 +152,8 @@ Full example:
                             ((boundp layout-entry) (symbol-value layout-entry))
                             ((fboundp layout-entry) (funcall layout-entry)))))
       (dolist (item (cdr group))
-        (add-to-list 'hass-tracked-entities (car item)))))
+        (add-to-list 'hass-tracked-entities
+		     (or (plist-get (cdr item) ':state) (car item))))))
   (hass--update-all-entities))
 
 
