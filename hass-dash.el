@@ -253,22 +253,23 @@ ICON-FORMATTER is the function used to format the icon of the widget. See
 (defun hass-dash-refresh ()
   "Rerender the hass-dash buffer."
   (interactive)
-  (with-current-buffer (get-buffer-create hass-dash-buffer-name)
-    (let ((inhibit-read-only t)
-          (prev-line (line-number-at-pos)))
-       (erase-buffer)
-       (hass-dash--insert-groups)
-       (goto-char (point-min))
-       (forward-line (1- prev-line))
-       (hass-dash-mode))))
+  (when (get-buffer-window hass-dash-buffer-name)
+    (with-current-buffer (get-buffer-create hass-dash-buffer-name)
+        (let ((inhibit-read-only t)
+              (prev-line (line-number-at-pos)))
+           (erase-buffer)
+           (hass-dash--insert-groups)
+           (goto-char (point-min))
+           (forward-line (1- prev-line))
+           (hass-dash-mode)))))
 
 ;;;###autoload
 (defun hass-dash-open ()
   "Open the hass-dash buffer."
   (interactive)
-  (hass-dash-refresh)
   (let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
-    (switch-to-buffer-other-window dash-buffer)))
+    (switch-to-buffer-other-window dash-buffer)
+    (hass-dash-refresh)))
 
 
 (define-derived-mode hass-dash-mode special-mode "Home Assistant Dash"
