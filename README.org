@@ -20,6 +20,7 @@
   - [[#renamed-hass-watch-mode][Renamed hass-watch-mode]]
   - [[#hass-watch-entities][hass-watch-entities]]
 - [[#configuration][Configuration]]
+  - [[#getting-an-api-key][Getting an API Key]]
   - [[#dashboard-layout][Dashboard layout]]
     - [[#full-example][Full example]]
     - [[#structure][Structure]]
@@ -27,7 +28,6 @@
       - [[#component-formatters][Component formatters]]
       - [[#widget-formatters][Widget formatters]]
       - [[#default-formatters][Default formatters]]
-  - [[#getting-an-api-key][Getting an API Key]]
 - [[#usage][Usage]]
   - [[#dashboard][Dashboard]]
   - [[#payloads][Payloads]]
@@ -136,6 +136,12 @@ Alternatively, you can store a function inside ~hass-apikey~. This will be execu
 #+END_SRC
 
 Once those variables are set, you must call ~(hass-setup)~ before using this package so that it can query the Home Assistance instance and populate available entities and services.
+** Getting an API Key
+
+Ensure that your Home Assistant instance is configured to support API calls by following the instructions [[https://www.home-assistant.io/integrations/api/][here]].
+
+Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home Assistant instance and going to your profile by selecting your username in the lower-left corner or going to this URL: =http://HOME-ASSISTANT-URL:8123/profile=. You can generate an API token at the very bottom of this page.
+
 ** Dashboard layout
 *** Full example
 #+BEGIN_SRC emacs-lisp :results none
@@ -221,12 +227,6 @@ You could just as easily display a bland widget by ignoring the *formatters* ent
 **** Default formatters
 
 To configure a default *formatter* when one isn't define explicitly provided to a widget, use the variables ~hass-dash-widget-formatter~, ~hass-dash-label-formatter~, ~hass-dash-state-formatter~, and ~hass-dash-icon-formatter~. By default, they're set to the built-in *formatters* that are used to render the dashboard.
-
-** Getting an API Key
-
-Ensure that your Home Assistant instance is configured to support API calls by following the instructions [[https://www.home-assistant.io/integrations/api/][here]].
-
-Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home Assistant instance and going to your profile by selecting your username in the lower-left corner or going to this URL: =http://HOME-ASSISTANT-URL:8123/profile=. You can generate an API token at the very bottom of this page.
 
 * Usage
 
