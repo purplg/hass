@@ -221,9 +221,7 @@ You could just as easily display a bland widget by ignoring the *formatters* ent
 #+BEGIN_SRC emacs-lisp :results none
 (defun bland-widget-formatter (label state icon &rest _)
   "Render a bland widget with no formatting applied."
-  (concat (when state state)
-          (funcall label-formatter label)
-          (when icon icon)))
+  (concat icon label state))
 #+END_SRC
 
 **** Default formatters
