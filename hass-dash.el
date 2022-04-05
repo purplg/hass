@@ -231,8 +231,12 @@ ICON-FORMATTER is the function used to format the icon of the widget. See
     :tag (funcall widget-formatter label (hass-state-of state) icon
                                    label-formatter state-formatter icon-formatter)
     :format (if service "%[%t%]" "%t")
-    :action (if confirm (lambda (&rest _) (when (yes-or-no-p confirm) (hass-call-service entity-id service)))
-                        (lambda (&rest _) (hass-call-service entity-id service)))))
+    :action (if confirm
+                (lambda (&rest _)
+                  (let ((prompt (if (stringp confirm) confirm (concat "Toggle " name "? "))))
+                    (when (yes-or-no-p prompt)
+                          (hass-call-service entity-id service))))
+                (lambda (&rest _) (hass-call-service entity-id service)))))
 
 (defun hass-dash--insert-groups ()
   "Insert all widgets in `hass-dash-layout'."
