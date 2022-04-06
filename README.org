@@ -164,13 +164,15 @@ Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home
                       :state-formatter prefix-with-arrow
                       :icon-formatter (lambda (icon) (concat "[" icon "]")))
                    ("switch.bedroom_light"
-                      :label "Bedroom Light")
+                      :label "Bedroom Light"
+                      :confirm t)
                    ("input_boolean.test_boolean"
                       :label "Turn off test boolean"
                       :service "input_boolean.turn_off")
                    ("automation.some_automation")))
    ("Vacuum Group" . (("vacuum.valetudo_vacuum"
-                         :label "Vacuum")
+                         :label "Vacuum"
+                         :confirm "Start vacuuming? ")
                       ("vacuum.valetudo_vacuum"
                          :label "Vacuum return home"
                          :service "vacuum.return_to_base"
@@ -196,6 +198,7 @@ To use the dashboard feature, ~hass-dash-layout~ must be configure to tell ~hass
 | ~:state-formatter~  | The function used to format the state of the widget.                                         |
 | ~:icon-formatter~   | The function used to format the icon of the widget.                                          |
 | ~:hide-fn~          | A function with single argument which is the widget definition. When t, don't render widget. |
+| ~:confirm~          | When ~t~ or a string, ask for confirmation before calling the service.                     |
 
 *** Formatters
 
