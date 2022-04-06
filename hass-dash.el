@@ -116,22 +116,22 @@ Full example:
  :type 'list)
 
 ;; Default formatters
-(defcustom hass-dash-widget-formatter #'hass-dash-default-widget-formatter
+(defcustom hass-dash-default-widget-formatter #'hass-dash-widget-formatter
   "The function called to format the widgets on the dashboard."
   :group 'hass-dash
   :type 'function)
 
-(defcustom hass-dash-label-formatter #'hass-dash-default-label-formatter
+(defcustom hass-dash-default-label-formatter #'hass-dash-label-formatter
   "The function called to format the label of widgets on the dashboard."
   :group 'hass-dash
   :type 'function)
 
-(defcustom hass-dash-state-formatter #'hass-dash-default-state-formatter
+(defcustom hass-dash-default-state-formatter #'hass-dash-state-formatter
   "The function called to format the state of widgets on the dashboard."
   :group 'hass-dash
   :type 'function)
 
-(defcustom hass-dash-icon-formatter #'hass-dash-default-icon-formatter
+(defcustom hass-dash-default-icon-formatter #'hass-dash-icon-formatter
   "The function called to format the icon of widgets on the dashboard."
   :group 'hass-dash
   :type 'function)
@@ -158,26 +158,26 @@ Full example:
 
 
 ;; Dashboard rendering
-(defun hass-dash-default-widget-formatter (label state icon
-                                           label-formatter
-                                           state-formatter
-                                           icon-formatter)
+(defun hass-dash-widget-formatter (label state icon
+                                   label-formatter
+                                   state-formatter
+                                   icon-formatter)
   (concat (when icon (funcall icon-formatter icon))
           (funcall label-formatter label)
           (when state (funcall state-formatter state))))
 
-(defun hass-dash-default-label-formatter (label)
+(defun hass-dash-label-formatter (label)
   "The default implementation of a widget label formatter.
 LABEL is a string of the label of the widget to be rendered."
   (propertize label 'face 'hass-dash-widget-label-face))
 
-(defun hass-dash-default-state-formatter (state)
+(defun hass-dash-state-formatter (state)
   "The default implementation of a widget state formatter.
 STATE is a string of the current state of the widget to be rendered."
   (propertize (concat " - "  state)
               'face 'hass-dash-widget-state-face))
 
-(defun hass-dash-default-icon-formatter (icon)
+(defun hass-dash-icon-formatter (icon)
   "The default implementation of a widget icon formatter.
 ICON is the icon of the widget to be rendered."
   (concat icon " "))
@@ -191,10 +191,10 @@ ICON is the icon of the widget to be rendered."
                                     (label name)
                                     (state entity-id)
                                     (icon (hass--icon-of-entity entity-id))
-                                    (widget-formatter hass-dash-widget-formatter)
-                                    (label-formatter hass-dash-label-formatter)
-                                    (state-formatter hass-dash-state-formatter)
-                                    (icon-formatter hass-dash-icon-formatter)
+                                    (widget-formatter hass-dash-default-widget-formatter)
+                                    (label-formatter hass-dash-default-label-formatter)
+                                    (state-formatter hass-dash-default-state-formatter)
+                                    (icon-formatter hass-dash-default-icon-formatter)
                                     confirm
                                     &allow-other-keys)
   "Insert a widget into the dashboard.
@@ -215,17 +215,17 @@ Requires `all-the-icons' package.
 
 WIDGET-FORMATTER is the function used to format the entire widget. Can be used
 to re-arrange the elements of the widget. For example, displaying the STATE
-before the LABEL. See `hass-dash-default-widget-formatter' for an example
+before the LABEL. See `hass-dash-widget-formatter' for an example
 implementation.
 
 LABEL-FORMATTER is the function used to format the label of the widget. See
-`hass-dash-default-label-formatter' for an example implementation.
+`hass-dash-label-formatter' for an example implementation.
 
 STATE-FORMATTER is the function used to format the state of the widget. See
-`hass-dash-default-state-formatter' for an example implementation.
+`hass-dash-state-formatter' for an example implementation.
 
 ICON-FORMATTER is the function used to format the icon of the widget. See
-`hass-dash-default-icon-formatter' for an example implementation.
+`hass-dash-icon-formatter' for an example implementation.
 
 When CONFIRM is `t' then a prompt will ask for confirmation before the SERVICE
 is called. Can also be a string of a custom prompt."

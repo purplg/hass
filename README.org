@@ -226,7 +226,7 @@ You could just as easily display a bland widget by ignoring the *formatters* ent
 
 **** Default formatters
 
-To configure a default *formatter* when one isn't define explicitly provided to a widget, use the variables ~hass-dash-widget-formatter~, ~hass-dash-label-formatter~, ~hass-dash-state-formatter~, and ~hass-dash-icon-formatter~. By default, they're set to the built-in *formatters* that are used to render the dashboard.
+To configure a default *formatter* when one isn't define explicitly provided to a widget, use the variables ~hass-dash-default-widget-formatter~, ~hass-dash-default-label-formatter~, ~hass-dash-default-state-formatter~, and ~hass-dash-default-icon-formatter~. By default, they're set to the built-in *formatters* that are used to render the dashboard.
 
 * Usage
 
