@@ -14,7 +14,7 @@
   - [[#use-package][use-package]]
   - [[#straightel][straight.el]]
   - [[#doom-emacs][Doom Emacs]]
-- [[#breaking-changes][Breaking Changes]]
+- [[#important-changes][Important Changes]]
   - [[#deprecated-name-keyword-argument-on-widgets][Deprecated :name keyword argument on widgets]]
   - [[#deprecated-hass-url][Deprecated hass-url]]
   - [[#renamed-hass-watch-mode][Renamed hass-watch-mode]]
@@ -73,7 +73,7 @@ Then load the package in your main config file.
   )
 #+END_SRC
 
-* Breaking Changes
+* Important Changes
 ** Deprecated ~:name~ keyword argument on widgets
 
 When defining widgets, the ~:name~ keyword argument has been replaced with ~:label~. The word 'label' is clearer to describe that the value will be rendered to the dashboard.
