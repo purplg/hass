@@ -162,6 +162,17 @@ Full example:
                                    label-formatter
                                    state-formatter
                                    icon-formatter)
+  "Default constructor for a widget.
+This function composes a widget in the way it should be shown on the dashboard
+buffer.
+LABEL-FORMATTER is a function that manipulates the way the LABEL is rendered to
+the dashboard buffer.
+
+STATE-FORMATTER is a function that manipulates the way the STATE is rendered to
+the dashboard buffer.
+
+ICON-FORMATTER is a function that manipulates the way the ICON is rendered to
+the dashboard buffer."
   (concat (when icon (funcall icon-formatter icon))
           (funcall label-formatter label)
           (when state (funcall state-formatter state))))
@@ -205,7 +216,7 @@ pressed.
 
 LABEL sets the displayed label of the widget on the dashboard.
 
-NAME is deprecated. Use LABEL instead.
+NAME is deprecated.  Use LABEL instead.
 
 STATE is an entity id of the state to show on the widget.  If set
 to nil, no state is shown.
@@ -213,22 +224,22 @@ to nil, no state is shown.
 ICON is the icon displayed on the widget.  Set to nil to not show an icon.
 Requires `all-the-icons' package.
 
-WIDGET-FORMATTER is the function used to format the entire widget. Can be used
-to re-arrange the elements of the widget. For example, displaying the STATE
-before the LABEL. See `hass-dash-widget-formatter' for an example
+WIDGET-FORMATTER is the function used to format the entire widget.  Can be used
+to re-arrange the elements of the widget.  For example, displaying the STATE
+before the LABEL.  See `hass-dash-widget-formatter' for an example
 implementation.
 
-LABEL-FORMATTER is the function used to format the label of the widget. See
+LABEL-FORMATTER is the function used to format the label of the widget.  See
 `hass-dash-label-formatter' for an example implementation.
 
-STATE-FORMATTER is the function used to format the state of the widget. See
+STATE-FORMATTER is the function used to format the state of the widget.  See
 `hass-dash-state-formatter' for an example implementation.
 
-ICON-FORMATTER is the function used to format the icon of the widget. See
+ICON-FORMATTER is the function used to format the icon of the widget.  See
 `hass-dash-icon-formatter' for an example implementation.
 
-When CONFIRM is `t' then a prompt will ask for confirmation before the SERVICE
-is called. Can also be a string of a custom prompt."
+When CONFIRM is t then a prompt will ask for confirmation before the SERVICE
+is called.  Can also be a string of a custom prompt."
   ;; Backwards compabilibility with `:name' keyword.
   (widget-create 'push-button
     :tag (funcall widget-formatter label (hass-state-of state) icon
