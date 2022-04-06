@@ -156,20 +156,26 @@ Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home
   (concat "> " str))
 
 (setq hass-dash-layout
- '(("Group One" . (("input_boolean.test_boolean" :label "Toggle entity"
-                                                 :hide-fn (lambda (_widget) (= 1 (random 2)))
-                                                 :widget-formatter state-label-icon
-                                                 :label-formatter prefix-with-arrow
-                                                 :state-formatter prefix-with-arrow
-                                                 :icon-formatter (lambda (icon) (concat "[" icon "]")))
-                   ("switch.bedroom_light" :label "Bedroom Light")
-                   ("input_boolean.test_boolean" :label "Turn off test boolean" :service "input_boolean.turn_off")
+ '(("Group One" . (("input_boolean.test_boolean"
+                      :label "Toggle entity"
+                      :hide-fn (lambda (_widget) (= 1 (random 2)))
+                      :widget-formatter state-label-icon
+                      :label-formatter prefix-with-arrow
+                      :state-formatter prefix-with-arrow
+                      :icon-formatter (lambda (icon) (concat "[" icon "]")))
+                   ("switch.bedroom_light"
+                      :label "Bedroom Light")
+                   ("input_boolean.test_boolean"
+                      :label "Turn off test boolean"
+                      :service "input_boolean.turn_off")
                    ("automation.some_automation")))
-   ("Vacuum Group" . (("vacuum.valetudo_vacuum" :label "Vacuum")
-                      ("vacuum.valetudo_vacuum" :label "Vacuum return home"
-                                                :service "vacuum.return_to_base"
-                                                :state nil
-                                                :icon nil)))))
+   ("Vacuum Group" . (("vacuum.valetudo_vacuum"
+                         :label "Vacuum")
+                      ("vacuum.valetudo_vacuum"
+                         :label "Vacuum return home"
+                         :service "vacuum.return_to_base"
+                         :state nil
+                         :icon nil)))))
 #+END_SRC
 
 *** Structure
