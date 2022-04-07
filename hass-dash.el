@@ -243,12 +243,19 @@ is called.  Can also be a string of a custom prompt."
     :tag (funcall widget-formatter label (hass-state-of state) icon
                                    label-formatter state-formatter icon-formatter)
     :format (if service "%[%t%]" "%t")
-    :action (if confirm
-                (lambda (&rest _)
-                  (let ((prompt (if (stringp confirm) confirm (concat "Toggle " name "? "))))
-                    (when (yes-or-no-p prompt)
-                          (hass-call-service entity-id service))))
-                (lambda (&rest _) (hass-call-service entity-id service)))))
+    :action (cond ((stringp confirm)
+                   (lambda (&rest _)
+                     (when (yes-or-no-p confirm)
+                       (hass-call-service entity-id service))))
+                  ((functionp confirm)
+                   (lambda (&rest _)
+                     (when (funcall confirm (hass-state-of state))
+                       (hass-call-service entity-id service))))
+                  (confirm
+                   (lambda (&rest _)
+                     (when (yes-or-no-p (concat "Toggle " name "? "))
+                       (hass-call-service entity-id service))))
+                  ((lambda (&rest _) (hass-call-service entity-id service))))))
 
 (defun hass-dash--insert-groups ()
   "Insert all widgets in `hass-dash-layout'."
