@@ -250,7 +250,7 @@ passed then the service will only be called when the function returns t."
                        (hass-call-service entity-id service))))
                   ((functionp confirm)
                    (lambda (&rest _)
-                     (when (funcall confirm (hass-state-of state))
+                     (when (funcall confirm entity-id)
                        (hass-call-service entity-id service))))
                   (confirm
                    (lambda (&rest _)
