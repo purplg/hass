@@ -237,8 +237,9 @@ STATE-FORMATTER is the function used to format the state of the widget.  See
 ICON-FORMATTER is the function used to format the icon of the widget.  See
 `hass-dash-icon-formatter' for an example implementation.
 
-When CONFIRM is t then a prompt will ask for confirmation before the SERVICE
-is called.  Can also be a string of a custom prompt."
+When CONFIRM is non-nil a prompt will ask for confirmation before the SERVICE
+is called.  A string of will be used for a custom prompt.  If a function is
+passed then the service will only be called when the function returns t."
   (widget-create 'push-button
     :tag (funcall widget-formatter label (hass-state-of state) icon
                                    label-formatter state-formatter icon-formatter)
