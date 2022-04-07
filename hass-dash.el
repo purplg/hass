@@ -149,8 +149,7 @@ Full example:
   "Tracks referenced entities in `hass-dash-layout' and update their state."
   (dolist (layout-entry hass-dash-layout)
     (when-let ((group (cond ((listp layout-entry) layout-entry)
-                            ((boundp layout-entry) (symbol-value layout-entry))
-                            ((fboundp layout-entry) (funcall layout-entry)))))
+                            ((boundp layout-entry) (symbol-value layout-entry)))))
       (dolist (item (cdr group))
         (add-to-list 'hass-tracked-entities
                      (or (plist-get (cdr item) ':state) (car item))))))
@@ -255,8 +254,7 @@ is called.  Can also be a string of a custom prompt."
   "Insert all widgets in `hass-dash-layout'."
   (dolist (layout-entry hass-dash-layout)
     (when-let ((group (cond ((listp layout-entry) layout-entry)
-                            ((boundp layout-entry) (symbol-value layout-entry))
-                            ((fboundp layout-entry) (funcall layout-entry)))))
+                            ((boundp layout-entry) (symbol-value layout-entry)))))
       (insert (propertize (car group) 'face 'hass-dash-group-face))
       (insert "\n")
       (dolist (widget (cdr group))
