@@ -240,7 +240,6 @@ ICON-FORMATTER is the function used to format the icon of the widget.  See
 
 When CONFIRM is t then a prompt will ask for confirmation before the SERVICE
 is called.  Can also be a string of a custom prompt."
-  ;; Backwards compabilibility with `:name' keyword.
   (widget-create 'push-button
     :tag (funcall widget-formatter label (hass-state-of state) icon
                                    label-formatter state-formatter icon-formatter)
