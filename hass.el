@@ -17,7 +17,7 @@
 ;; (setq hass-host "192.168.1.10") ; Required
 ;; (setq hass-insecure t) ; If using HTTP and not HTTPS
 ;; (setq hass-port 8123) ; If using a different port other than the default 8123
-;; (setq hass-apikey "APIKEY-GOES-IN-HERE") ; Required. See below.
+;; (setq hass-apikey "APIKEY-GOES-IN-HERE") ; Required.  See below.
 ;; (hass-setup)
 
 ;; Getting an API Key:
@@ -203,6 +203,8 @@ OBJECT is a JSON object to be serialized into string."
     (json-encode object)))
 
 (defun hass--icon-of-entity (entity-id)
+  "Get the default icon of an entity.
+ENTITY-ID is the id of the entity in Home Assistant."
   (when (require 'all-the-icons nil 'noerror)
     (let ((parts (split-string (or (cdr (assoc (hass--domain-of-entity entity-id) hass-icons))
                                    (cdr (assoc "default" hass-icons)))
@@ -260,8 +262,7 @@ endpoint."
         (hass--parse-services (cdr (assoc 'services domain)))))
   
 (defun hass--parse-services (services)
-  "Flattens the SERVICES return from `/api/services' endpoint to
-just the service name."
+  "Flattens the SERVICES return from `/api/services'."
   (mapcar (lambda (service) (car service))
           services))
 
@@ -329,7 +330,7 @@ PAYLOAD is contents the body of the request."
   nil)
 
 (defun hass--check-api-connection ()
-  "Sets `hass--api-running' to `t' when a successful connection is made."
+  "Set `hass--api-running' to t when a successful connection is made."
   (setq hass--api-running nil)
   (hass--request "GET" (hass--url "api/")
     (cl-function
