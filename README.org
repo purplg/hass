@@ -171,7 +171,7 @@ Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home
                      :icon nil
                      :service nil ;; Setting `:service' to nil will skip when pressing the TAB key
                      :hide-fn pg/hide-unavailable ;; Hide this widget if the status if 'unavailable'
-                     :state-formatter (lambda (state) (concat state "%")) ;; Add a '%' to the end of the state
+                     :state-formatter (lambda (state) (concat state "%"))) ;; Add a '%' to the end of the state
 
                    ;; Ask for confirmation before toggling the light
                    ("switch.bedroom_light"
