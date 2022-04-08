@@ -292,9 +292,11 @@ passed then the service will only be called when the function returns t."
 (defun hass-dash-open ()
   "Open the hass-dash buffer."
   (interactive)
-  (let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
-    (switch-to-buffer-other-window dash-buffer)
-    (hass-dash-refresh)))
+  (if-let* ((dash-buffer (get-buffer-create hass-dash-buffer-name))
+            (window (get-buffer-window dash-buffer)))
+           (select-window window)
+           (switch-to-buffer-other-window dash-buffer))
+  (hass-dash-refresh))
 
 
 (define-derived-mode hass-dash-mode special-mode "Home Assistant Dash"
