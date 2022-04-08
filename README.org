@@ -173,7 +173,7 @@ Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home
                      :hide-fn pg/hide-unavailable ;; Hide this widget if the status if 'unavailable'
                      :state-formatter (lambda (state) (concat state "%")) ;; Add a '%' to the end of the state
 
-                   ;; Ask for confirmation before turning off the light
+                   ;; Ask for confirmation before toggling the light
                    ("switch.bedroom_light"
                      :label "Bedroom Light"
                      :confirm t)
