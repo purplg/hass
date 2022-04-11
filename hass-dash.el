@@ -40,7 +40,7 @@
     (define-key map (kbd "RET") 'widget-button-press)
     (define-key map [tab] 'widget-forward)
     (define-key map [backtab] 'widget-backward)
-   map)
+    map)
   "Keymap for `hass-dash-mode'.")
 
 (defface hass-dash-group-face
@@ -83,7 +83,7 @@
   :type 'string)
 
 (defcustom hass-dash-layout nil
- "A list of widgets to show on the dashboard.
+  "A list of widgets to show on the dashboard.
 Each element in the `list' is an `alist' of a Group name to a `plist' of entity
 IDs with their properties.
 
@@ -112,8 +112,8 @@ Full example:
                        :service \"vacuum.return_to_base\"
                        :state nil
                        :icon nil)))))"
- :group 'hass-dash
- :type 'list)
+  :group 'hass-dash
+  :type 'list)
 
 ;; Default formatters
 (defcustom hass-dash-default-widget-formatter #'hass-dash-widget-formatter
@@ -280,11 +280,11 @@ passed then the service will only be called when the function returns t."
     (with-current-buffer (get-buffer-create hass-dash-buffer-name)
         (let ((inhibit-read-only t)
               (prev-line (line-number-at-pos)))
-           (erase-buffer)
-           (hass-dash--insert-groups)
-           (goto-char (point-min))
-           (forward-line (1- prev-line))
-           (hass-dash-mode)))))
+          (erase-buffer)
+          (hass-dash--insert-groups)
+          (goto-char (point-min))
+          (forward-line (1- prev-line))
+          (hass-dash-mode)))))
 
 ;;;###autoload
 (defun hass-dash-open ()

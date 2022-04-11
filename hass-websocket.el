@@ -80,8 +80,8 @@
          (type (cdr (assoc 'type content))))
     (cond ((string= "auth_required" type)
            (hass-websocket--send
-            `((type . "auth")
-              (access_token . ,(hass--apikey)))))
+             `((type . "auth")
+               (access_token . ,(hass--apikey)))))
           ((string= type "auth_ok")
            (message "hass: Connected to websocket")
            (run-hooks 'hass-websocket-connected-hook))
@@ -111,8 +111,8 @@ Assistant."
   (let ((entity-id (cdr (assoc 'entity_id data))))
     (when (member entity-id hass-tracked-entities)
       (hass--query-entity-result
-       entity-id
-       (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
+        entity-id
+        (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
 
 ;; Requests - Send to Home Assistant over websocket
 (defun hass-websocket--subscribe-to-state-changes ()
