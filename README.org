@@ -155,6 +155,10 @@ Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home
   "Prefix STR with a `>'"
   (concat "> " str))
 
+(defun unavailable-p (widget)
+  "Return t if WIDGET state is 'unavailable'."
+  (string= "unavailable" (hass-state-of (car widget))))
+
 (setq hass-dash-layout
  ;; Declare a group of widgets with a group label of "Group One"
  '(("Group One" . (("input_boolean.test_boolean"
@@ -170,7 +174,7 @@ Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home
                      :label "CPU"
                      :icon nil
                      :service nil ;; Setting `:service' to nil will skip when pressing the TAB key
-                     :hide-fn pg/hide-unavailable ;; Hide this widget if the status if 'unavailable'
+                     :hide-fn unavailable-p ;; Hide this widget if the status if 'unavailable'
                      :state-formatter (lambda (state) (concat state "%"))) ;; Add a '%' to the end of the state
 
                    ;; Ask for confirmation before toggling the light
