@@ -141,9 +141,7 @@ Full example:
 (defun hass-dash--default-service-of (entity-id)
   "Return the default service to be called for ENTITY-ID."
   (let ((domain (hass--domain-of-entity entity-id)))
-    (or (cdr (assoc domain hass-dash--default-services))
-        (lambda (entity-id)
-          (message "hass: No service assigned for entity: %s" entity-id)))))
+    (cdr (assoc domain hass-dash--default-services))))
 
 (defun hass-dash--track-layout-entities ()
   "Tracks referenced entities in `hass-dash-layout' and update their state."
