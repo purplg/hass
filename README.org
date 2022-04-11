@@ -146,13 +146,13 @@ Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home
 *** Full example
 #+BEGIN_SRC emacs-lisp :results none
 (defun state-label-icon (label state icon label-formatter state-formatter icon-formatter)
-  "Arrange the components of the widget in the order of state, label, and then icon."
+  "Arrange the components of the widget in the order of STATE, LABEL, and then icon."
   (concat (when state (funcall state-formatter state))
           (funcall label-formatter label)
           (when icon (funcall icon-formatter icon))))
 
 (defun prefix-with-arrow (str)
-  "Prefix STR with a `>'"
+  "Prefix STR with a `>'."
   (concat "> " str))
 
 (defun unavailable-p (widget)
