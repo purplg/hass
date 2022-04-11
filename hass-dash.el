@@ -22,6 +22,66 @@
 ;; `hass-dash-layout' for details.
 
 ;; --------------------
+;; Full layout example
+
+;; (defun state-label-icon (label state icon label-formatter state-formatter icon-formatter)
+;;   "Arrange the components of the widget in the order of STATE, LABEL, and then icon."
+;;   (concat (when state (funcall state-formatter state))
+;;           (funcall label-formatter label)
+;;           (when icon (funcall icon-formatter icon))))
+;;
+;; (defun prefix-with-arrow (str)
+;;   "Prefix STR with a `>'."
+;;   (concat "> " str))
+;;
+;; (defun unavailable-p (widget)
+;;   "Return t if WIDGET state is 'unavailable'."
+;;   (string= "unavailable" (hass-state-of (car widget))))
+;;
+;; (setq hass-dash-layout
+;;  ;; Declare a group of widgets with a group label of "Group One"
+;;  '(("Group One" . (("input_boolean.test_boolean"
+;;                      :label "Toggle entity"
+;;                      :hide-fn (lambda (_widget) (= 1 (random 2))) ;; Will randomly hide the widget 50% of the time everytime the dashboard refreshes
+;;                      :widget-formatter state-label-icon
+;;                      :label-formatter prefix-with-arrow
+;;                      :state-formatter prefix-with-arrow
+;;                      :icon-formatter (lambda (icon) (concat "[" icon "]")))
+;;
+;;                    ;; An informational widget
+;;                    ("sensor.desktop_cpu"
+;;                      :label "CPU"
+;;                      :icon nil
+;;                      :service nil ;; Setting `:service' to nil will skip when pressing the TAB key
+;;                      :hide-fn unavailable-p ;; Hide this widget if the status if 'unavailable'
+;;                      :state-formatter (lambda (state) (concat state "%"))) ;; Add a '%' to the end of the state
+;;
+;;                    ;; Ask for confirmation before toggling the light
+;;                    ("switch.bedroom_light"
+;;                      :label "Bedroom Light"
+;;                      :confirm t)
+;;
+;;                    ;; A widget that can only turn off
+;;                    ("input_boolean.test_boolean"
+;;                      :label "Turn off test boolean"
+;;                      :service "input_boolean.turn_off")
+;;
+;;                    ;; Or just use the default options
+;;                    ("automation.some_automation")))
+;;
+;;    ;; Declare another group of widgets with a group label of "Vacuum"
+;;    ("Vacuum" . (("vacuum.valetudo_vacuum"
+;;                   :label "Vacuum"
+;;                   :confirm "Start vacuuming? ") ;; Ask for confirmation with a custom prompt
+;;
+;;                 ;; Ask for confirmation with a custom prompt
+;;                 ("vacuum.valetudo_vacuum"
+;;                   :label "Vacuum return home"
+;;                   :service "vacuum.return_to_base" ;; Call this service instead of the default one to start cleaning
+;;                   :state nil ;; Don't show a state since it's displayed above
+;;                   :icon nil))))) ;; Don't show an icon
+
+;; --------------------
 ;; Usage
 
 ;; To show the dashboard, call the `hass-dash-open' function.  Nothing fancy is
