@@ -304,7 +304,7 @@ passed then the service will only be called when the function returns t."
     :format (if service "%[%t%]" "%t")
     :action (cond ((stringp confirm)
                    (lambda (&rest _)
-                     (when (yes-or-no-p confirm)
+                     (when (y-or-n-p confirm)
                        (hass-call-service entity-id service))))
                   ((functionp confirm)
                    (lambda (&rest _)
@@ -312,7 +312,7 @@ passed then the service will only be called when the function returns t."
                        (hass-call-service entity-id service))))
                   (confirm
                    (lambda (&rest _)
-                     (when (yes-or-no-p (concat "Toggle " name "? "))
+                     (when (y-or-n-p (concat "Toggle " name "? "))
                        (hass-call-service entity-id service))))
                   ((lambda (&rest _) (hass-call-service entity-id service))))))
 
