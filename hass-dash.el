@@ -1,7 +1,6 @@
 ;;; hass-dash.el --- Dashboard for Home Assistant -*- lexical-binding: t; -*-
 
 ;; Package-Requires: ((emacs "25.1") (hass "2.0.0"))
-;; Version: 1.0.0
 ;; Author: Ben Whitley
 ;; Homepage: https://github.com/purplg/hass
 ;; SPDX-License-Identifier: MIT
