@@ -223,6 +223,8 @@ To use the dashboard feature, ~hass-dash-layout~ must be configure to tell ~hass
 | ~:hide-fn~          | A function with single argument which is the widget definition. When t, don't render widget. |
 | ~:confirm~          | When ~t~ or a string, ask for confirmation before calling the service.                     |
 
+Any widgets defined in ~hass-dash-layout~ are automatically inserted into the ~hass-tracked-entities~ list in order to receive state updates. If the widget property ~:state~ is specified, then that is the entity id that is tracked instead.
+
 *** Formatters
 
 *Formatters* are way to customize how a widget is rendered to the dashboard. A *widget formatter* is special in that it takes all the components of a widget and applies the *label*, *state*, and *icon* *formatters* appropriately enabling you to completely customize a widget.
