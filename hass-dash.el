@@ -90,6 +90,7 @@
 
 ;;; Code:
 (require 'hass)
+(require 'subr-x)
 
 
 ;; Customizable
