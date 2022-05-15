@@ -336,15 +336,14 @@ passed then the service will only be called when the function returns t."
 (defun hass-dash-refresh ()
   "Rerender the hass-dash buffer."
   (interactive)
-  (when (get-buffer-window hass-dash-buffer-name)
-    (with-current-buffer (get-buffer-create hass-dash-buffer-name)
-        (let ((inhibit-read-only t)
-              (prev-line (line-number-at-pos)))
-          (erase-buffer)
-          (hass-dash--insert-groups)
-          (goto-char (point-min))
-          (forward-line (1- prev-line))
-          (hass-dash-mode)))))
+  (with-current-buffer (get-buffer-create hass-dash-buffer-name)
+      (let ((inhibit-read-only t)
+            (prev-line (line-number-at-pos)))
+        (erase-buffer)
+        (hass-dash--insert-groups)
+        (goto-char (point-min))
+        (forward-line (1- prev-line))
+        (hass-dash-mode))))
 
 ;;;###autoload
 (defun hass-dash-open ()
@@ -365,7 +364,10 @@ passed then the service will only be called when the function returns t."
   :interactive t)
 
 ;; Refresh dashboard when entity state is updated
-(add-hook 'hass-entity-updated-hook 'hass-dash-refresh)
+(add-hook 'hass-entity-updated-hook
+          (lambda ()
+            (when (get-buffer-window hass-dash-buffer-name)
+              (hass-dash-refresh))))
 
 ;; After successful connection update the `hass-tracked-entities' list to
 ;; include the entities in `hass-dash-layout'.
