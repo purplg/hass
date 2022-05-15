@@ -324,7 +324,7 @@ passed then the service will only be called when the function returns t."
       (insert (propertize (car group) 'face 'hass-dash-group-face))
       (insert "\n")
       (dolist (widget (cdr group))
-        (unless (if-let ((hide-fn (plist-get (cdr widget) ':hide-fn)))
+        (unless (when-let ((hide-fn (plist-get (cdr widget) ':hide-fn)))
                    (funcall hide-fn widget))
           (apply 'hass-dash--create-widget widget)
           (insert "\n")))
