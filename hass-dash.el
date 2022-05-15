@@ -350,10 +350,10 @@ passed then the service will only be called when the function returns t."
 (defun hass-dash-open ()
   "Open the hass-dash buffer."
   (interactive)
-  (if-let* ((dash-buffer (get-buffer-create hass-dash-buffer-name))
-            (window (get-buffer-window dash-buffer)))
-           (select-window window)
-           (switch-to-buffer-other-window dash-buffer))
+  (when-let ((dash-buffer (get-buffer-create hass-dash-buffer-name)))
+    (if-let ((window (get-buffer-window dash-buffer)))
+      (select-window window)
+      (switch-to-buffer-other-window dash-buffer)))
   (hass-dash-refresh))
 
 
