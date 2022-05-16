@@ -211,6 +211,17 @@ ENTITY-ID is the id of the entity in Home Assistant."
                   ":")))
       (funcall (intern (concat "all-the-icons-" (pop parts))) (pop parts) :face 'hass-icon-face))))
 
+(defun hass--set-state (entity-id state)
+  "Set the state of an entity.
+ENTITY-ID is the id of the entity in Home Assistant.
+
+STATE is a string of the state of ENTITY-ID in Home Assistant."
+  (if hass--states
+    (if-let ((value (assoc entity-id hass--states)))
+      (setcdr value state)
+      (add-to-list 'hass--states (cons entity-id state)))
+    (setq hass--states (list (cons entity-id state)))))
+
 (defun hass-state-of (entity-id)
   "Return the last known state of ENTITY-ID.
 ENTITY-ID is the id of the entity in Home Assistant."
@@ -283,7 +294,7 @@ returns a list of domains and their available services."
   "Callback when an entity state data is received from API.
 ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   (let ((previous-state (hass-state-of entity-id)))
-    (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
+    (hass--set-state entity-id state)
     (unless (equal previous-state state)
       (run-hook-with-args 'hass-entity-state-changed-functions entity-id)
       (run-hooks 'hass-entity-updated-hook))))
@@ -292,7 +303,7 @@ ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   "Callback when a successful service request is received from API.
 ENTITY-ID is the id of the entity in Home Assistant that was
 affected and now has STATE."
-  (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
+  (hass--set-state entity-id state)
   (run-hooks 'hass-service-called-hook))
 
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
