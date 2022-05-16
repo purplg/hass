@@ -129,8 +129,8 @@ entity whose state changed.")
 
 
 ;; Internal state
-(defvar hass--states '()
-  "An alist of entity ids to their last queried states.")
+(defvar hass--states (make-hash-table :test 'equal)
+  "A hashtable of entity ids to their last queried states.")
 
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant.")
@@ -216,16 +216,12 @@ ENTITY-ID is the id of the entity in Home Assistant."
 ENTITY-ID is the id of the entity in Home Assistant.
 
 STATE is a string of the state of ENTITY-ID in Home Assistant."
-  (if hass--states
-    (if-let ((value (assoc entity-id hass--states)))
-      (setcdr value state)
-      (add-to-list 'hass--states (cons entity-id state)))
-    (setq hass--states (list (cons entity-id state)))))
+  (puthash entity-id state hass--states))
 
 (defun hass-state-of (entity-id)
   "Return the last known state of ENTITY-ID.
 ENTITY-ID is the id of the entity in Home Assistant."
-  (cdr (assoc entity-id hass--states)))
+  (gethash entity-id hass--states))
 
 (defun hass-switch-p (entity-id)
   "Return t if switch status is 'on' of ENTITY-ID.
