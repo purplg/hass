@@ -242,8 +242,7 @@ LABEL is a string of the label of the widget to be rendered."
 (defun hass-dash-state-formatter (state)
   "The default implementation of a widget state formatter.
 STATE is a string of the current state of the widget to be rendered."
-  (propertize (concat " - "  state)
-              'face 'hass-dash-widget-state-face))
+  (concat " - "  state))
 
 (defun hass-dash-icon-formatter (icon)
   "The default implementation of a widget icon formatter.
