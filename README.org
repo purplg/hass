@@ -5,6 +5,8 @@
 
 ~hass~ enables you to control [[https://www.home-assistant.io/][Home Assistant]] entities from Emacs.
 
+[[file:images/screenshot1.png]]
+
 * Table of Contents
 :PROPERTIES:
 :TOC:      :include all :force ((nothing)) :ignore (this) :local (nothing)
@@ -143,6 +145,7 @@ Ensure that your Home Assistant instance is configured to support API calls by f
 Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home Assistant instance and going to your profile by selecting your username in the lower-left corner or going to this URL: =http://HOME-ASSISTANT-URL:8123/profile=. You can generate an API token at the very bottom of this page.
 
 ** Dashboard layout
+
 *** Full example
 #+BEGIN_SRC emacs-lisp :results none
 (defun state-label-icon (label state icon label-formatter state-formatter icon-formatter)
