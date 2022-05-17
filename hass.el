@@ -1,7 +1,7 @@
 ;;; hass.el --- Interact with Home Assistant -*- lexical-binding: t; -*-
 
 ;; Package-Requires: ((emacs "25.1") (request "0.3.3"))
-;; Version: 2.1.2
+;; Version: 2.2.0
 ;; Author: Ben Whitley
 ;; Homepage: https://github.com/purplg/hass
 ;; SPDX-License-Identifier: MIT
@@ -17,7 +17,7 @@
 ;; (setq hass-host "192.168.1.10") ; Required
 ;; (setq hass-insecure t) ; If using HTTP and not HTTPS
 ;; (setq hass-port 8123) ; If using a different port other than the default 8123
-;; (setq hass-apikey "APIKEY-GOES-IN-HERE") ; Required. See below.
+;; (setq hass-apikey "APIKEY-GOES-IN-HERE") ; Required.  See below.
 ;; (hass-setup)
 
 ;; Getting an API Key:
@@ -129,8 +129,8 @@ entity whose state changed.")
 
 
 ;; Internal state
-(defvar hass--states '()
-  "An alist of entity ids to their last queried states.")
+(defvar hass--states (make-hash-table :test 'equal)
+  "A hashtable of entity ids to their last queried states.")
 
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant.")
@@ -203,16 +203,25 @@ OBJECT is a JSON object to be serialized into string."
     (json-encode object)))
 
 (defun hass--icon-of-entity (entity-id)
+  "Get the default icon of an entity.
+ENTITY-ID is the id of the entity in Home Assistant."
   (when (require 'all-the-icons nil 'noerror)
     (let ((parts (split-string (or (cdr (assoc (hass--domain-of-entity entity-id) hass-icons))
                                    (cdr (assoc "default" hass-icons)))
                   ":")))
       (funcall (intern (concat "all-the-icons-" (pop parts))) (pop parts) :face 'hass-icon-face))))
 
+(defun hass--set-state (entity-id state)
+  "Set the state of an entity.
+ENTITY-ID is the id of the entity in Home Assistant.
+
+STATE is a string of the state of ENTITY-ID in Home Assistant."
+  (puthash entity-id state hass--states))
+
 (defun hass-state-of (entity-id)
   "Return the last known state of ENTITY-ID.
 ENTITY-ID is the id of the entity in Home Assistant."
-  (cdr (assoc entity-id hass--states)))
+  (gethash entity-id hass--states))
 
 (defun hass-switch-p (entity-id)
   "Return t if switch status is 'on' of ENTITY-ID.
@@ -260,8 +269,7 @@ endpoint."
         (hass--parse-services (cdr (assoc 'services domain)))))
   
 (defun hass--parse-services (services)
-  "Flattens the SERVICES return from `/api/services' endpoint to
-just the service name."
+  "Flattens the SERVICES return from `/api/services'."
   (mapcar (lambda (service) (car service))
           services))
 
@@ -282,7 +290,7 @@ returns a list of domains and their available services."
   "Callback when an entity state data is received from API.
 ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   (let ((previous-state (hass-state-of entity-id)))
-    (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
+    (hass--set-state entity-id state)
     (unless (equal previous-state state)
       (run-hook-with-args 'hass-entity-state-changed-functions entity-id)
       (run-hooks 'hass-entity-updated-hook))))
@@ -291,7 +299,7 @@ ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   "Callback when a successful service request is received from API.
 ENTITY-ID is the id of the entity in Home Assistant that was
 affected and now has STATE."
-  (setf (alist-get entity-id hass--states nil nil 'string-match-p) state)
+  (hass--set-state entity-id state)
   (run-hooks 'hass-service-called-hook))
 
 (cl-defun hass--request-error (&key error-thrown &allow-other-keys)
@@ -317,19 +325,19 @@ completed.
 
 PAYLOAD is contents the body of the request."
   (request url
-   :sync nil
-   :type type
-   :headers `(("User-Agent" . hass--user-agent)
-              ("Authorization" . ,(concat "Bearer " (hass--apikey)))
-              ("Content-Type" . "application/json"))
-   :data payload
-   :parser (lambda () (hass--deserialize (buffer-string)))
-   :error #'hass--request-error
-   :success success)
+    :sync nil
+    :type type
+    :headers `(("User-Agent" . hass--user-agent)
+               ("Authorization" . ,(concat "Bearer " (hass--apikey)))
+               ("Content-Type" . "application/json"))
+    :data payload
+    :parser (lambda () (hass--deserialize (buffer-string)))
+    :error #'hass--request-error
+    :success success)
   nil)
 
 (defun hass--check-api-connection ()
-  "Sets `hass--api-running' to `t' when a successful connection is made."
+  "Set `hass--api-running' to t when a successful connection is made."
   (setq hass--api-running nil)
   (hass--request "GET" (hass--url "api/")
     (cl-function
@@ -355,11 +363,11 @@ Optional argument CALLBACK ran after entities are received."
   "Retrieve the available services from the Home Assistant instance.
 Optional argument CALLBACK ran after services are received."
   (hass--request "GET" (hass--url "api/services")
-     (cl-function
-       (lambda (&key response &allow-other-keys)
-         (let ((data (request-response-data response)))
-           (hass--get-available-services-result data))
-         (when callback (funcall callback))))))
+    (cl-function
+      (lambda (&key response &allow-other-keys)
+        (let ((data (request-response-data response)))
+          (hass--get-available-services-result data))
+        (when callback (funcall callback))))))
 
 (defun hass--get-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server."
@@ -405,9 +413,9 @@ SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')"
                     (hass--domain-of-entity entity)
                     (completing-read (format "%s: " entity) (hass--services-for-entity entity) nil t)))))
   (hass-call-service-with-payload
-   service
-   (format "{\"entity_id\": \"%s\"}" entity-id)
-   (lambda (&rest _) (hass--get-entity-state entity-id))))
+    service
+    (format "{\"entity_id\": \"%s\"}" entity-id)
+    (lambda (&rest _) (hass--get-entity-state entity-id))))
 
 (defun hass-call-service-with-payload (service payload &optional success-callback)
   "Call service with a custom payload on Home Assistant.
@@ -419,11 +427,11 @@ PAYLOAD is a JSON-encoded string of the payload to be sent with SERVICE.
 
 SUCCESS-CALLBACK is a function to be called with a successful request response."
   (hass--call-service
-   service
-   payload
-   (lambda (&rest _)
-     (run-hooks 'hass-service-called-hook)
-     (when success-callback (funcall success-callback)))))
+    service
+    payload
+    (lambda (&rest _)
+        (run-hooks 'hass-service-called-hook)
+        (when success-callback (funcall success-callback)))))
 
 
 ;; Polling

@@ -5,8 +5,40 @@
 
 ~hass~ enables you to control [[https://www.home-assistant.io/][Home Assistant]] entities from Emacs.
 
-* Installation
+[[file:images/screenshot1.png]]
 
+* Table of Contents
+:PROPERTIES:
+:TOC:      :include all :force ((nothing)) :ignore (this) :local (nothing)
+:END:
+:CONTENTS:
+- [[#installation][Installation]]
+  - [[#use-package][use-package]]
+  - [[#straightel][straight.el]]
+  - [[#doom-emacs][Doom Emacs]]
+- [[#important-changes][Important Changes]]
+  - [[#deprecated-name-keyword-argument-on-widgets][Deprecated :name keyword argument on widgets]]
+  - [[#deprecated-hass-url][Deprecated hass-url]]
+  - [[#renamed-hass-watch-mode][Renamed hass-watch-mode]]
+  - [[#hass-watch-entities][hass-watch-entities]]
+- [[#configuration][Configuration]]
+  - [[#getting-an-api-key][Getting an API Key]]
+  - [[#dashboard-layout][Dashboard layout]]
+    - [[#full-example][Full example]]
+    - [[#structure][Structure]]
+    - [[#formatters][Formatters]]
+      - [[#component-formatters][Component formatters]]
+      - [[#widget-formatters][Widget formatters]]
+      - [[#default-formatters][Default formatters]]
+- [[#usage][Usage]]
+  - [[#dashboard][Dashboard]]
+  - [[#payloads][Payloads]]
+  - [[#tracking-entities][Tracking entities]]
+  - [[#hooks][Hooks]]
+- [[#license][License]]
+:END:
+
+* Installation
 This package is available on [[https://melpa.org/][MELPA]].
 
 ** use-package
@@ -43,7 +75,10 @@ Then load the package in your main config file.
   )
 #+END_SRC
 
-* Breaking Changes
+* Important Changes
+** Deprecated ~:name~ keyword argument on widgets
+
+When defining widgets, the ~:name~ keyword argument has been replaced with ~:label~. The word 'label' is clearer to describe that the value will be rendered to the dashboard.
 
 ** Deprecated hass-url
 
@@ -103,43 +138,132 @@ Alternatively, you can store a function inside ~hass-apikey~. This will be execu
 #+END_SRC
 
 Once those variables are set, you must call ~(hass-setup)~ before using this package so that it can query the Home Assistance instance and populate available entities and services.
-
-** Dashboard layout
-
-To use the dashboard feature, ~hass-dash-layout~ must be configure to tell ~hass~ what the layout should look like.
-
-Each element in ~hass-dash-layout~ is a group.
-
-A group is an alist of the name of the group to a list widgets.
-
-A widget is a list where the first symbol is the entity id and the rest are the properties:
-
-| Property   | Description                                                         |
-|------------+---------------------------------------------------------------------|
-| ~:name~    | The human readable name of the widget to be shown on the dashboard. |
-| ~:service~ | The service to be called when the widget is selected.               |
-| ~:icon~    | The icon to be shown prefix to the widget.                          |
-| ~:state~   | An entity id of the state to be shown next to the widget.           |
-
-*** Full example
-#+BEGIN_SRC emacs-lisp :results none
-(setq `hass-dash-layout'
- '(("Group One" . (("input_boolean.test_boolean" :name "Toggle entity")
-                   ("switch.bedroom_light" :name "Bedroom Light")
-                   ("input_boolean.test_boolean" :name "Turn off test boolean" :service "input_boolean.turn_off")
-                   ("automation.some_automation")))
-   ("Vacuum Group" . (("vacuum.valetudo_vacuum" :name "Vacuum")
-                      ("vacuum.valetudo_vacuum" :name "Vacuum return home"
-                                                :service "vacuum.return_to_base"
-                                                :state nil
-                                                :icon nil)))))
-#+END_SRC
-
 ** Getting an API Key
 
 Ensure that your Home Assistant instance is configured to support API calls by following the instructions [[https://www.home-assistant.io/integrations/api/][here]].
 
 Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home Assistant instance and going to your profile by selecting your username in the lower-left corner or going to this URL: =http://HOME-ASSISTANT-URL:8123/profile=. You can generate an API token at the very bottom of this page.
+
+** Dashboard layout
+
+*** Full example
+#+BEGIN_SRC emacs-lisp :results none
+(defun state-label-icon (label state icon label-formatter state-formatter icon-formatter)
+  "Arrange the components of the widget in the order of STATE, LABEL, and then icon."
+  (concat (when state (funcall state-formatter state))
+          (funcall label-formatter label)
+          (when icon (funcall icon-formatter icon))))
+
+(defun prefix-with-arrow (str)
+  "Prefix STR with a `>'."
+  (concat "> " str))
+
+(defun unavailable-p (widget)
+  "Return t if WIDGET state is 'unavailable'."
+  (string= "unavailable" (hass-state-of (car widget))))
+
+(setq hass-dash-layout
+ ;; Declare a group of widgets with a group label of "Group One"
+ '(("Group One" . (("input_boolean.test_boolean"
+                     :label "Toggle entity"
+                     :hide-fn (lambda (_widget) (= 1 (random 2))) ;; Will randomly hide the widget 50% of the time everytime the dashboard refreshes
+                     :widget-formatter state-label-icon
+                     :label-formatter prefix-with-arrow
+                     :state-formatter prefix-with-arrow
+                     :icon-formatter (lambda (icon) (concat "[" icon "]")))
+
+                   ;; An informational widget
+                   ("sensor.desktop_cpu"
+                     :label "CPU"
+                     :icon nil
+                     :service nil ;; Setting `:service' to nil will skip when pressing the TAB key
+                     :hide-fn unavailable-p ;; Hide this widget if the status if 'unavailable'
+                     :state-formatter (lambda (state) (concat state "%"))) ;; Add a '%' to the end of the state
+
+                   ;; Ask for confirmation before toggling the light
+                   ("switch.bedroom_light"
+                     :label "Bedroom Light"
+                     :confirm t)
+
+                   ;; A widget that can only turn off
+                   ("input_boolean.test_boolean"
+                     :label "Turn off test boolean"
+                     :service "input_boolean.turn_off")
+                   
+                   ;; Or just use the default options
+                   ("automation.some_automation")))
+
+   ;; Declare another group of widgets with a group label of "Vacuum"
+   ("Vacuum" . (("vacuum.valetudo_vacuum"
+                  :label "Vacuum"
+                  :confirm "Start vacuuming? ") ;; Ask for confirmation with a custom prompt
+
+                ;; Ask for confirmation with a custom prompt
+                ("vacuum.valetudo_vacuum"
+                  :label "Vacuum return home"
+                  :service "vacuum.return_to_base" ;; Call this service instead of the default one to start cleaning
+                  :state nil ;; Don't show a state since it's displayed above
+                  :icon nil))))) ;; Don't show an icon
+#+END_SRC
+
+*** Structure
+To use the dashboard feature, ~hass-dash-layout~ must be configure to tell ~hass~ what the layout should look like. The layout is constructed with three components: *groups*, *widgets*, and *properties*.
+
+- Each element in ~hass-dash-layout~ is a *group*.
+- A *group* is an alist of the string of the *group*'s label to a list *widgets*.
+- A *widget* is a plist where the first symbol is the entity id string and the rest are the *properties*.
+
+| Widget Property     | Description                                                                                  |
+|---------------------+----------------------------------------------------------------------------------------------|
+| ~:label~            | The human readable label of the widget to be shown on the dashboard.                         |
+| ~:service~          | The service to be called when the widget is selected.                                        |
+| ~:icon~             | The icon to be shown prefix to the widget.                                                   |
+| ~:state~            | An entity id of the state to be shown next to the widget.                                    |
+| ~:widget-formatter~ | The function used to format the widgets on the dashboard.                                    |
+| ~:label-formatter~  | The function used to format the label of the widget.                                         |
+| ~:state-formatter~  | The function used to format the state of the widget.                                         |
+| ~:icon-formatter~   | The function used to format the icon of the widget.                                          |
+| ~:hide-fn~          | A function with single argument which is the widget definition. When t, don't render widget. |
+| ~:confirm~          | When ~t~ or a string, ask for confirmation before calling the service.                     |
+
+Any widgets defined in ~hass-dash-layout~ are automatically inserted into the ~hass-tracked-entities~ list in order to receive state updates. If the widget property ~:state~ is specified, then that is the entity id that is tracked instead.
+
+*** Formatters
+
+*Formatters* are way to customize how a widget is rendered to the dashboard. A *widget formatter* is special in that it takes all the components of a widget and applies the *label*, *state*, and *icon* *formatters* appropriately enabling you to completely customize a widget.
+
+**** Component formatters
+
+A simple implementation of a *formatter* can just modify the string itself, for example, prefixing it with a =>=. The following example can be used for any of the *label*, *state*, or *icon* *formatters*:
+
+#+BEGIN_SRC emacs-lisp :results none
+(defun prefix-with-arrow (str)
+  "Prefix STR with a `>'"
+  (concat "> " str))
+#+END_SRC
+
+**** Widget formatters
+
+A *widget formatter* is slightly more complicated since it has to take all the components of a widget and fit them together. The following example re-arranges the widgets to have the *state* displayed first, then the *label*, and then suffixes it with the *icon*. It may be important, but not required, to remember to apply the *formatters* using ~funcall~, though this is technically optional (see the 'bland' example). Also note that *state* and *icon* are being checked to be non-nil before used. These two arguments are optional and may not be set.
+
+#+BEGIN_SRC emacs-lisp :results none
+(defun state-label-icon (label state icon label-formatter state-formatter icon-formatter)
+  "Arrange the components of the widget in the order of state, label, and then icon."
+  (concat (when state (funcall state-formatter state))
+          (funcall label-formatter label)
+          (when icon (funcall icon-formatter icon))))
+#+END_SRC
+
+You could just as easily display a bland widget by ignoring the *formatters* entirely:
+#+BEGIN_SRC emacs-lisp :results none
+(defun bland-widget-formatter (label state icon &rest _)
+  "Render a bland widget with no formatting applied."
+  (concat icon label state))
+#+END_SRC
+
+**** Default formatters
+
+To configure a default *formatter* when one isn't define explicitly provided to a widget, use the variables ~hass-dash-default-widget-formatter~, ~hass-dash-default-label-formatter~, ~hass-dash-default-state-formatter~, and ~hass-dash-default-icon-formatter~. By default, they're set to the built-in *formatters* that are used to render the dashboard.
 
 * Usage
 
