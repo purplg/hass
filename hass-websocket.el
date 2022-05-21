@@ -135,9 +135,10 @@ MESSAGE is an alist to be encoded into a JSON object."
 (defun hass-websocket--connect ()
   "Establish a websocket connection to Home Assistant."
   (setq hass-websocket--connection
-    (websocket-open (format "%s://%s:8123/api/websocket"
-                            (if hass-insecure "ws" "wss")
-                            hass-host)
+    (websocket-open (format-spec  "%c://%h:%p/api/websocket"
+                                  `((?c . ,(if hass-insecure "ws" "wss"))
+                                    (?h . ,hass-host)
+                                    (?p . ,hass-port)))
       :on-message #'hass-websocket--handle-message
       :on-open (lambda (_websocket) (setq hass-websocket--interactions 0))
       :on-close (lambda (_websocket) (setq hass-websocket--connection nil)))))
