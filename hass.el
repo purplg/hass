@@ -395,7 +395,7 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
                  success-callback
                  payload))
 
-(defun hass-call-service (entity-id service)
+(cl-defun hass-call-service (entity-id service &optional (update t))
   "Call service for an entity on Home Assistant.
 If called interactively, prompt the user for an ENTITY-ID and
 SERVICE to call.
@@ -415,7 +415,7 @@ SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')"
   (hass-call-service-with-payload
     service
     (format "{\"entity_id\": \"%s\"}" entity-id)
-    (lambda (&rest _) (hass--get-entity-state entity-id))))
+    (when update (lambda (&rest _) (hass--get-entity-state entity-id)))))
 
 (defun hass-call-service-with-payload (service payload &optional success-callback)
   "Call service with a custom payload on Home Assistant.

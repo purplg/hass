@@ -304,18 +304,18 @@ passed then the service will only be called when the function returns t."
     :action (cond ((stringp confirm)
                    (lambda (&rest _)
                      (when (y-or-n-p confirm)
-                       (hass-call-service entity-id service))))
+                       (hass-call-service entity-id service nil))))
                   ((functionp confirm)
                    (lambda (&rest _)
                      (when (funcall confirm entity-id)
-                       (hass-call-service entity-id service))))
+                       (hass-call-service entity-id service nil))))
                   (confirm
                    (lambda (&rest _)
                      (when (y-or-n-p (concat "Toggle " name "? "))
-                       (hass-call-service entity-id service))))
+                       (hass-call-service entity-id service nil))))
                   (t
                    (lambda (&rest _)
-                     (hass-call-service entity-id service))))))
+                     (hass-call-service entity-id service nil))))))
 
 (defun hass-dash--insert-groups ()
   "Insert all widgets in `hass-dash-layout'."
