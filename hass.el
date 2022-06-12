@@ -290,8 +290,8 @@ returns a list of domains and their available services."
   "Callback when an entity state data is received from API.
 ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   (let ((previous-state (hass-state-of entity-id)))
-    (hass--set-state entity-id state)
     (unless (equal previous-state state)
+      (hass--set-state entity-id state)
       (run-hook-with-args 'hass-entity-state-changed-functions entity-id)
       (run-hooks 'hass-entity-updated-hook))))
 
