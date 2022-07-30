@@ -89,8 +89,9 @@
 ;; configure how the dashboard is displayed.
 
 ;;; Code:
-(require 'hass)
 (require 'subr-x)
+
+(require 'hass)
 
 
 ;; Customizable

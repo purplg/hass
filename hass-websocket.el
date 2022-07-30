@@ -53,10 +53,14 @@
 ;;  (hass-websocket-mode t)
 
 ;;; Code:
-(require 'hass)
-(require 'json)
+
+;; Check if the websocket package exists. Halt loading rest of package if it doesn't.
 (unless (require 'websocket nil 'noerror)
   (user-error "`hass-websocket-mode' requires package `websocket'"))
+
+(require 'json)
+
+(require 'hass)
 
 ;; User customizable
 (defvar hass-websocket-mode-map (make-sparse-keymap)
