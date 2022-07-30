@@ -333,19 +333,21 @@ PAYLOAD is contents the body of the request."
     :data payload
     :parser (lambda () (hass--deserialize (buffer-string)))
     :error #'hass--request-error
-    :success success)
+    :success (when success
+               (cl-function
+                 (lambda (&key response &allow-other-keys)
+                   (let ((data (request-response-data response)))
+                     (funcall success data))))))
   nil)
 
 (defun hass--check-api-connection ()
   "Set `hass--api-running' to t when a successful connection is made."
   (setq hass--api-running nil)
   (hass--request "GET" (hass--url "api/")
-    (cl-function
-      (lambda (&key response &allow-other-keys)
-        (let ((data (request-response-data response)))
-          (when (string= "API running." (cdr (assoc 'message data)))
-            (setq hass--api-running t)
-            (run-hooks 'hass-api-connected-hook)))))))
+    (lambda (data)
+      (when (string= "API running." (cdr (assoc 'message data)))
+        (setq hass--api-running t)
+        (run-hooks 'hass-api-connected-hook)))))
 
 (defun hass--get-available-entities (&optional callback)
   "Retrieve the available entities from the Home Assistant instance.
@@ -353,29 +355,23 @@ Makes a request to `/api/states' but drops everything except an
 list of entity-ids.
 Optional argument CALLBACK ran after entities are received."
   (hass--request "GET" (hass--url "api/states")
-     (cl-function
-       (lambda (&key response &allow-other-keys)
-         (let ((data (request-response-data response)))
-           (hass--get-entities-result data))
-         (when callback (funcall callback))))))
+    (lambda (data)
+      (hass--get-entities-result data))
+      (when callback (funcall callback))))
 
 (defun hass--get-available-services (&optional callback)
   "Retrieve the available services from the Home Assistant instance.
 Optional argument CALLBACK ran after services are received."
   (hass--request "GET" (hass--url "api/services")
-    (cl-function
-      (lambda (&key response &allow-other-keys)
-        (let ((data (request-response-data response)))
-          (hass--get-available-services-result data))
-        (when callback (funcall callback))))))
+    (lambda (data)
+      (hass--get-available-services-result data))
+      (when callback (funcall callback))))
 
 (defun hass--get-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server."
   (hass--request "GET" (hass--entity-url entity-id)
-    (cl-function
-      (lambda (&key response &allow-other-keys)
-        (let ((data (request-response-data response)))
-          (hass--query-entity-result entity-id (cdr (assoc 'state data))))))))
+    (lambda (data)
+      (hass--query-entity-result entity-id (cdr (assoc 'state data))))))
 
 (defun hass--update-all-entities ()
   "Update current state of tracked entities."
