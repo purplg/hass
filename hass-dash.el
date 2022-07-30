@@ -215,10 +215,7 @@ Full example:
 
 
 ;; Dashboard rendering
-(defun hass-dash-widget-formatter (label state icon
-                                   label-formatter
-                                   state-formatter
-                                   icon-formatter)
+(defun hass-dash-widget-formatter (label state icon label-formatter state-formatter icon-formatter)
   "Default constructor for a widget.
 This function composes a widget in the way it should be shown on the dashboard
 buffer.
@@ -249,7 +246,8 @@ STATE is a string of the current state of the widget to be rendered."
 ICON is the icon of the widget to be rendered."
   (concat icon " "))
 
-(cl-defun hass-dash--create-widget (entity-id &key
+(cl-defun hass-dash--create-widget (entity-id
+                                    &key
                                     (service (hass-dash--default-service-of entity-id))
                                     ;; `:name' keyword is deprecated. Use `:label' instead.
                                     (name (or (plist-get (cdr (assoc entity-id hass--available-entities))
@@ -298,24 +296,24 @@ When CONFIRM is non-nil a prompt will ask for confirmation before the SERVICE
 is called.  A string of will be used for a custom prompt.  If a function is
 passed then the service will only be called when the function returns t."
   (widget-create 'push-button
-    :tag (funcall widget-formatter label (hass-state-of state) icon
-                                   label-formatter state-formatter icon-formatter)
-    :format (if service "%[%t%]" "%t")
-    :action (cond ((stringp confirm)
-                   (lambda (&rest _)
-                     (when (y-or-n-p confirm)
-                       (hass-call-service entity-id service nil))))
-                  ((functionp confirm)
-                   (lambda (&rest _)
-                     (when (funcall confirm entity-id)
-                       (hass-call-service entity-id service nil))))
-                  (confirm
-                   (lambda (&rest _)
-                     (when (y-or-n-p (concat "Toggle " name "? "))
-                       (hass-call-service entity-id service nil))))
-                  (t
-                   (lambda (&rest _)
-                     (hass-call-service entity-id service nil))))))
+                 :tag (funcall widget-formatter label (hass-state-of state) icon
+                               label-formatter state-formatter icon-formatter)
+                 :format (if service "%[%t%]" "%t")
+                 :action (cond ((stringp confirm)
+                                (lambda (&rest _)
+                                  (when (y-or-n-p confirm)
+                                    (hass-call-service entity-id service nil))))
+                               ((functionp confirm)
+                                (lambda (&rest _)
+                                  (when (funcall confirm entity-id)
+                                    (hass-call-service entity-id service nil))))
+                               (confirm
+                                (lambda (&rest _)
+                                  (when (y-or-n-p (concat "Toggle " name "? "))
+                                    (hass-call-service entity-id service nil))))
+                               (t
+                                (lambda (&rest _)
+                                  (hass-call-service entity-id service nil))))))
 
 (defun hass-dash--insert-groups ()
   "Insert all widgets in `hass-dash-layout'."
@@ -326,11 +324,11 @@ passed then the service will only be called when the function returns t."
       (insert "\n")
       (dolist (widget (cdr group))
         (unless (when-let ((hide-fn (plist-get (cdr widget) ':hide-fn)))
-                   (funcall hide-fn widget))
+                  (funcall hide-fn widget))
           (apply 'hass-dash--create-widget widget)
           (insert "\n")))
       (insert "\n"))))
- 
+
 
 ;; User functions
 ;;;###autoload
@@ -338,13 +336,13 @@ passed then the service will only be called when the function returns t."
   "Rerender the hass-dash buffer."
   (interactive)
   (with-current-buffer (get-buffer-create hass-dash-buffer-name)
-      (let ((inhibit-read-only t)
-            (prev-line (line-number-at-pos)))
-        (erase-buffer)
-        (hass-dash--insert-groups)
-        (goto-char (point-min))
-        (forward-line (1- prev-line))
-        (hass-dash-mode))))
+    (let ((inhibit-read-only t)
+          (prev-line (line-number-at-pos)))
+      (erase-buffer)
+      (hass-dash--insert-groups)
+      (goto-char (point-min))
+      (forward-line (1- prev-line))
+      (hass-dash-mode))))
 
 ;;;###autoload
 (defun hass-dash-open ()
