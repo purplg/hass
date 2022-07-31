@@ -337,8 +337,7 @@ PAYLOAD is contents the body of the request."
                (cl-function
                 (lambda (&key response &allow-other-keys)
                   (let ((data (request-response-data response)))
-                    (funcall success data))))))
-  nil)
+                    (funcall success data)))))))
 
 (defun hass--check-api-connection ()
   "Set `hass--api-running' to t when a successful connection is made."
