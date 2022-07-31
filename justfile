@@ -11,7 +11,7 @@ compose-down := compose + " down"
 @_test-26: _init_eldev
 	{{compose-run}} emacs-26
 
-_test-27: _init_eldev
+@_test-27: _init_eldev
 	{{compose-run}} emacs-27
 
 @_test-28: _init_eldev
