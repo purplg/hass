@@ -18,6 +18,7 @@ project.org
 
 # End of https://www.toptal.com/developers/gitignore/api/elisp
 
+/eldev
 # Added automatically by ‘eldev init’.
 /.eldev
 /Eldev-local
