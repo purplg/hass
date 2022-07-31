@@ -21,4 +21,4 @@ _test-27: _init_eldev
 	{{compose-run}} emacs-master
 
 @_init_eldev:
-	[ -d "./eldev" ] || git clone https://github.com/doublep/eldev.git --quiet --branch 1.1.3
+	[ -d "./tests/eldev" ] || git clone https://github.com/doublep/eldev.git --quiet --branch 1.1.3 tests/eldev
