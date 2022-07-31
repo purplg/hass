@@ -1,8 +1,14 @@
+set positional-arguments
+
 compose := "docker compose -f tests/docker/docker-compose.yml"
 compose-run := compose + " run --rm"
 compose-down := compose + " down"
 
-@test: _test-25 _test-26 _test-27 _test-28 _test-master
+@test version:
+	just _test-{{version}}
+	{{compose-down}}
+
+@test-all: _test-25 _test-26 _test-27 _test-28 _test-master
 	{{compose-down}}
 
 @_test-25: _init_eldev
