@@ -99,6 +99,29 @@ higher."
     (should (string= (hass-friendly-name "callable_services.test_entity_one") "Test Entity One"))
     (should-not (hass-friendly-name "callable_services.test_entity_two"))))
 
+(ert-deftest hass--domain-parsing nil
+  (let ((services '[((domain . "test_domain_one")
+                     (services (domain_one_service_one
+                                (name . "Domain One Service One")
+                                (description . "This is the first test service in the first domain"))
+                               (domain_one_service_two
+                                (name . "Domain One Service two")
+                                (description . "This is the second test service in the first domain"))))
+                    ((domain . "test_domain_two")
+                     (services (domain_two_service_one
+                                (name . "Domain Two Service One")
+                                (description . "This is the first test service in the second domain"))
+                               (domain_two_service_two
+                                (name . "Domain Two Service two")
+                                (description . "This is the second test service in the second domain"))))]))
+    (setq hass--available-services (hass--parse-all-domains services))
+
+    (should (equal (cdr (assoc "test_domain_one" hass--available-services))
+                   '(domain_one_service_one domain_one_service_two)))
+
+    (should (equal (cdr (assoc "test_domain_two" hass--available-services))
+                   '(domain_two_service_one domain_two_service_two)))))
+
 (ert-deftest-async hass--check-api-connection (done)
   (add-hook 'hass-api-connected-hook done)
   (hass--check-api-connection))
