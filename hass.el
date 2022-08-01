@@ -191,15 +191,15 @@ SERVICE is a string of the service to call."
   "Wrapper function to use native JSON parser when available.
 STR-OBJECT is a JSON object in as a string to be deserialzied
 into a JSON object."
-  (if (fboundp 'json-parse-string)
-      (json-parse-string str-object :object-type 'alist)
+  (if (version<= "27.1" emacs-version)
+    (json-parse-string str-object :object-type 'alist)
     (json-read-from-string str-object)))
 
 (defun hass--serialize (object)
   "Wrapper function to use native JSON serializer when available.
 OBJECT is a JSON object to be serialized into string."
-  (if (fboundp 'json-serialize)
-      (json-serialize object)
+  (if (version<= "27.1" emacs-version)
+    (json-serialize object)
     (json-encode object)))
 
 (defun hass--icon-of-entity (entity-id)
