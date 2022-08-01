@@ -14,6 +14,13 @@
 
 (setq hass-test-entity "input_boolean.hass_test")
 
+(defun hass-test-with-entities (callback)
+  "Setup function where the callback will be called after all
+services and entities are retrieved."
+  (hass--get-available-services
+   (lambda ()
+     (hass--get-available-entities (funcall callback)))))
+
 (ert-deftest hass--url nil
   (let ((hass-insecure t) (hass-host "localhost") (hass-port 8123))
     (should (string= (hass--url "api/") "http://localhost:8123/api/")))
@@ -39,20 +46,34 @@
 (ert-deftest hass--domain-of-entity nil
   (should (string= (hass--domain-of-entity "the_domain.entity_id") "the_domain")))
 
-(ert-deftest-async hass--check-api-connection (done)
-  (add-hook 'hass-api-connected-hook done)
-  (hass--check-api-connection))
+(ert-deftest hass--services-for-entity nil
+  (should (member 'toggle (hass--services-for-entity hass-test-entity))))
 
 ;; TODO
 ;; (ert-deftest hass--icon-of-entity nil (should nil))
 
-(ert-deftest-async hass--get-available-services (done)
+(ert-deftest hass--set-state nil
+  (hass--set-state hass-test-entity "on")
+  (should (string= (hass-state-of hass-test-entity) "on")))
+
+(ert-deftest hass-switch-p nil
+  (hass--set-state hass-test-entity "on")
+  (should (hass-switch-p hass-test-entity))
+  (hass--set-state hass-test-entity "off")
+  (should (not (hass-switch-p hass-test-entity))))
+
+(ert-deftest-async hass--check-api-connection (done)
+  (add-hook 'hass-api-connected-hook done)
+  (hass--check-api-connection))
+
+(ert-deftest-async hass--get-available (done-services done-entities)
   (hass--get-available-services
    (lambda ()
      (should (member 'toggle (hass--services-for-entity hass-test-entity)))
-     (funcall done))))
+     (funcall done-services)
+     (hass--get-available-entities done-entities))))
 
-;; (ert-deftest hass--get-available-entities nil
-;;   (hass-test-wait (hass--get-available-services))
-;;   (hass-test-wait (hass--get-available-entities))
-;;   (should (string= (hass-friendly-name hass-test-entity) "Hass test")))
+(ert-deftest hass-friendly-name nil
+  (hass-test-with-entities
+   (lambda ()
+     (should (string= (hass-friendly-name hass-test-entity) "Hass test")))))
