@@ -75,6 +75,30 @@ higher."
 ;; TODO
 ;; (ert-deftest hass--icon-of-entity nil (should nil))
 
+(ert-deftest hass--entity-parsing nil
+  "Entities without domains with services listed in the
+`hass--available-services' list should be filtered out of the
+`hass--available-entities' list."
+  (let ((hass--available-services '(("callable_services" . some_service)))
+        (entities '[((entity_id . "callable_services.test_entity_one")
+                     (state . "off")
+                     (attributes
+                      (icon . "mdi:test-tube")
+                      (friendly_name . "Test Entity One"))
+                     (last_changed . "ignored")
+                     (last_updated . "ignored"))
+                    ((entity_id . "no_services.test_entity_one")
+                     (state . "on")
+                     (attributes
+                      (icon . "mdi:test-tube")
+                      (friendly_name . "Test Entity Two"))
+                     (last_changed . "ignored")
+                     (last_updated . "ignored"))]))
+    (setq hass--available-entities (hass--parse-all-entities entities))
+
+    (should (string= (hass-friendly-name "callable_services.test_entity_one") "Test Entity One"))
+    (should-not (hass-friendly-name "callable_services.test_entity_two"))))
+
 (ert-deftest-async hass--check-api-connection (done)
   (add-hook 'hass-api-connected-hook done)
   (hass--check-api-connection))
