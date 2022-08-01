@@ -5,7 +5,7 @@ compose-run := compose + " run --rm"
 compose-down := compose + " down"
 
 @test version:
-	just _test-{{version}}
+	[ "all" == {{version}} ] && just test-all || just _test-{{version}}
 	{{compose-down}}
 
 @test-all: _test-25 _test-26 _test-27 _test-28 _test-master
