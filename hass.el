@@ -355,16 +355,16 @@ list of entity-ids.
 Optional argument CALLBACK ran after entities are received."
   (hass--request "GET" (hass--url "api/states")
                  (lambda (data)
-                   (hass--get-entities-result data))
-                 (when callback (funcall callback))))
+                   (hass--get-entities-result data)
+                   (when callback (funcall callback)))))
 
 (defun hass--get-available-services (&optional callback)
   "Retrieve the available services from the Home Assistant instance.
 Optional argument CALLBACK ran after services are received."
   (hass--request "GET" (hass--url "api/services")
                  (lambda (data)
-                   (hass--get-available-services-result data))
-                 (when callback (funcall callback))))
+                   (hass--get-available-services-result data)
+                   (when callback (funcall callback)))))
 
 (defun hass--get-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server."
