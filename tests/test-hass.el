@@ -35,6 +35,43 @@ services and entities are retrieved."
 (ert-deftest hass--services-for-entity nil
   (should (member 'toggle (hass--services-for-entity hass-test-entity))))
 
+(ert-deftest hass--deserialize nil
+  "Ensure the correct version of json deserialization is being
+called. Native json parsing should only be used on Emacs 27.1 or
+higher."
+  (let ((native-called nil)
+        (elisp-called nil))
+    (advice-add #'json-read-from-string :after (lambda (&rest _) (setq elisp-called t)))
+    (advice-add #'json-parse-string :after (lambda (&rest _) (setq native-called t)))
+    (hass--deserialize "{}")
+
+    (when (version< emacs-version "27.1")
+      (should elisp-called)
+      (should-not native-called))
+
+    (when (version<= "27.1" emacs-version)
+      (should native-called)
+      (should-not elisp-called))))
+
+(ert-deftest hass--serialize nil
+  "Ensure the correct version of json serialization is being
+called. Native json parsing should only be used on Emacs 27.1 or
+higher."
+  (let ((native-called nil)
+        (elisp-called nil))
+    (advice-add #'json-encode :after (lambda (&rest _) (setq elisp-called t)))
+    (advice-add #'json-serialize :after (lambda (&rest _) (setq native-called t)))
+
+    (hass--serialize '())
+
+    (when (version< emacs-version "27.1")
+      (should elisp-called)
+      (should-not native-called))
+
+    (when (version<= "27.1" emacs-version)
+      (should native-called)
+      (should-not elisp-called))))
+
 ;; TODO
 ;; (ert-deftest hass--icon-of-entity nil (should nil))
 
