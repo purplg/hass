@@ -28,3 +28,6 @@ compose-down := compose + " down"
 
 @_init_eldev:
 	[ -d "./tests/eldev" ] || git clone https://github.com/doublep/eldev.git --quiet --branch 1.1.3 tests/eldev
+
+start-homeassistant:
+	{{compose}} up -d homeassistant
