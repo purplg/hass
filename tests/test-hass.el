@@ -131,7 +131,10 @@ higher."
    (lambda ()
      (should (member 'toggle (hass--services-for-entity hass-test-entity)))
      (funcall done-services)
-     (hass--get-available-entities done-entities))))
+     (hass--get-available-entities
+      (lambda ()
+        (should (string= (hass-friendly-name hass-test-entity) "Hass test"))
+        (funcall done-entities))))))
 
 (ert-deftest hass-friendly-name nil
   (hass-test-with-entities
