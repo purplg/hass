@@ -21,20 +21,6 @@ services and entities are retrieved."
    (lambda ()
      (hass--get-available-entities (funcall callback)))))
 
-(ert-deftest hass--url nil
-  (let ((hass-insecure t) (hass-host "localhost") (hass-port 8123))
-    (should (string= (hass--url "api/") "http://localhost:8123/api/")))
-
-  (let ((hass-insecure nil) (hass-host "127.0.0.1") (hass-port 8124))
-    (should (string= (hass--url "api/") "https://127.0.0.1:8124/api/"))))
-
-(ert-deftest hass--apikey nil
-  (let ((hass-apikey "Fake-API-Key"))
-    (should (string= (hass--apikey) "Fake-API-Key")))
-
-  (let ((hass-apikey (lambda () "Fake-API-Key")))
-    (should (string= (hass--apikey) "Fake-API-Key"))))
-
 (ert-deftest hass--entity-url nil
   (should (string= (hass--entity-url hass-test-entity)
                    (format "http://%s:8123/api/states/%s" hass-host hass-test-entity))))
@@ -51,16 +37,6 @@ services and entities are retrieved."
 
 ;; TODO
 ;; (ert-deftest hass--icon-of-entity nil (should nil))
-
-(ert-deftest hass--set-state nil
-  (hass--set-state hass-test-entity "on")
-  (should (string= (hass-state-of hass-test-entity) "on")))
-
-(ert-deftest hass-switch-p nil
-  (hass--set-state hass-test-entity "on")
-  (should (hass-switch-p hass-test-entity))
-  (hass--set-state hass-test-entity "off")
-  (should (not (hass-switch-p hass-test-entity))))
 
 (ert-deftest-async hass--check-api-connection (done)
   (add-hook 'hass-api-connected-hook done)
