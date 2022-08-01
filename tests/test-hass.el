@@ -12,7 +12,9 @@
 (setq hass-insecure t)
 (setq hass-apikey "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIzZmMxMjU1MDEwYTM0MGM2YjEyMjY0ZjgwMjRkN2E3NCIsImlhdCI6MTY1OTIxNDU0NSwiZXhwIjoxOTc0NTc0NTQ1fQ.9Qrtm-XjTdS0_RnADoI_D1YxZ9mF80iXmU6EtXUNY_U")
 
-(setq hass-test-entity "input_boolean.hass_test")
+;; These values are from the testing Home Assistant docker instance.
+(setq hass-test-entity-id "input_boolean.hass_test")
+(setq hass-test-entity-name "Hass test")
 
 (defun hass-test-with-entities (callback)
   "Setup function where the callback will be called after all
@@ -22,8 +24,8 @@ services and entities are retrieved."
      (hass--get-available-entities (funcall callback)))))
 
 (ert-deftest hass--entity-url nil
-  (should (string= (hass--entity-url hass-test-entity)
-                   (format "http://%s:8123/api/states/%s" hass-host hass-test-entity))))
+  (should (string= (hass--entity-url hass-test-entity-id)
+                   (format "http://%s:8123/api/states/%s" hass-host hass-test-entity-id))))
 
 (ert-deftest hass--service-url nil
   (should (string= (hass--service-url "the_domain.service")
@@ -33,7 +35,7 @@ services and entities are retrieved."
   (should (string= (hass--domain-of-entity "the_domain.entity_id") "the_domain")))
 
 (ert-deftest hass--services-for-entity nil
-  (should (member 'toggle (hass--services-for-entity hass-test-entity))))
+  (should (member 'toggle (hass--services-for-entity hass-test-entity-id))))
 
 (ert-deftest hass--deserialize nil
   "Ensure the correct version of json deserialization is being
@@ -129,14 +131,14 @@ higher."
 (ert-deftest-async hass--get-available (done-services done-entities)
   (hass--get-available-services
    (lambda ()
-     (should (member 'toggle (hass--services-for-entity hass-test-entity)))
+     (should (member 'toggle (hass--services-for-entity hass-test-entity-id)))
      (funcall done-services)
      (hass--get-available-entities
       (lambda ()
-        (should (string= (hass-friendly-name hass-test-entity) "Hass test"))
+        (should (string= (hass-friendly-name hass-test-entity-id) hass-test-entity-name))
         (funcall done-entities))))))
 
 (ert-deftest hass-friendly-name nil
   (hass-test-with-entities
    (lambda ()
-     (should (string= (hass-friendly-name hass-test-entity) "Hass test")))))
+     (should (string= (hass-friendly-name hass-test-entity-id) hass-test-entity-name)))))
