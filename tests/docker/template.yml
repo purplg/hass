@@ -6,7 +6,7 @@ services:
     working_dir: /hass
     environment:
       - ELDEV_LOCAL=/eldev
-    command: /eldev/bin/eldev -q emacs --batch -l /hass/tests/test-hass.el -f ert-run-tests-batch
+    command: /eldev/bin/eldev -S "(setq hass-host \"homeassistant\")" test-ert
     volumes:
       - ../eldev:/eldev
       - ../../:/hass
