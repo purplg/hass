@@ -1,0 +1,29 @@
+name: Tests
+
+on:
+  push:
+    branches: [ "master", "dev" ]
+
+  pull_request:
+    branches: [ "master", "dev" ]
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        emacs_version:
+          - '25'
+          - '26'
+          - '27'
+          - '28'
+          - 'master'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test
+        run: make test-${{ matrix.emacs_version }}
