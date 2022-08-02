@@ -136,6 +136,7 @@ higher."
         (funcall done-entities))))))
 
 (ert-deftest-async hass-test-entity-states (done-turn-on)
+  (hass--set-state hass-test-entity-id "off")
   (add-hook 'hass-entity-state-changed-functions
             (lambda (entity-id)
               (funcall done-turn-on)
