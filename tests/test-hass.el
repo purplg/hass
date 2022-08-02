@@ -23,18 +23,18 @@ services and entities are retrieved."
    (lambda ()
      (hass--get-available-entities (funcall callback)))))
 
-(ert-deftest hass--entity-url nil
+(ert-deftest hass-test-entity-url nil
   (should (string= (hass--entity-url hass-test-entity-id)
                    (format "http://%s:8123/api/states/%s" hass-host hass-test-entity-id))))
 
-(ert-deftest hass--service-url nil
+(ert-deftest hass-test-service-url nil
   (should (string= (hass--service-url "the_domain.service")
                    (format "http://%s:8123/api/services/the_domain/service" hass-host))))
 
-(ert-deftest hass--domain-of-entity nil
+(ert-deftest hass-test-domain-of-entity nil
   (should (string= (hass--domain-of-entity "the_domain.entity_id") "the_domain")))
 
-(ert-deftest hass--deserialize nil
+(ert-deftest hass-test-deserialize nil
   "Ensure the correct version of json deserialization is being
 called. Native json parsing should only be used on Emacs 27.1 or
 higher."
@@ -52,7 +52,7 @@ higher."
       (should native-called)
       (should-not elisp-called))))
 
-(ert-deftest hass--serialize nil
+(ert-deftest hass-test-serialize nil
   "Ensure the correct version of json serialization is being
 called. Native json parsing should only be used on Emacs 27.1 or
 higher."
@@ -74,7 +74,7 @@ higher."
 ;; TODO
 ;; (ert-deftest hass--icon-of-entity nil (should nil))
 
-(ert-deftest hass--entity-parsing nil
+(ert-deftest hass-test-entity-parsing nil
   "Entities without domains with services listed in the
 `hass--available-services' list should be filtered out of the
 `hass--available-entities' list."
@@ -98,7 +98,7 @@ higher."
     (should (string= (hass-friendly-name "callable_services.test_entity_one") "Test Entity One"))
     (should-not (hass-friendly-name "callable_services.test_entity_two"))))
 
-(ert-deftest hass--domain-parsing nil
+(ert-deftest hass-test-domain-parsing nil
   (let ((services '[((domain . "test_domain_one")
                      (services (domain_one_service_one
                                 (name . "Domain One Service One")
@@ -121,11 +121,11 @@ higher."
     (should (equal (cdr (assoc "test_domain_two" hass--available-services))
                    '(domain_two_service_one domain_two_service_two)))))
 
-(ert-deftest-async hass-check-api-connection (done)
+(ert-deftest-async hass-test-check-api-connection (done)
   (add-hook 'hass-api-connected-hook done)
   (hass--check-api-connection))
 
-(ert-deftest-async hass--get-available (done-services done-entities)
+(ert-deftest-async hass-test-get-available (done-services done-entities)
   (hass--get-available-services
    (lambda ()
      (should (member 'toggle (hass--services-for-entity hass-test-entity-id)))
@@ -135,7 +135,7 @@ higher."
         (should (string= (hass-friendly-name hass-test-entity-id) hass-test-entity-name))
         (funcall done-entities))))))
 
-(ert-deftest-async hass--entity-states (done-turn-on)
+(ert-deftest-async hass-test-entity-states (done-turn-on)
   (add-hook 'hass-entity-state-changed-functions
             (lambda (entity-id)
               (funcall done-turn-on)
