@@ -124,7 +124,7 @@ higher."
     (should (equal (cdr (assoc "test_domain_two" hass--available-services))
                    '(domain_two_service_one domain_two_service_two)))))
 
-(ert-deftest-async hass--check-api-connection (done)
+(ert-deftest-async hass-check-api-connection (done)
   (add-hook 'hass-api-connected-hook done)
   (hass--check-api-connection))
 
