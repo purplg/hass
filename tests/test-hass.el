@@ -146,7 +146,6 @@ higher."
 
   (hass-call-service hass-test-entity-id "input_boolean.turn_on")
 
-
 (ert-deftest hass-friendly-name nil
   (hass-test-with-entities
    (lambda ()
