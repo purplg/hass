@@ -176,6 +176,7 @@ Full example:
   :group 'hass-dash
   :type 'list)
 
+
 ;; Default formatters
 (defcustom hass-dash-default-widget-formatter #'hass-dash-widget-formatter
   "The function called to format the widgets on the dashboard."
