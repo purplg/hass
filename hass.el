@@ -400,7 +400,10 @@ This will send an API request to the address configure in `hass-host'.
 ENTITY-ID is the id of the entity in Home Assistant.
 to call the service on.  (e.g. `\"switch.kitchen_light\"').
 
-SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')"
+SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')
+
+When UPDATE is t, another API request will be sent to retrieve
+the new state of the affected entity."
   (interactive
    (let ((entity (completing-read "Entity: " hass--available-entities nil t)))
      (list entity
