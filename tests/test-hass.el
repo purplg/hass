@@ -138,6 +138,15 @@ higher."
         (should (string= (hass-friendly-name hass-test-entity-id) hass-test-entity-name))
         (funcall done-entities))))))
 
+(ert-deftest-async hass--entity-states (done-turn-on)
+  (add-hook 'hass-entity-updated-hook
+            (lambda ()
+              (funcall done-turn-on)
+              (should (string= (hass-state-of hass-test-entity-id) "on")))))
+
+  (hass-call-service hass-test-entity-id "input_boolean.turn_on")
+
+
 (ert-deftest hass-friendly-name nil
   (hass-test-with-entities
    (lambda ()
