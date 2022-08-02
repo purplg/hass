@@ -144,7 +144,6 @@ higher."
               (funcall done-turn-on)
               (should (string= entity-id hass-test-entity-id))
               (should (string= (hass-state-of hass-test-entity-id) "on")))))
-
   (hass-call-service hass-test-entity-id "input_boolean.turn_on")
 
 (ert-deftest hass-friendly-name nil
