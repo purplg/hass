@@ -34,9 +34,6 @@ services and entities are retrieved."
 (ert-deftest hass--domain-of-entity nil
   (should (string= (hass--domain-of-entity "the_domain.entity_id") "the_domain")))
 
-(ert-deftest hass--services-for-entity nil
-  (should (member 'toggle (hass--services-for-entity hass-test-entity-id))))
-
 (ert-deftest hass--deserialize nil
   "Ensure the correct version of json deserialization is being
 called. Native json parsing should only be used on Emacs 27.1 or
