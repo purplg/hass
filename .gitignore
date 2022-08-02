@@ -17,3 +17,8 @@ project.org
 *.~undo-tree
 
 # End of https://www.toptal.com/developers/gitignore/api/elisp
+
+/tests/eldev
+# Added automatically by ‘eldev init’.
+/.eldev
+/Eldev-local

@@ -1,0 +1,45 @@
+version: "3.9"
+
+name: hass-tests
+
+services:
+  homeassistant:
+    build: .
+    ports:
+      - 8123:8123
+    healthcheck:
+      test: ["CMD-SHELL", "sh", "-c", "curl", "--fail", "--header", "Authorization: Bearer ${HASS_TOKEN}", "http://localhost:8123/api/"]
+      interval: 1s
+      timeout: 1s
+      retries: 3
+      start_period: 0s
+
+  emacs-25:
+    image: "silex/emacs:25.3"
+    extends:
+      file: template.yml
+      service: emacs
+
+  emacs-26:
+    image: "silex/emacs:26.3"
+    extends:
+      file: template.yml
+      service: emacs
+
+  emacs-27:
+    image: "silex/emacs:27.2"
+    extends:
+      file: template.yml
+      service: emacs
+
+  emacs-28:
+    image: "silex/emacs:28.1"
+    extends:
+      file: template.yml
+      service: emacs
+
+  emacs-master:
+    image: "silex/emacs:master"
+    extends:
+      file: template.yml
+      service: emacs

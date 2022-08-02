@@ -337,8 +337,7 @@ PAYLOAD is contents the body of the request."
                (cl-function
                 (lambda (&key response &allow-other-keys)
                   (let ((data (request-response-data response)))
-                    (funcall success data))))))
-  nil)
+                    (funcall success data)))))))
 
 (defun hass--check-api-connection ()
   "Set `hass--api-running' to t when a successful connection is made."
@@ -356,16 +355,16 @@ list of entity-ids.
 Optional argument CALLBACK ran after entities are received."
   (hass--request "GET" (hass--url "api/states")
                  (lambda (data)
-                   (hass--get-entities-result data))
-                 (when callback (funcall callback))))
+                   (hass--get-entities-result data)
+                   (when callback (funcall callback)))))
 
 (defun hass--get-available-services (&optional callback)
   "Retrieve the available services from the Home Assistant instance.
 Optional argument CALLBACK ran after services are received."
   (hass--request "GET" (hass--url "api/services")
                  (lambda (data)
-                   (hass--get-available-services-result data))
-                 (when callback (funcall callback))))
+                   (hass--get-available-services-result data)
+                   (when callback (funcall callback)))))
 
 (defun hass--get-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server."

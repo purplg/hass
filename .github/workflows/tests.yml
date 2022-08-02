@@ -1,0 +1,66 @@
+name: Tests
+
+on:
+  push:
+    branches: [ "master", "dev" ]
+
+  pull_request:
+    branches: [ "master", "dev" ]
+
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build
+        uses: docker/build-push-action@v2
+        with:
+          context: tests/docker
+          file: tests/docker/Dockerfile
+          tags: hass-test-homeassistant:latest
+          outputs: type=docker,dest=/tmp/hass-test-homeassistant.tar
+
+      - name: Upload container
+        uses: actions/upload-artifact@v2
+        with:
+          name: hass-test-homeassistant
+          path: /tmp/hass-test-homeassistant.tar
+
+  test:
+    runs-on: ubuntu-latest
+    needs: docker
+
+    strategy:
+      matrix:
+        emacs_version:
+          - '25'
+          - '26'
+          - '27'
+          - '28'
+          - 'master'
+
+    steps:
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Download container
+        uses: actions/download-artifact@v2
+        with:
+          name: hass-test-homeassistant
+          path: /tmp
+
+      - name: Import Docker image
+        run: |
+          docker load --input /tmp/hass-test-homeassistant.tar
+          docker image ls -a
+      
+      - uses: actions/checkout@v3
+
+      - name: Test
+        run: make test-${{ matrix.emacs_version }}
