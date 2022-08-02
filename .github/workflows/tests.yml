@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker:
+  build-home-assistant:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -32,9 +32,9 @@ jobs:
           name: hass-test-homeassistant
           path: /tmp/hass-test-homeassistant.tar
 
-  test:
+  test-emacs:
     runs-on: ubuntu-latest
-    needs: docker
+    needs: build-home-assistant
 
     strategy:
       matrix:
