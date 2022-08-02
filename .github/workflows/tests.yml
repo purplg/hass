@@ -41,6 +41,20 @@ jobs:
           - 'master'
 
     steps:
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Download container
+        uses: actions/download-artifact@v2
+        with:
+          name: hass-test-homeassistant
+          path: /tmp
+
+      - name: Import Docker image
+        run: |
+          docker load --input /tmp/hass-test-homeassistant.tar
+          docker image ls -a
+      
       - uses: actions/checkout@v3
 
       - name: Test
