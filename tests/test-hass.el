@@ -16,6 +16,8 @@
 (setq hass-test-entity-id "input_boolean.hass_test")
 (setq hass-test-entity-name "Hass test")
 
+
+;; hass.el tests
 (defun hass-test-with-entities (callback)
   "Setup function where the callback will be called after all
 services and entities are retrieved."
@@ -143,3 +145,69 @@ higher."
               (should (string= entity-id hass-test-entity-id))
               (should (string= (hass-state-of hass-test-entity-id) "on"))))
   (hass-call-service hass-test-entity-id "input_boolean.turn_on"))
+
+
+;; hass-dash.el tests
+(require 'hass-dash)
+
+(setq hass-dash-test-layout `(("Test Group One" .
+                               (("test_entity.one" :label "Test Widget One")
+                                ("test_entity.two" :label "Test Widget Two")))
+                              ("Test Group Two" .
+                               (("test_entity.three" :label "Test Widget Three")))))
+
+(ert-deftest hass-dash-test-track-layout-entities nil
+  (let ((hass-dash-layout hass-dash-test-layout)
+        (hass-tracked-entities '("explicit.entity")))
+    (advice-add #'hass--update-all-entities :around (lambda (&rest _)))
+    (hass-dash--track-layout-entities)
+    (should (member "explicit.entity" hass-tracked-entities))
+    (should (member "test_entity.one" hass-tracked-entities))
+    (should (member "test_entity.two" hass-tracked-entities))
+    (should (member "test_entity.three" hass-tracked-entities))))
+
+(ert-deftest hass-dash-test-create-widget-confirm-string nil
+  (let ((confirm-called nil)
+        (test-widget (hass-dash--create-widget hass-test-entity-id :confirm "Test confirmation?")))
+      ;; Disable `y-or-n-p' from prompting and set `confirm-called' to t if the prompt is correct.
+      (advice-add #'y-or-n-p
+                  :around
+                  (lambda (_ confirm)
+                    (setq confirm-called (string= confirm "Test confirmation?"))
+                    nil))
+      (widget-apply-action test-widget)
+      (should confirm-called)))
+
+(ert-deftest hass-dash-test-create-widget-confirm-function nil
+  (let* ((confirm-called nil)
+         (test-widget (hass-dash--create-widget
+                       hass-test-entity-id
+                       :confirm (lambda (&rest _)
+                                  (setq confirm-called t)
+                                  nil))))
+      (widget-apply-action test-widget)
+      (should confirm-called)))
+
+(ert-deftest hass-dash-test-create-widget-confirm-default nil
+  (let ((confirm-called nil)
+        (test-widget (hass-dash--create-widget hass-test-entity-id :confirm t)))
+      ;; Disable `y-or-n-p' from prompting and set `confirm-called' to t if the prompt is correct.
+      (advice-add #'y-or-n-p
+                  :around
+                  (lambda (_ confirm)
+                    (setq confirm-called (string= confirm (concat "Toggle " hass-test-entity-id "? ")))
+                    nil))
+      (widget-apply-action test-widget)
+      (should confirm-called)))
+
+(ert-deftest hass-dash-test-create-widget-confirm-none nil
+  (let ((confirm-called nil)
+        (test-widget (hass-dash--create-widget hass-test-entity-id)))
+      ;; Disable `y-or-n-p' from prompting and set `confirm-called' to t if the prompt is correct.
+      (advice-add #'y-or-n-p
+                  :around
+                  (lambda (_ confirm)
+                    (setq confirm-called t)
+                    nil))
+      (widget-apply-action test-widget)
+      (should-not confirm-called)))
