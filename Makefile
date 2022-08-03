@@ -1,8 +1,9 @@
 docker-name := hass-test-homeassistant
+emacs := emacs -Q --batch -l targets/melpa.el
 
 .PHONY: test
 test:
-	emacs -Q --batch -l targets/melpa.el -L ./ -l ./tests/test-*.el --eval="(ert-run-tests-batch-and-exit)"
+	${emacs} -L ./ -l ./tests/test-*.el --eval="(ert-run-tests-batch-and-exit)"
 
 .PHONY: start-homeassistant
 start-homeassistant:
@@ -15,4 +16,4 @@ build-homeassistant:
 
 .PHONY: deps
 deps:
-	emacs -Q --batch -l targets/melpa.el -l targets/deps.el
+	${emacs} -l targets/deps.el
