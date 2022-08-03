@@ -2,7 +2,7 @@ compose := docker compose -f tests/docker/docker-compose.yml
 compose-down := ${compose} down
 
 .PHONY: test
-test: deps start-homeassistant
+test: start-homeassistant
 	emacs -Q --batch -l targets/melpa.el -L ./ -l ./tests/test-*.el --eval="(ert-run-tests-batch-and-exit)"
 
 .PHONY: start-homeassistant
