@@ -1,4 +1,4 @@
-docker-name := hass-test-home-assistant
+docker-name := hass-test-homeassistant
 
 .PHONY: test
 test:
