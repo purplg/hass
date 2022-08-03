@@ -7,7 +7,7 @@ COPY auth /config/.storage/auth
 ## for debugging
 ## username: dev
 ## password: dev
-# COPY auth_provider.homeassistant /config/.storage/auth_provider.homeassistant
+COPY auth_provider.homeassistant /config/.storage/auth_provider.homeassistant
 
 ## This is the main Home Assistant configuration file with some test entities added to test against
 COPY configuration.yaml /config/configuration.yaml
