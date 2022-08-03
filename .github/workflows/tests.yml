@@ -78,9 +78,7 @@ jobs:
         run: make deps
 
       - name: start Home Assistant
-        run: |
-          make build-homeassistant
-          make start-homeassistant
+        run: make start-homeassistant
 
       - name: test
         run: make test
