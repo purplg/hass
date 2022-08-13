@@ -53,17 +53,21 @@
 ;;  (hass-websocket-mode t)
 
 ;;; Code:
-(require 'hass)
-(require 'json)
+
+;; Check if the websocket package exists. Halt loading rest of package if it doesn't.
 (unless (require 'websocket nil 'noerror)
   (user-error "`hass-websocket-mode' requires package `websocket'"))
+
+(require 'json)
+
+(require 'hass)
 
 ;; User customizable
 (defvar hass-websocket-mode-map (make-sparse-keymap)
   "Keymap for `hass-websocket-mode'.")
 
 (defvar hass-websocket-connected-hook #'hass-websocket--subscribe-to-state-changes
- "Hook called after successful authentication to websocket.")
+  "Hook called after successful authentication to websocket.")
 
 ;; Internal state
 (defvar hass-websocket--connection '()
@@ -79,8 +83,8 @@
          (type (cdr (assoc 'type content))))
     (cond ((string= "auth_required" type)
            (hass-websocket--send
-             `((type . "auth")
-               (access_token . ,(hass--apikey)))))
+            `((type . "auth")
+              (access_token . ,(hass--apikey)))))
           ((string= type "auth_ok")
            (message "hass: Connected to websocket")
            (run-hooks 'hass-websocket-connected-hook))
@@ -110,8 +114,8 @@ Assistant."
   (let ((entity-id (cdr (assoc 'entity_id data))))
     (when (member entity-id hass-tracked-entities)
       (hass--query-entity-result
-        entity-id
-        (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
+       entity-id
+       (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
 
 ;; Requests - Send to Home Assistant over websocket
 (defun hass-websocket--subscribe-to-state-changes ()
@@ -135,13 +139,13 @@ MESSAGE is an alist to be encoded into a JSON object."
 (defun hass-websocket--connect ()
   "Establish a websocket connection to Home Assistant."
   (setq hass-websocket--connection
-    (websocket-open (format "%s://%s:%s/api/websocket"
-                            (if hass-insecure "ws" "wss")
-                            hass-host
-                            hass-port)
-      :on-message #'hass-websocket--handle-message
-      :on-open (lambda (_websocket) (setq hass-websocket--interactions 0))
-      :on-close (lambda (_websocket) (setq hass-websocket--connection nil)))))
+        (websocket-open (format "%s://%s:%s/api/websocket"
+                                (if hass-insecure "ws" "wss")
+                                hass-host
+                                hass-port)
+                        :on-message #'hass-websocket--handle-message
+                        :on-open (lambda (_websocket) (setq hass-websocket--interactions 0))
+                        :on-close (lambda (_websocket) (setq hass-websocket--connection nil)))))
 
 (defun hass-websocket--disconnect ()
   "Disconnect the websocket connection to Home Assistant."

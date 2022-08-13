@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "auth",
+  "data": {
+    "users": [
+      {
+        "id": "1889dd9a42aa4bbba130ffb6dd39477e",
+        "group_ids": [
+          "system-read-only"
+        ],
+        "is_owner": false,
+        "is_active": true,
+        "name": "Home Assistant Content",
+        "system_generated": true,
+        "local_only": false
+      },
+      {
+        "id": "5e2ff011877340d184b1f715c202f788",
+        "group_ids": [
+          "system-admin"
+        ],
+        "is_owner": true,
+        "is_active": true,
+        "name": "dev",
+        "system_generated": false,
+        "local_only": false
+      }
+    ],
+    "groups": [
+      {
+        "id": "system-admin",
+        "name": "Administrators"
+      },
+      {
+        "id": "system-users",
+        "name": "Users"
+      },
+      {
+        "id": "system-read-only",
+        "name": "Read Only"
+      }
+    ],
+    "credentials": [
+      {
+        "id": "e454665f4f6b4dc8b15024da148cc334",
+        "user_id": "5e2ff011877340d184b1f715c202f788",
+        "auth_provider_type": "homeassistant",
+        "auth_provider_id": null,
+        "data": {
+          "username": "dev"
+        }
+      }
+    ],
+    "refresh_tokens": [
+      {
+        "id": "3fc1255010a340c6b12264f8024d7a74",
+        "user_id": "5e2ff011877340d184b1f715c202f788",
+        "client_id": null,
+        "client_name": "dev",
+        "client_icon": null,
+        "token_type": "long_lived_access_token",
+        "created_at": "2022-07-30T20:55:45.096727+00:00",
+        "access_token_expiration": 315360000.0,
+        "token": "cd904c656470c76362a7201e2d400ef496cad4c1aa3bad31e036366536a554787d76df8916e885add1055b412180b6b44c95280e0ab6cfca371fadd3b4b65681",
+        "jwt_key": "19fcce2ba796bf75367310868847d2fedea0e1c3bec34a1097919078c0039979f42733cb2abe89813624aff9b44212e456009c466fd6d0c7bfacc82e78be4bf5",
+        "last_used_at": "2022-07-30T20:55:45.096818+00:00",
+        "last_used_ip": null,
+        "credential_id": null,
+        "version": "2022.7.7"
+      }
+    ]
+  }
+}

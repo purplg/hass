@@ -198,7 +198,6 @@ Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home
                   :label "Vacuum"
                   :confirm "Start vacuuming? ") ;; Ask for confirmation with a custom prompt
 
-                ;; Ask for confirmation with a custom prompt
                 ("vacuum.valetudo_vacuum"
                   :label "Vacuum return home"
                   :service "vacuum.return_to_base" ;; Call this service instead of the default one to start cleaning
@@ -217,7 +216,7 @@ To use the dashboard feature, ~hass-dash-layout~ must be configure to tell ~hass
 |---------------------+----------------------------------------------------------------------------------------------|
 | ~:label~            | The human readable label of the widget to be shown on the dashboard.                         |
 | ~:service~          | The service to be called when the widget is selected.                                        |
-| ~:icon~             | The icon to be shown prefix to the widget.                                                   |
+| ~:icon~             | The icon to be shown prefixed to the widget.                                                 |
 | ~:state~            | An entity id of the state to be shown next to the widget.                                    |
 | ~:widget-formatter~ | The function used to format the widgets on the dashboard.                                    |
 | ~:label-formatter~  | The function used to format the label of the widget.                                         |

@@ -1,0 +1,10 @@
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+sun:
+
+input_boolean:
+  hass_test:
+    name: Hass test
+    icon: mdi:test-tube
