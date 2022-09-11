@@ -322,22 +322,22 @@ The frequency of the query can be adjusted by setting ~hass-polling-frequency~ t
 
 ** Hooks
 
-The most useful hook is a function list named ~hass-entity-state-updated-functions~. Functions in this list are passed a single argument ~entity-id~ which is the entity id of the entity whose state has changed since it was last updated. Using this function hook along side [[*Tracking entities][tracking entities]] enables Emacs to react to changes to Home Assistant entities.
+The most useful hook is a function list named ~hass-entity-state-changed-functions~. Functions in this list are passed a single argument ~entity-id~ which is the entity id of the entity whose state has changed since it was last updated. Using this function hook along side [[*Tracking entities][tracking entities]] enables Emacs to react to changes to Home Assistant entities.
 
 This example will display the state of an entity when it changes:
 
 #+BEGIN_SRC emacs-lisp :results none
-(add-hook 'hass-entity-state-updated-functions
+(add-hook 'hass-entity-state-changed-functions
   (lambda (entity-id)
     (message "The entity %s state has changed to %s." entity-id (hass-state-of entity-id))))
 #+END_SRC
 
-The other two hooks available are ~hass-entity-state-updated-hook~ and ~hass-service-called-hook~. ~hass-entity-state-updated-hook~ is called when the state of an entity is updated, regardless of if it changed or not. ~hass-service-called-hook~ is called when a service
+The other two hooks available are ~hass-entity-updated-hook~ and ~hass-service-called-hook~. ~hass-entity-updated-hook~ is called when the state of an entity is updated, regardless of if it changed or not. ~hass-service-called-hook~ is called when a service
 is called.
 
 #+BEGIN_SRC emacs-lisp :results none
 (add-hook 'hass-service-called-hook (lambda () (message "A service was called.")))
-(add-hook 'hass-entity-state-updated-hook (lambda () (message "An entitys' state was updated.")))
+(add-hook 'hass-entity-updated-hook (lambda () (message "An entitys' state was updated.")))
 #+END_SRC
 
 * License
