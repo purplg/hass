@@ -27,7 +27,7 @@ jobs:
           outputs: type=docker,dest=/tmp/hass-test-homeassistant.tar
 
       - name: Upload container
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: hass-test-homeassistant
           path: /tmp/hass-test-homeassistant.tar
