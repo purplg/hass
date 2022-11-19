@@ -307,15 +307,17 @@ affected and now has STATE."
   (hass--set-state entity-id state)
   (run-hooks 'hass-service-called-hook))
 
-(cl-defun hass--request-error (&key error-thrown &allow-other-keys)
+(cl-defun hass--request-error (&key symbol-status data response &allow-other-keys)
   "Error handler for invalid requests.
 ERROR-THROWN is the error thrown from the request.el request."
-  (let ((error (replace-regexp-in-string "\n$" "" (cdr error-thrown))))
-    (cond ((string= error "exited abnormally with code 7\n")
-           (user-error "Hass: No Home Assistant instance detected at url: %s" hass-host))
-          ((string= error "exited abnormally with code 35\n")
-           (user-error "Hass: Error connecting to url `%s'? Try toggling variable `hass-insecure'" (hass--url)))
-          ((error "Hass: unknown error: %S" error)))))
+  (let ((message (alist-get 'message data))
+        (url (request-response-url response)))
+    (cond ((eq symbol-status 'parse-error)
+           (hass--warning "Could not connect to URL: %s" url))
+          (message
+           (hass--warning "%s URL: `%s'" message url))
+          (t
+           (hass--warning "Unknown error occurred with URL: %s" url)))))
 
 
 ;; Requests
