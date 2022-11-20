@@ -476,6 +476,22 @@ you want to query automatically."
                        'hass-polling--query-entities))))
 
 
+;; Init
+(defun hass--config-error ()
+  "Return configuration error message if error exists or nil if no errors exist."
+  (cond ((not (equal (type-of (hass--apikey)) 'string))
+         ("HASS-APIKEY must be set to use hass"))
+        ((not (equal (type-of hass-host) 'string))
+         "HASS-HOST must be set to use hass")
+        (t nil)))
+
+(defun hass--start ()
+  "Initialize connection to Home Assistant instance. Assumes configuration is valid."
+  (add-hook 'hass-api-connected-hook
+            (lambda ()
+              (hass--get-available-services #'hass--get-available-entities)))
+  (hass--check-api-connection))
+
 ;;;###autoload
 (defun hass-setup ()
   "Run before using any hass features.
@@ -491,16 +507,9 @@ Assistant instance for available services and entities."
       (setq hass-host (match-string 2 hass-url))
       (setq hass-port (match-string 3 hass-url))))
 
-  (cond ((not (equal (type-of (hass--apikey)) 'string))
-         (user-error "HASS-APIKEY must be set to use hass"))
-        ((not (equal (type-of hass-host) 'string))
-         (user-error "HASS-HOST must be set to use hass")))
-  
-  (add-hook 'hass-api-connected-hook
-            (lambda ()
-              (hass--get-available-services #'hass--get-available-entities)))
-
-  (hass--check-api-connection))
+  (if-let ((err (hass--config-error)))
+      (user-error err)
+    (hass--start)))
 
 (provide 'hass)
 
