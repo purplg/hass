@@ -162,7 +162,7 @@ MESSAGE is an alist to be encoded into a JSON object."
   (when hass-websocket--connection
     (websocket-close hass-websocket--connection)
     (setq hass-websocket--connection nil)
-    (hass--warning "Disconnected from websocket")))
+    (hass--message "Disconnected from websocket")))
 
 ;;;###autoload
 (define-minor-mode hass-websocket-mode
