@@ -107,8 +107,9 @@
 EVENT is the name of the event in Home Assistant that triggered."
   (let ((event-type (cdr (assoc 'event_type event)))
         (data (cdr (assoc 'data event))))
-    (cond ((string= event-type "state_changed")
-           (hass-websocket--handle-state-change data)))))
+    (pcase event-type
+      ("state_changed"
+       (hass-websocket--handle-state-change data)))))
 
 (defun hass-websocket--handle-state-change (data)
   "Handle a websocket message for the 'state_changed' event.
