@@ -93,11 +93,11 @@
           (access_token . ,(hass--apikey)))))
 
       ("auth_ok"
-       (message "hass: Connected to Home Assistant")
+       (hass--message "Connected to Home Assistant")
        (run-hooks 'hass-websocket-connected-hook))
 
       ("auth_invalid"
-       (user-error "hass: Failed to authenticate with Home Assistant: %s" (cdr (assoc 'message content))))
+       (hass--warning "Failed to authenticate with Home Assistant: %s" (cdr (assoc 'message content))))
 
       ("event"
        (hass-websocket--handle-event (cdr (assoc 'event content)))))))
@@ -162,7 +162,7 @@ MESSAGE is an alist to be encoded into a JSON object."
   (when hass-websocket--connection
     (websocket-close hass-websocket--connection)
     (setq hass-websocket--connection nil)
-    (message "hass: Disconnected from websocket")))
+    (hass--warning "Disconnected from websocket")))
 
 ;;;###autoload
 (define-minor-mode hass-websocket-mode
