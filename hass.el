@@ -508,7 +508,7 @@ Assistant instance for available services and entities."
       (setq hass-port (match-string 3 hass-url))))
 
   (if-let ((err (hass--config-error)))
-      (user-error err)
+      (hass--warning err)
     (hass--start)))
 
 (provide 'hass)
