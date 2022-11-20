@@ -85,19 +85,22 @@
   "Route FRAME received from websocket."
   (let* ((content (hass--deserialize (websocket-frame-text frame)))
          (type (cdr (assoc 'type content))))
-    (cond ((string= "auth_required" type)
-           (hass-websocket--send
-            `((type . "auth")
-              (access_token . ,(hass--apikey)))))
-          ((string= type "auth_ok")
-           (message "hass: Connected to websocket")
-           (run-hooks 'hass-websocket-connected-hook))
-          ((string= type "auth_invalid")
-           (user-error "hass: Failed to connect to websocket: %s" (cdr (assoc 'message content))))
-          ((string= type "result")
-           (message (unless (cdr (assoc 'success content)) "hass: Error")))
-          ((string= type "event")
-           (hass-websocket--handle-event (cdr (assoc 'event content)))))))
+
+    (pcase type
+      ("auth_required"
+       (hass-websocket--send
+        `((type . "auth")
+          (access_token . ,(hass--apikey)))))
+
+      ("auth_ok"
+       (message "hass: Connected to Home Assistant")
+       (run-hooks 'hass-websocket-connected-hook))
+
+      ("auth_invalid"
+       (user-error "hass: Failed to authenticate with Home Assistant: %s" (cdr (assoc 'message content))))
+
+      ("event"
+       (hass-websocket--handle-event (cdr (assoc 'event content)))))))
 
 (defun hass-websocket--handle-event (event)
   "Handle a websocket message.
