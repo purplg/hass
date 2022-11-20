@@ -244,6 +244,7 @@ ENTITY-ID is the id of the entity in Home Assistant."
   "Name of the buffer used for debug messages.")
 
 (defun hass--debug-buffer ()
+  "Return the debug buffer for hass."
   (or (get-buffer hass--debug-buffer)
       (with-current-buffer (get-buffer-create hass--debug-buffer)
         (read-only-mode 1)
@@ -256,7 +257,8 @@ ENTITY-ID is the id of the entity in Home Assistant."
 
 (defun hass--debug (type &rest msg)
   "Display a message in the hass debug buffer.
-TYPE is the type of debug message. Also shown as the header of the logged message.
+TYPE is the type of debug message.  Also shown as the header of
+the logged message.
 
 MSG is the message to be display in the debug buffer."
   (when hass-debug
@@ -349,7 +351,8 @@ affected and now has STATE."
 
 (cl-defun hass--request-error (&key symbol-status data response &allow-other-keys)
   "Error handler for invalid requests.
-ERROR-THROWN is the error thrown from the request.el request."
+SYMBOL-STATUS, DATA, and RESPONSE are all directly forward from
+`request''s callback function."
   (let ((message (alist-get 'message data))
         (url (request-response-url response)))
     (cond ((eq symbol-status 'parse-error)
@@ -526,7 +529,7 @@ you want to query automatically."
         (t nil)))
 
 (defun hass--start ()
-  "Initialize connection to Home Assistant instance. Assumes configuration is valid."
+  "Initialize connection to Home Assistant instance.  Assumes configuration is valid."
   (add-hook 'hass-api-connected-hook
             (lambda ()
               (hass--get-available-services #'hass--get-available-entities)))
