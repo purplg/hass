@@ -235,6 +235,11 @@ ENTITY-ID is the id of the entity in Home Assistant."
    (cdr (assoc entity-id hass--available-entities))
    ':friendly_name))
 
+(defun hass--message (&rest msg)
+  "Display a message in the `*Messages*' buffer.
+MSG is the message to be display in the messages buffer."
+  (message "(hass) %s" (apply 'format msg)))
+
 (defun hass--warning (&rest msg)
   "Display a warning in the warnings buffer.
 MSG is the message to be display in the warnings buffer."
