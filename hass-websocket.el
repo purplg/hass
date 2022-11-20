@@ -57,6 +57,7 @@
 
 ;; Check if the websocket package exists. Halt loading rest of package if it doesn't.
 (unless (require 'websocket nil 'noerror)
+  (hass--warning "`hass-websocket-mode' requires package `websocket'")
   (user-error "`hass-websocket-mode' requires package `websocket'"))
 
 (require 'json)
@@ -88,6 +89,7 @@
 
     (pcase type
       ("auth_required"
+       (hass--debug "AUTH" "Authenticating...")
        (hass-websocket--send
         `((type . "auth")
           (access_token . ,(hass--apikey)))))
@@ -100,6 +102,7 @@
        (hass--warning "Failed to authenticate with Home Assistant: %s" (cdr (assoc 'message content))))
 
       ("event"
+       (hass--debug "EVENT" "%s" (cdr (assoc 'event content)))
        (hass-websocket--handle-event (cdr (assoc 'event content)))))))
 
 (defun hass-websocket--handle-event (event)

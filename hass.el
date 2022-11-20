@@ -235,14 +235,49 @@ ENTITY-ID is the id of the entity in Home Assistant."
    (cdr (assoc entity-id hass--available-entities))
    ':friendly_name))
 
+
+;; Logging
+(defvar hass-debug nil
+  "Enable debug logging when t.")
+
+(defvar hass--debug-buffer "*Hass Debug*"
+  "Name of the buffer used for debug messages.")
+
+(defun hass--debug-buffer ()
+  (or (get-buffer hass--debug-buffer)
+      (with-current-buffer (get-buffer-create hass--debug-buffer)
+        (read-only-mode 1)
+        (set (make-local-variable 'window-point-insertion-type) t))))
+
+(defface hass--debug-heading-face
+  '((t (:inherit mode-line :extend t)))
+  "Face for widget group labels in HASS's dashboard."
+  :group 'hass)
+
+(defun hass--debug (type &rest msg)
+  "Display a message in the hass debug buffer.
+TYPE is the type of debug message. Also shown as the header of the logged message.
+
+MSG is the message to be display in the debug buffer."
+  (when hass-debug
+    (with-current-buffer (hass--debug-buffer)
+      (let ((inhibit-read-only t))
+        (goto-char (point-max))
+        (insert (propertize type 'face 'hass--debug-heading-face))
+        (newline)
+        (insert (apply 'format msg))
+        (newline)))))
+
 (defun hass--message (&rest msg)
   "Display a message in the `*Messages*' buffer.
 MSG is the message to be display in the messages buffer."
+  (hass--debug "MESSAGE" "%s" (apply 'format msg))
   (message "(hass) %s" (apply 'format msg)))
 
 (defun hass--warning (&rest msg)
   "Display a warning in the warnings buffer.
 MSG is the message to be display in the warnings buffer."
+  (hass--debug "WARNING" "%s" (apply 'format msg))
   (display-warning 'hass (apply 'format msg)))
 
 
