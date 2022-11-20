@@ -54,6 +54,7 @@
 
 ;;; Code:
 
+
 ;; Check if the websocket package exists. Halt loading rest of package if it doesn't.
 (unless (require 'websocket nil 'noerror)
   (user-error "`hass-websocket-mode' requires package `websocket'"))
@@ -62,6 +63,7 @@
 
 (require 'hass)
 
+
 ;; User customizable
 (defvar hass-websocket-mode-map (make-sparse-keymap)
   "Keymap for `hass-websocket-mode'.")
@@ -69,6 +71,7 @@
 (defvar hass-websocket-connected-hook #'hass-websocket--subscribe-to-state-changes
   "Hook called after successful authentication to websocket.")
 
+
 ;; Internal state
 (defvar hass-websocket--connection '()
   "Websocket connection info.")
@@ -76,6 +79,7 @@
 (defvar hass-websocket--interactions '()
   "Number Websocket interactions to use for message IDs.")
 
+
 ;; Updates - Received from Home Assistant over websocket
 (defun hass-websocket--handle-message (_websocket frame)
   "Route FRAME received from websocket."
@@ -117,6 +121,7 @@ Assistant."
        entity-id
        (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
 
+
 ;; Requests - Send to Home Assistant over websocket
 (defun hass-websocket--subscribe-to-state-changes ()
   "Request 'state_changed' events be sent over the websocket connection."
@@ -135,6 +140,7 @@ MESSAGE is an alist to be encoded into a JSON object."
   (websocket-send-text hass-websocket--connection (hass--serialize message))
   (setq hass-websocket--interactions (1+ hass-websocket--interactions)))
 
+
 ;; Mode toggle
 (defun hass-websocket--connect ()
   "Establish a websocket connection to Home Assistant."
