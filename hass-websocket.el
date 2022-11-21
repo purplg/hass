@@ -57,6 +57,7 @@
 
 ;; Check if the websocket package exists. Halt loading rest of package if it doesn't.
 (unless (require 'websocket nil 'noerror)
+  (hass--warning "`hass-websocket-mode' requires package `websocket'")
   (user-error "`hass-websocket-mode' requires package `websocket'"))
 
 (require 'json)
@@ -88,18 +89,20 @@
 
     (pcase type
       ("auth_required"
+       (hass--debug "AUTH" "Authenticating...")
        (hass-websocket--send
         `((type . "auth")
           (access_token . ,(hass--apikey)))))
 
       ("auth_ok"
-       (message "hass: Connected to Home Assistant")
+       (hass--message "Connected to Home Assistant")
        (run-hooks 'hass-websocket-connected-hook))
 
       ("auth_invalid"
-       (user-error "hass: Failed to authenticate with Home Assistant: %s" (cdr (assoc 'message content))))
+       (hass--warning "Failed to authenticate with Home Assistant: %s" (cdr (assoc 'message content))))
 
       ("event"
+       (hass--debug "EVENT" "%s" (cdr (assoc 'event content)))
        (hass-websocket--handle-event (cdr (assoc 'event content)))))))
 
 (defun hass-websocket--handle-event (event)
@@ -162,7 +165,7 @@ MESSAGE is an alist to be encoded into a JSON object."
   (when hass-websocket--connection
     (websocket-close hass-websocket--connection)
     (setq hass-websocket--connection nil)
-    (message "hass: Disconnected from websocket")))
+    (hass--message "Disconnected from websocket")))
 
 ;;;###autoload
 (define-minor-mode hass-websocket-mode
