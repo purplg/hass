@@ -236,6 +236,53 @@ ENTITY-ID is the id of the entity in Home Assistant."
    ':friendly_name))
 
 
+;; Logging
+(defvar hass-debug nil
+  "Enable debug logging when t.")
+
+(defvar hass--debug-buffer "*Hass Debug*"
+  "Name of the buffer used for debug messages.")
+
+(defun hass--debug-buffer ()
+  "Return the debug buffer for hass."
+  (or (get-buffer hass--debug-buffer)
+      (with-current-buffer (get-buffer-create hass--debug-buffer)
+        (read-only-mode 1)
+        (set (make-local-variable 'window-point-insertion-type) t))))
+
+(defface hass--debug-heading-face
+  '((t (:inherit mode-line :extend t)))
+  "Face for widget group labels in HASS's dashboard."
+  :group 'hass)
+
+(defun hass--debug (type &rest msg)
+  "Display a message in the hass debug buffer.
+TYPE is the type of debug message.  Also shown as the header of
+the logged message.
+
+MSG is the message to be display in the debug buffer."
+  (when hass-debug
+    (with-current-buffer (hass--debug-buffer)
+      (let ((inhibit-read-only t))
+        (goto-char (point-max))
+        (insert (propertize type 'face 'hass--debug-heading-face))
+        (newline)
+        (insert (apply 'format msg))
+        (newline)))))
+
+(defun hass--message (&rest msg)
+  "Display a message in the `*Messages*' buffer.
+MSG is the message to be display in the messages buffer."
+  (hass--debug "MESSAGE" "%s" (apply 'format msg))
+  (message "(hass) %s" (apply 'format msg)))
+
+(defun hass--warning (&rest msg)
+  "Display a warning in the warnings buffer.
+MSG is the message to be display in the warnings buffer."
+  (hass--debug "WARNING" "%s" (apply 'format msg))
+  (display-warning 'hass (apply 'format msg)))
+
+
 ;; API parsing
 (defun hass--parse-all-entities (entities)
   "Convert entity state data into a list of available entities.
@@ -302,15 +349,18 @@ affected and now has STATE."
   (hass--set-state entity-id state)
   (run-hooks 'hass-service-called-hook))
 
-(cl-defun hass--request-error (&key error-thrown &allow-other-keys)
+(cl-defun hass--request-error (&key symbol-status data response &allow-other-keys)
   "Error handler for invalid requests.
-ERROR-THROWN is the error thrown from the request.el request."
-  (let ((error (replace-regexp-in-string "\n$" "" (cdr error-thrown))))
-    (cond ((string= error "exited abnormally with code 7\n")
-           (user-error "Hass: No Home Assistant instance detected at url: %s" hass-host))
-          ((string= error "exited abnormally with code 35\n")
-           (user-error "Hass: Error connecting to url `%s'? Try toggling variable `hass-insecure'" (hass--url)))
-          ((error "Hass: unknown error: %S" error)))))
+SYMBOL-STATUS, DATA, and RESPONSE are all directly forward from
+`request''s callback function."
+  (let ((message (alist-get 'message data))
+        (url (request-response-url response)))
+    (cond ((eq symbol-status 'parse-error)
+           (hass--warning "Could not connect to URL: %s" url))
+          (message
+           (hass--warning "%s URL: `%s'" message url))
+          (t
+           (hass--warning "Unknown error occurred with URL: %s" url)))))
 
 
 ;; Requests
@@ -469,6 +519,22 @@ you want to query automatically."
                        'hass-polling--query-entities))))
 
 
+;; Init
+(defun hass--config-error ()
+  "Return configuration error message if error exists or nil if no errors exist."
+  (cond ((not (equal (type-of (hass--apikey)) 'string))
+         ("HASS-APIKEY must be set to use hass"))
+        ((not (equal (type-of hass-host) 'string))
+         "HASS-HOST must be set to use hass")
+        (t nil)))
+
+(defun hass--start ()
+  "Initialize connection to Home Assistant instance.  Assumes configuration is valid."
+  (add-hook 'hass-api-connected-hook
+            (lambda ()
+              (hass--get-available-services #'hass--get-available-entities)))
+  (hass--check-api-connection))
+
 ;;;###autoload
 (defun hass-setup ()
   "Run before using any hass features.
@@ -477,23 +543,16 @@ Assistant instance for available services and entities."
 
   ;; Backwards compability. Split `hass-url', into appropriate variables.
   (when (boundp 'hass-url)
-    (message "hass: `hass-url' is deprecated as of v2.0. Please use `hass-host'. https://github.com/purplg/hass/blob/master/README.org#deprecated-hass-url")
+    (hass--warning "`hass-url' is deprecated as of v2.0. Please use `hass-host'. https://github.com/purplg/hass/blob/master/README.org#deprecated-hass-url")
     (save-match-data
       (string-match "http\\(s?\\)://\\(.*\\):\\([0-9]*\\)$" hass-url)
       (setq hass-insecure (string-empty-p (match-string 1 hass-url)))
       (setq hass-host (match-string 2 hass-url))
       (setq hass-port (match-string 3 hass-url))))
 
-  (cond ((not (equal (type-of (hass--apikey)) 'string))
-         (user-error "HASS-APIKEY must be set to use hass"))
-        ((not (equal (type-of hass-host) 'string))
-         (user-error "HASS-HOST must be set to use hass")))
-  
-  (add-hook 'hass-api-connected-hook
-            (lambda ()
-              (hass--get-available-services #'hass--get-available-entities)))
-
-  (hass--check-api-connection))
+  (if-let ((err (hass--config-error)))
+      (hass--warning err)
+    (hass--start)))
 
 (provide 'hass)
 
