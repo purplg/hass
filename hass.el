@@ -246,9 +246,11 @@ ENTITY-ID is the id of the entity in Home Assistant."
 (defun hass--debug-buffer ()
   "Return the debug buffer for hass."
   (or (get-buffer hass--debug-buffer)
-      (with-current-buffer (get-buffer-create hass--debug-buffer)
-        (read-only-mode 1)
-        (set (make-local-variable 'window-point-insertion-type) t))))
+      (let ((buf (get-buffer-create hass--debug-buffer)))
+        (with-current-buffer buf
+          (read-only-mode 1)
+          (set (make-local-variable 'window-point-insertion-type) t))
+        buf)))
 
 (defface hass--debug-heading-face
   '((t (:inherit mode-line :extend t)))
