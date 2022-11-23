@@ -57,7 +57,7 @@
     map)
   "Keymap for `hass-dash-mode'.")
 
-(defface hass-dash-dash-group-face
+(defface hass-dash-group-face
   '((t (:inherit outline-1)))
   "Face for dashboard titles in HASS's dashboard."
   :group 'hass-dash)
@@ -220,7 +220,7 @@ You can pass `:title' to give the group a title, and pass `:title-face' to set
 the font face for the title."
   :format "%t\n%v"
   :create 'hass-dash--group-create
-  :title-face 'hass-dash-dash-group-face)
+  :title-face 'hass-dash-group-face)
 
 
 ;; User functions
