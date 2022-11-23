@@ -23,13 +23,15 @@
 ;; --------------------
 ;; Full layout example
 
-;; (setq hass-dash-layout
-;;       `(group :format ,(propertize "Home Assistant\n%v" 'face 'outline-1)
-;;               (item :format "\n")
-;;               (group :format ,(propertize " Kitchen\n %v" 'face 'outline-2)
-;;                      (hass-dash-toggle :entity-id "light.kitchen_lights")
-;;                      (item :format "\n")
-;;                      (hass-dash-toggle :entity-id "switch.entry_light"))))
+;;(setq hass-dash-layout
+;;      `(hass-dash-group :title "Home Assistant"
+;;                        :format "%t\n\n%v"
+;;                        (hass-dash-group :title "Kitchen"
+;;                                         :title-face outline-2
+;;                                         (hass-dash-toggle :entity-id "light.kitchen_lights")
+;;                                         (hass-dash-toggle :entity-id "switch.entry_light"
+;;                                                           :label "Hallway"
+;;                                                           :confirm t))))
 
 ;; --------------------
 ;; Usage
