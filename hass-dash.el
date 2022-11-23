@@ -55,13 +55,13 @@
     map)
   "Keymap for `hass-dash-mode'.")
 
-(defface hass-dash-widget-label-face
-  '((t (:inherit widget-button)))
-  "Face for widgets in HASS's dashboard."
+(defface hass-dash-dash-group-face
+  '((t (:inherit outline-1)))
+  "Face for dashboard titles in HASS's dashboard."
   :group 'hass-dash)
 
-(defface hass-dash-widget-state-face
-  '((t (:inherit hass-dash-widget-label-face)))
+(defface hass-dash-widget-label-face
+  '((t (:inherit outline-8)))
   "Face for widgets in HASS's dashboard."
   :group 'hass-dash)
 
@@ -93,17 +93,21 @@
   "A list describing the root widget to show on the dashboard.
 In most cases, this will be a `group' widget.  You can then build a tree of
 arbitrary widgets to display on the dashboard.  You'll probably want to make use
-of hass widgets such as `hass-dash-toggle'.
+of hass widgets such as `hass-dash-toggle' or `hass-dash-group'.
 
 Full example:
 
 \(setq hass-dash-layout
-      \\=`(group :format ,(propertize \"Home Assistant\\n%v\" \\='face \\='outline-1)
-              (item :format \"\\n\")
-              (group :format ,(propertize \" Kitchen\\n %v\" \\='face \\='outline-2)
-                     (hass-dash-toggle :entity-id \"light.kitchen_lights\")
-                     (item :format \"\\n\")
-                     (hass-dash-toggle :entity-id \"switch.entry_light\"))))")
+      \\=`(hass-dash-group
+        :title \"Home Assistant\"
+        :format \"%t\\n\\n%v\"
+        (hass-dash-group
+         :title \"Kitchen\"
+         :title-face outline-2
+         (hass-dash-toggle :entity-id \"light.kitchen_lights\")
+         (hass-dash-toggle :entity-id \"switch.entry_light\"
+                           :label \"Hallway\"
+                           :confirm t))))")
 
 
 ;; Helper functions
@@ -133,26 +137,32 @@ is set, falls back to using the `:entity_id' property on the WIDGET."
                    ':friendly_name)
         entity-id)))
 
-(defun hass-dash--widget-icon (widget)
-  "Return the icon for WIDGET.
-Uses the `:icon' property if one is set on the WIDGET, otherwise returns the
-default icon based on the entity ID."
-  (or (widget-get widget :icon)
-      (hass--icon-of-entity (widget-get widget :entity-id))))
+(defun hass-dash--widget-create (widget)
+  "Create the widget WIDGET.
+This just uses `widget-default-create', but sets the `:tag' property if it isn't
+already set by using the widget icon and label."
+  (unless (widget-get widget :tag)
+    (let* ((icon (or (widget-get widget :icon)
+                     (hass--icon-of-entity (widget-get widget :entity-id))))
+           (label (propertize (hass-dash--widget-label widget)
+                              'face
+                              'hass-dash-widget-label-face))
+           (tag (if icon (concat icon " " label) label)))
+      (widget-put widget :tag tag)))
+  (widget-default-create widget))
 
-(defun hass-dash--widget-format-handler (widget escape)
-  "Handle ESCAPE in the format for WIDGET.
-Specifically, this format handler handles the following:
+(defun hass-dash--group-create (widget)
+  "Create the hass dashboard group WIDGET.
+This just uses `widget-default-create', but sets the `:tag' property if it isn't
+already set using the `:title' and `:title-face' properties."
+  (unless (widget-get widget :tag)
+    (widget-put widget :tag (propertize (widget-get widget :title)
+                                        'face (widget-get widget :title-face))))
+  (widget-default-create widget))
 
-• '%i' will insert the icon returned from `hass-dash--widget-icon'
-• '%l' will insert the label returned from `hass-dash--widget-label'
-• '%s' will insert the current state of the entity"
-  (cond ((eq escape ?i) (insert (hass-dash--widget-icon widget)))
-        ((eq escape ?l) (insert (propertize (hass-dash--widget-label widget)
-                                            'face 'hass-dash-widget-label-face)))
-        ((eq escape ?s) (insert (propertize (hass-state-of (widget-get widget :entity-id))
-                                            'face 'hass-dash-widget-state-face)))
-        (t (widget-default-format-handler widget escape))))
+(defun hass-dash--toggle-widget-value-get (widget)
+  "Get the state for a toggle WIDGET."
+  (string= (hass-state-of (widget-get widget :entity-id)) "on"))
 
 (defun hass-dash--widget-action (widget &optional _)
   "Action handler for WIDGET.
@@ -182,7 +192,7 @@ service.  It can take on the following values:
                      (hass-call-service entity-id service nil)))
           (t (hass-call-service entity-id service nil)))))
 
-(define-widget 'hass-dash-toggle 'push-button
+(define-widget 'hass-dash-toggle 'toggle
   "A toggle widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
 Assistant.  The following optional properties can also be used:
@@ -197,9 +207,18 @@ Assistant.  The following optional properties can also be used:
   based on the entity id.
 • `:confirm': If passed, this will control how the action is confirmed before
   being confirmed.  See `hass-dash--widget-action' for details."
-  :format "%[%i %l - %s%]"
-  :format-handler 'hass-dash--widget-format-handler
+  :create 'hass-dash--widget-create
+  :format "%t: %[[%v]%]\n"
+  :value-get 'hass-dash--toggle-widget-value-get
   :action 'hass-dash--widget-action)
+
+(define-widget 'hass-dash-group 'group
+  "A grouping widget for home-assistant dashboards.
+You can pass `:title' to give the group a title, and pass `:title-face' to set
+the font face for the title."
+  :format "%t\n%v"
+  :create 'hass-dash--group-create
+  :title-face 'hass-dash-dash-group-face)
 
 
 ;; User functions
