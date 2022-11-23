@@ -24,14 +24,17 @@
 ;; Full layout example
 
 ;;(setq hass-dash-layout
-;;      `(hass-dash-group :title "Home Assistant"
-;;                        :format "%t\n\n%v"
-;;                        (hass-dash-group :title "Kitchen"
-;;                                         :title-face outline-2
-;;                                         (hass-dash-toggle :entity-id "light.kitchen_lights")
-;;                                         (hass-dash-toggle :entity-id "switch.entry_light"
-;;                                                           :label "Hallway"
-;;                                                           :confirm t))))
+;;      `((hass-dash-group :title "Home Assistant"
+;;                         :format "%t\n\n%v"
+;;                         (hass-dash-group :title "Kitchen"
+;;                                          :title-face outline-2
+;;                                          (hass-dash-toggle :entity-id "light.kitchen_lights")
+;;                                          (hass-dash-toggle :entity-id "switch.entry_light"
+;;                                                            :label "Hallway"
+;;                                                            :confirm t)))
+;;        (hass-dash-group :title "Group 2"
+;;                         :format "\n\n%t\n\n%v"
+;;                         (hass-dash-toggle :entity-id "light.master_bedroom_fan_light"))))
 
 ;; --------------------
 ;; Usage
@@ -100,16 +103,21 @@ of hass widgets such as `hass-dash-toggle' or `hass-dash-group'.
 Full example:
 
 \(setq hass-dash-layout
-      \\=`(hass-dash-group
-        :title \"Home Assistant\"
-        :format \"%t\\n\\n%v\"
+      \\=`((hass-dash-group
+         :title \"Home Assistant\"
+         :format \"%t\\n\\n%v\"
+         (hass-dash-group
+          :title \"Kitchen\"
+          :title-face outline-2
+          (hass-dash-toggle :entity-id \"light.kitchen_lights\")
+          (hass-dash-toggle :entity-id \"switch.entry_light\"
+                            :label \"Hallway\"
+                            :confirm t)))
+
         (hass-dash-group
-         :title \"Kitchen\"
-         :title-face outline-2
-         (hass-dash-toggle :entity-id \"light.kitchen_lights\")
-         (hass-dash-toggle :entity-id \"switch.entry_light\"
-                           :label \"Hallway\"
-                           :confirm t))))")
+         :title \"Group 2\"
+         :format \"\\n\\n%t\\n\\n%v\"
+         (hass-dash-toggle :entity-id \"light.master_bedroom_fan_light\"))))")
 
 
 ;; Helper functions
@@ -243,7 +251,8 @@ the font face for the title."
     (let ((inhibit-read-only t)
           (prev-line (line-number-at-pos)))
       (erase-buffer)
-      (hass-dash--track-layout-entities (widget-create hass-dash-layout))
+      (hass-dash--track-layout-entities (widget-create (append '(group :format "%v")
+                                                               hass-dash-layout)))
       (goto-char (point-min))
       (forward-line (1- prev-line))
       (hass-dash-mode))))
