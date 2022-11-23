@@ -23,62 +23,18 @@
 ;; --------------------
 ;; Full layout example
 
-;; (defun state-label-icon (label state icon label-formatter state-formatter icon-formatter)
-;;   "Arrange the components of the widget in the order of STATE, LABEL, and then icon."
-;;   (concat (when state (funcall state-formatter state))
-;;           (funcall label-formatter label)
-;;           (when icon (funcall icon-formatter icon))))
-;;
-;; (defun prefix-with-arrow (str)
-;;   "Prefix STR with a `>'."
-;;   (concat "> " str))
-;;
-;; (defun unavailable-p (widget)
-;;   "Return t if WIDGET state is 'unavailable'."
-;;   (string= "unavailable" (hass-state-of (car widget))))
-;;
-;; (setq hass-dash-layout
-;;  ;; Declare a group of widgets with a group label of "Group One"
-;;  '(("Group One" . (("input_boolean.test_boolean"
-;;                      :label "Toggle entity"
-;;                      :hide-fn (lambda (_widget) (= 1 (random 2))) ;; Will randomly hide the widget 50% of the time everytime the dashboard refreshes
-;;                      :widget-formatter state-label-icon
-;;                      :label-formatter prefix-with-arrow
-;;                      :state-formatter prefix-with-arrow
-;;                      :icon-formatter (lambda (icon) (concat "[" icon "]")))
-;;
-;;                    ;; An informational widget
-;;                    ("sensor.desktop_cpu"
-;;                      :label "CPU"
-;;                      :icon nil
-;;                      :service nil ;; Setting `:service' to nil will skip when pressing the TAB key
-;;                      :hide-fn unavailable-p ;; Hide this widget if the status if 'unavailable'
-;;                      :state-formatter (lambda (state) (concat state "%"))) ;; Add a '%' to the end of the state
-;;
-;;                    ;; Ask for confirmation before toggling the light
-;;                    ("switch.bedroom_light"
-;;                      :label "Bedroom Light"
-;;                      :confirm t)
-;;
-;;                    ;; A widget that can only turn off
-;;                    ("input_boolean.test_boolean"
-;;                      :label "Turn off test boolean"
-;;                      :service "input_boolean.turn_off")
-;;
-;;                    ;; Or just use the default options
-;;                    ("automation.some_automation")))
-;;
-;;    ;; Declare another group of widgets with a group label of "Vacuum"
-;;    ("Vacuum" . (("vacuum.valetudo_vacuum"
-;;                   :label "Vacuum"
-;;                   :confirm "Start vacuuming? ") ;; Ask for confirmation with a custom prompt
-;;
-;;                 ;; Ask for confirmation with a custom prompt
-;;                 ("vacuum.valetudo_vacuum"
-;;                   :label "Vacuum return home"
-;;                   :service "vacuum.return_to_base" ;; Call this service instead of the default one to start cleaning
-;;                   :state nil ;; Don't show a state since it's displayed above
-;;                   :icon nil))))) ;; Don't show an icon
+;;(setq hass-dash-layout
+;;      `((hass-dash-group :title "Home Assistant"
+;;                         :format "%t\n\n%v"
+;;                         (hass-dash-group :title "Kitchen"
+;;                                          :title-face outline-2
+;;                                          (hass-dash-toggle :entity-id "light.kitchen_lights")
+;;                                          (hass-dash-toggle :entity-id "switch.entry_light"
+;;                                                            :label "Hallway"
+;;                                                            :confirm t)))
+;;        (hass-dash-group :title "Group 2"
+;;                         :format "\n\n%t\n\n%v"
+;;                         (hass-dash-toggle :entity-id "light.master_bedroom_fan_light"))))
 
 ;; --------------------
 ;; Usage
@@ -90,8 +46,8 @@
 
 ;;; Code:
 (require 'subr-x)
-
 (require 'hass)
+(require 'wid-edit)
 
 
 ;; Customizable
@@ -105,17 +61,12 @@
   "Keymap for `hass-dash-mode'.")
 
 (defface hass-dash-group-face
-  '((t (:inherit info-title-2)))
-  "Face for widget group labels in HASS's dashboard."
+  '((t (:inherit outline-1)))
+  "Face for dashboard titles in HASS's dashboard."
   :group 'hass-dash)
 
 (defface hass-dash-widget-label-face
-  '((t (:inherit widget-button)))
-  "Face for widgets in HASS's dashboard."
-  :group 'hass-dash)
-
-(defface hass-dash-widget-state-face
-  '((t (:inherit hass-dash-widget-label-face)))
+  '((t (:inherit outline-8)))
   "Face for widgets in HASS's dashboard."
   :group 'hass-dash)
 
@@ -143,193 +94,152 @@
   :group 'hass-dash
   :type 'string)
 
-(defcustom hass-dash-layout nil
-  "A list of widgets to show on the dashboard.
-Each element in the `list' is an `alist' of a Group name to a `plist' of entity
-IDs with their properties.
-
-The `car' of a list is the group label while the `cdr' is a list of widget
-definitions for that group.
-
-'((\"Group Label\" . ((\"entity.id_example\" :label \"Human Readable Name\"))))
-
-See `hass-dash--create-widget' for widget properties.
+(defvar hass-dash-layout nil
+  "A list describing the root widgets to show on the dashboard.
+You can then build a tree of arbitrary widgets to display on the dashboard.
+You'll probably want to make use of hass widgets such as `hass-dash-toggle' or
+`hass-dash-group'.
 
 Full example:
 
-\(setq `hass-dash-layout'
- '((\"Group One\" . ((\"input_boolean.test_boolean\"
-                    :label \"Toggle entity\")
-                   (\"switch.bedroom_light\"
-                    :label \"Bedroom Light\")
-                   (\"input_boolean.test_boolean\"
-                    :label \"Turn off test boolean\"
-                    :service \"input_boolean.turn_off\")
-                   (\"automation.some_automation\")))
-   (\"Vacuum Group\" . ((\"vacuum.valetudo_vacuum\"
-                       :label \"Vacuum\")
-                      (\"vacuum.valetudo_vacuum\"
-                       :label \"Vacuum return home\"
-                       :service \"vacuum.return_to_base\"
-                       :state nil
-                       :icon nil)))))"
-  :group 'hass-dash
-  :type 'list)
+\(setq hass-dash-layout
+      \\=`((hass-dash-group
+         :title \"Home Assistant\"
+         :format \"%t\\n\\n%v\"
+         (hass-dash-group
+          :title \"Kitchen\"
+          :title-face outline-2
+          (hass-dash-toggle :entity-id \"light.kitchen_lights\")
+          (hass-dash-toggle :entity-id \"switch.entry_light\"
+                            :label \"Hallway\"
+                            :confirm t)))
 
-
-;; Default formatters
-(defcustom hass-dash-default-widget-formatter #'hass-dash-widget-formatter
-  "The function called to format the widgets on the dashboard."
-  :group 'hass-dash
-  :type 'function)
-
-(defcustom hass-dash-default-label-formatter #'hass-dash-label-formatter
-  "The function called to format the label of widgets on the dashboard."
-  :group 'hass-dash
-  :type 'function)
-
-(defcustom hass-dash-default-state-formatter #'hass-dash-state-formatter
-  "The function called to format the state of widgets on the dashboard."
-  :group 'hass-dash
-  :type 'function)
-
-(defcustom hass-dash-default-icon-formatter #'hass-dash-icon-formatter
-  "The function called to format the icon of widgets on the dashboard."
-  :group 'hass-dash
-  :type 'function)
+        (hass-dash-group
+         :title \"Group 2\"
+         :format \"\\n\\n%t\\n\\n%v\"
+         (hass-dash-toggle :entity-id \"light.master_bedroom_fan_light\"))))")
 
 
 ;; Helper functions
-(defun hass-dash--default-service-of (entity-id)
-  "Return the default service to be called for ENTITY-ID."
-  (let ((domain (hass--domain-of-entity entity-id)))
-    (cdr (assoc domain hass-dash--default-services))))
+(defvar hass-dash--entities-to-widget-alist '()
+  "An alist mapping entity IDs to widgets that use those entities.")
 
-(defun hass-dash--track-layout-entities ()
-  "Tracks referenced entities in `hass-dash-layout' and update their state."
-  (dolist (layout-entry hass-dash-layout)
-    (when-let ((group (cond ((listp layout-entry) layout-entry)
-                            ((boundp layout-entry) (symbol-value layout-entry)))))
-      (dolist (item (cdr group))
-        (add-to-list 'hass-tracked-entities
-                     (or (plist-get (cdr item) ':state) (car item))))))
+(defun hass-dash--insert-into-entities-to-widget-alist (widgets)
+  "Add WIDGETS to the `entities-to-widget-alist'."
+  (dolist (widget widgets)
+    (if-let ((children (widget-get widget :children)))
+        (hass-dash--insert-into-entities-to-widget-alist children)
+      (when-let ((entity-id (widget-get widget :entity-id)))
+        (setf (alist-get (intern entity-id) hass-dash--entities-to-widget-alist)
+              (push widget (alist-get (intern entity-id) hass-dash--entities-to-widget-alist)))))))
+
+(defun hass-dash--track-layout-entities (widget)
+  "Tracks entity IDs referenced by WIDGET and it's children."
+  (setq hass-dash--entities-to-widget-alist nil)
+  (hass-dash--insert-into-entities-to-widget-alist (list widget))
+  (dolist (entity-id (mapcar 'car hass-dash--entities-to-widget-alist))
+    (add-to-list 'hass-tracked-entities (symbol-name entity-id)))
   (hass--update-all-entities))
 
-
-;; Dashboard rendering
-(defun hass-dash-widget-formatter (label state icon label-formatter state-formatter icon-formatter)
-  "Default constructor for a widget.
-This function composes a widget in the way it should be shown on the dashboard
-buffer.
-LABEL-FORMATTER is a function that manipulates the way the LABEL is rendered to
-the dashboard buffer.
+(defun hass-dash--update-widgets (entity-id state)
+  "Updated the STATE for all widgets bound to ENTITY-ID."
+  (when-let ((widgets (alist-get (intern entity-id) hass-dash--entities-to-widget-alist)))
+    (dolist (widget widgets)
+      (widget-value-set widget state))))
 
-STATE-FORMATTER is a function that manipulates the way the STATE is rendered to
-the dashboard buffer.
+(defun hass-dash--widget-label (widget)
+  "Return the label for WIDGET.
+Uses the `:label' property if one is set on the WIDGET, otherwise tries to use
+the `:friendly_name' property out of the list of available entities.  If neither
+is set, falls back to using the `:entity_id' property on the WIDGET."
+  (let ((entity-id (widget-get widget :entity-id)))
+    (or (widget-get widget :label)
+        (plist-get (cdr (assoc entity-id hass--available-entities))
+                   ':friendly_name)
+        entity-id)))
 
-ICON-FORMATTER is a function that manipulates the way the ICON is rendered to
-the dashboard buffer."
-  (concat (when icon (funcall icon-formatter icon))
-          (funcall label-formatter label)
-          (when state (funcall state-formatter state))))
+(defun hass-dash--widget-create (widget)
+  "Create the widget WIDGET.
+This just uses `widget-default-create', but sets the `:tag' property if it isn't
+already set by using the widget icon and label."
+  (unless (widget-get widget :tag)
+    (let* ((icon (or (widget-get widget :icon)
+                     (hass--icon-of-entity (widget-get widget :entity-id))))
+           (label (propertize (hass-dash--widget-label widget)
+                              'face
+                              'hass-dash-widget-label-face))
+           (tag (if icon (concat icon " " label) label)))
+      (widget-put widget :tag tag)))
+  (widget-default-create widget))
 
-(defun hass-dash-label-formatter (label)
-  "The default implementation of a widget label formatter.
-LABEL is a string of the label of the widget to be rendered."
-  (propertize label 'face 'hass-dash-widget-label-face))
+(defun hass-dash--group-create (widget)
+  "Create the hass dashboard group WIDGET.
+This just uses `widget-default-create', but sets the `:tag' property if it isn't
+already set using the `:title' and `:title-face' properties."
+  (unless (widget-get widget :tag)
+    (widget-put widget :tag (propertize (widget-get widget :title)
+                                        'face (widget-get widget :title-face))))
+  (widget-default-create widget))
 
-(defun hass-dash-state-formatter (state)
-  "The default implementation of a widget state formatter.
-STATE is a string of the current state of the widget to be rendered."
-  (concat " - "  state))
+(defun hass-dash--toggle-widget-value-get (widget)
+  "Get the state for a toggle WIDGET."
+  (string= (hass-state-of (widget-get widget :entity-id)) "on"))
 
-(defun hass-dash-icon-formatter (icon)
-  "The default implementation of a widget icon formatter.
-ICON is the icon of the widget to be rendered."
-  (concat icon " "))
+(defun hass-dash--widget-action (widget &optional _)
+  "Action handler for WIDGET.
+If the `:service' property is set, this will call that service.  Otherwise, it
+will call the relevant service in `hass-dash--default-services'.
 
-(cl-defun hass-dash--create-widget (entity-id
-                                    &key
-                                    (service (hass-dash--default-service-of entity-id))
-                                    ;; `:name' keyword is deprecated. Use `:label' instead.
-                                    (name (or (plist-get (cdr (assoc entity-id hass--available-entities))
-                                                         ':friendly_name)
-                                              entity-id))
-                                    (label name)
-                                    (state entity-id)
-                                    (icon (hass--icon-of-entity entity-id))
-                                    (widget-formatter hass-dash-default-widget-formatter)
-                                    (label-formatter hass-dash-default-label-formatter)
-                                    (state-formatter hass-dash-default-state-formatter)
-                                    (icon-formatter hass-dash-default-icon-formatter)
-                                    confirm
-                                    &allow-other-keys)
-  "Insert a widget into the dashboard.
-ENTITY-ID is the id of the entity in Home Assistant.
+The `:confirm' property can be used to trigger a confirmation before calling the
+service.  It can take on the following values:
 
-SERVICE is the service to be called on Home Assistant when the widget is
-pressed.
+• if it's a string, that string will be used for the prompt
+• if it's a function, then the service will only be called if that function
+  returns t
+• if it's t, a prompt will be created using the value returned by
+  `hass-dash--widget-label'"
+  (let* ((confirm (widget-get widget :confirm))
+         (entity-id (widget-get widget :entity-id))
+         (service (or (widget-get widget :service)
+                      (cdr (assoc (hass--domain-of-entity entity-id)
+                                  hass-dash--default-services)))))
+    (cond ((stringp confirm) (when (y-or-n-p confirm)
+                               (hass-call-service entity-id service nil)))
+          ((functionp confirm) (when (funcall confirm entity-id)
+                                 (hass-call-service entity-id service nil)))
+          (confirm (when (y-or-n-p (concat "Toggle "
+                                           (hass-dash--widget-label widget)
+                                           "? "))
+                     (hass-call-service entity-id service nil)))
+          (t (hass-call-service entity-id service nil)))))
 
-LABEL sets the displayed label of the widget on the dashboard.
+(define-widget 'hass-dash-toggle 'toggle
+  "A toggle widget for home-assistant dashboards.
+You must pass an `:entity-id' property to indicate the id of the entity in Home
+Assistant.  The following optional properties can also be used:
 
-NAME is deprecated.  Use LABEL instead.
+• `:service': The service to call when triggering the action on the widget.  If
+  not passed, then the default will be found in `hass-dash--default-services'
+  instead.
+• `:label': The friendly name to show for the widget.  If not passed, a sane
+  default will be found in the list of available entities.  If nothing is found
+  there, then the `:entity-id' property value will be used.
+• `:icon': The icon to show for the widget.  If not passed one will be found
+  based on the entity id.
+• `:confirm': If passed, this will control how the action is confirmed before
+  being confirmed.  See `hass-dash--widget-action' for details."
+  :create 'hass-dash--widget-create
+  :format "%t: %[[%v]%]\n"
+  :value-get 'hass-dash--toggle-widget-value-get
+  :action 'hass-dash--widget-action)
 
-STATE is an entity id of the state to show on the widget.  If set
-to nil, no state is shown.
-
-ICON is the icon displayed on the widget.  Set to nil to not show an icon.
-Requires `all-the-icons' package.
-
-WIDGET-FORMATTER is the function used to format the entire widget.  Can be used
-to re-arrange the elements of the widget.  For example, displaying the STATE
-before the LABEL.  See `hass-dash-widget-formatter' for an example
-implementation.
-
-LABEL-FORMATTER is the function used to format the label of the widget.  See
-`hass-dash-label-formatter' for an example implementation.
-
-STATE-FORMATTER is the function used to format the state of the widget.  See
-`hass-dash-state-formatter' for an example implementation.
-
-ICON-FORMATTER is the function used to format the icon of the widget.  See
-`hass-dash-icon-formatter' for an example implementation.
-
-When CONFIRM is non-nil a prompt will ask for confirmation before the SERVICE
-is called.  A string of will be used for a custom prompt.  If a function is
-passed then the service will only be called when the function returns t."
-  (widget-create 'push-button
-                 :tag (funcall widget-formatter label (hass-state-of state) icon
-                               label-formatter state-formatter icon-formatter)
-                 :format (if service "%[%t%]" "%t")
-                 :action (cond ((stringp confirm)
-                                (lambda (&rest _)
-                                  (when (y-or-n-p confirm)
-                                    (hass-call-service entity-id service nil))))
-                               ((functionp confirm)
-                                (lambda (&rest _)
-                                  (when (funcall confirm entity-id)
-                                    (hass-call-service entity-id service nil))))
-                               (confirm
-                                (lambda (&rest _)
-                                  (when (y-or-n-p (concat "Toggle " name "? "))
-                                    (hass-call-service entity-id service nil))))
-                               (t
-                                (lambda (&rest _)
-                                  (hass-call-service entity-id service nil))))))
-
-(defun hass-dash--insert-groups ()
-  "Insert all widgets in `hass-dash-layout'."
-  (dolist (layout-entry hass-dash-layout)
-    (when-let ((group (cond ((listp layout-entry) layout-entry)
-                            ((boundp layout-entry) (symbol-value layout-entry)))))
-      (insert (propertize (car group) 'face 'hass-dash-group-face))
-      (insert "\n")
-      (dolist (widget (cdr group))
-        (unless (when-let ((hide-fn (plist-get (cdr widget) ':hide-fn)))
-                  (funcall hide-fn widget))
-          (apply 'hass-dash--create-widget widget)
-          (insert "\n")))
-      (insert "\n"))))
+(define-widget 'hass-dash-group 'group
+  "A grouping widget for home-assistant dashboards.
+You can pass `:title' to give the group a title, and pass `:title-face' to set
+the font face for the title."
+  :format "%t\n%v"
+  :create 'hass-dash--group-create
+  :title-face 'hass-dash-group-face)
 
 
 ;; User functions
@@ -341,7 +251,8 @@ passed then the service will only be called when the function returns t."
     (let ((inhibit-read-only t)
           (prev-line (line-number-at-pos)))
       (erase-buffer)
-      (hass-dash--insert-groups)
+      (hass-dash--track-layout-entities (widget-create (append '(group :format "%v")
+                                                               hass-dash-layout)))
       (goto-char (point-min))
       (forward-line (1- prev-line))
       (hass-dash-mode))))
@@ -367,13 +278,7 @@ passed then the service will only be called when the function returns t."
 ;; Refresh dashboard when entity state is updated
 (add-hook 'hass-entity-updated-hook
           (lambda ()
-            (when (get-buffer-window hass-dash-buffer-name)
-              (hass-dash-refresh))))
-
-;; After successful connection update the `hass-tracked-entities' list to
-;; include the entities in `hass-dash-layout'.
-(add-hook 'hass-api-connected-hook #'hass-dash--track-layout-entities)
-(when hass--api-running (hass-dash--track-layout-entities))
+            (maphash 'hass-dash--update-widgets hass--states)))
 
 (provide 'hass-dash)
 
