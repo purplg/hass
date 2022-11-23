@@ -113,20 +113,31 @@ Full example:
 
 
 ;; Helper functions
-(defun hass-dash--track-layout-entities ()
-  "Tracks referenced entities in `hass-dash-layout' and update their state."
-  (dolist (entity-id (delq nil
-                           (delete-dups
-                            (flatten-tree
-                             (cl-labels ((get-entity-ids (widgets)
-                                           (mapcar (lambda (widget)
-                                                     (unless (stringp widget)
-                                                       (if (string= (car widget) "group")
-                                                           (get-entity-ids (cl-remove-if-not 'listp widget))
-                                                         (plist-get (cdr widget) :entity-id)))) widgets)))
-                               (get-entity-ids (list hass-dash-layout)))))))
-    (add-to-list 'hass-tracked-entities entity-id))
+(defvar hass-dash--entities-to-widget-alist '()
+  "An alist mapping entity IDs to widgets that use those entities.")
+
+(defun hass-dash--insert-into-entities-to-widget-alist (widgets)
+  "Add WIDGETS to the `entities-to-widget-alist'."
+  (dolist (widget widgets)
+    (if-let ((children (widget-get widget :children)))
+        (hass-dash--insert-into-entities-to-widget-alist children)
+      (when-let ((entity-id (widget-get widget :entity-id)))
+        (setf (alist-get (intern entity-id) hass-dash--entities-to-widget-alist)
+              (push widget (alist-get (intern entity-id) hass-dash--entities-to-widget-alist)))))))
+
+(defun hass-dash--track-layout-entities (widget)
+  "Tracks entity IDs referenced by WIDGET and it's children."
+  (setq hass-dash--entities-to-widget-alist nil)
+  (hass-dash--insert-into-entities-to-widget-alist (list widget))
+  (dolist (entity-id (mapcar 'car hass-dash--entities-to-widget-alist))
+    (add-to-list 'hass-tracked-entities (symbol-name entity-id)))
   (hass--update-all-entities))
+
+(defun hass-dash--update-widgets (entity-id state)
+  "Updated the STATE for all widgets bound to ENTITY-ID."
+  (when-let ((widgets (alist-get (intern entity-id) hass-dash--entities-to-widget-alist)))
+    (dolist (widget widgets)
+      (widget-value-set widget state))))
 
 (defun hass-dash--widget-label (widget)
   "Return the label for WIDGET.
@@ -232,7 +243,7 @@ the font face for the title."
     (let ((inhibit-read-only t)
           (prev-line (line-number-at-pos)))
       (erase-buffer)
-      (widget-create hass-dash-layout)
+      (hass-dash--track-layout-entities (widget-create hass-dash-layout))
       (goto-char (point-min))
       (forward-line (1- prev-line))
       (hass-dash-mode))))
@@ -258,13 +269,7 @@ the font face for the title."
 ;; Refresh dashboard when entity state is updated
 (add-hook 'hass-entity-updated-hook
           (lambda ()
-            (when (get-buffer-window hass-dash-buffer-name)
-              (hass-dash-refresh))))
-
-;; After successful connection update the `hass-tracked-entities' list to
-;; include the entities in `hass-dash-layout'.
-(add-hook 'hass-api-connected-hook #'hass-dash--track-layout-entities)
-(when hass--api-running (hass-dash--track-layout-entities))
+            (maphash 'hass-dash--update-widgets hass--states)))
 
 (provide 'hass-dash)
 
