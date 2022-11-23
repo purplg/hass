@@ -95,10 +95,10 @@
   :type 'string)
 
 (defvar hass-dash-layout nil
-  "A list describing the root widget to show on the dashboard.
-In most cases, this will be a `group' widget.  You can then build a tree of
-arbitrary widgets to display on the dashboard.  You'll probably want to make use
-of hass widgets such as `hass-dash-toggle' or `hass-dash-group'.
+  "A list describing the root widgets to show on the dashboard.
+You can then build a tree of arbitrary widgets to display on the dashboard.
+You'll probably want to make use of hass widgets such as `hass-dash-toggle' or
+`hass-dash-group'.
 
 Full example:
 
