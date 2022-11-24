@@ -150,25 +150,30 @@ higher."
 ;; hass-dash.el tests
 (require 'hass-dash)
 
-(setq hass-dash-test-layout `(("Test Group One" .
-                               (("test_entity.one" :label "Test Widget One")
-                                ("test_entity.two" :label "Test Widget Two")))
-                              ("Test Group Two" .
-                               (("test_entity.three" :label "Test Widget Three")))))
+(setq hass-dash-test-layout
+      `((hass-dash-group :title "Test Group One"
+                         (hass-dash-toggle :entity-id "test_entity.one")
+                         (hass-dash-toggle :entity-id "test_entity.two"))
+        (hass-dash-group :title "Test Group Two"
+                         (hass-dash-toggle :entity-id "test_entity.three"))))
 
 (ert-deftest hass-dash-track-layout-entities nil
   (let ((hass-dash-layout hass-dash-test-layout)
         (hass-tracked-entities '("explicit.entity")))
     (advice-add #'hass--update-all-entities :around (lambda (&rest _)))
-    (hass-dash--track-layout-entities)
-    (should (member "explicit.entity" hass-tracked-entities))
-    (should (member "test_entity.one" hass-tracked-entities))
-    (should (member "test_entity.two" hass-tracked-entities))
-    (should (member "test_entity.three" hass-tracked-entities))))
+    (let ((widget (widget-create (append '(group :format "%v") hass-dash-layout))))
+      (hass-dash--track-layout-entities widget)
+      (should (member "explicit.entity" hass-tracked-entities))
+      (should (member "test_entity.one" hass-tracked-entities))
+      (should (member "test_entity.two" hass-tracked-entities))
+      (should (member "test_entity.three" hass-tracked-entities))
+      (widget-delete widget))))
 
 (ert-deftest hass-dash-create-widget-confirm-string nil
   (let ((confirm-called nil)
-        (test-widget (hass-dash--create-widget hass-test-entity-id :confirm "Test confirmation?")))
+        (test-widget (widget-create 'hass-dash-toggle
+                                    :entity-id hass-test-entity-id
+                                    :confirm "Test confirmation?")))
       ;; Disable `y-or-n-p' from prompting and set `confirm-called' to t if the prompt is correct.
       (advice-add #'y-or-n-p
                   :around
@@ -180,17 +185,19 @@ higher."
 
 (ert-deftest hass-dash-create-widget-confirm-function nil
   (let* ((confirm-called nil)
-         (test-widget (hass-dash--create-widget
-                       hass-test-entity-id
-                       :confirm (lambda (&rest _)
-                                  (setq confirm-called t)
-                                  nil))))
+         (test-widget (widget-create 'hass-dash-toggle
+                                     :entity-id hass-test-entity-id
+                                     :confirm (lambda (&rest _)
+                                                (setq confirm-called t)
+                                                nil))))
       (widget-apply-action test-widget)
       (should confirm-called)))
 
 (ert-deftest hass-dash-create-widget-confirm-default nil
   (let ((confirm-called nil)
-        (test-widget (hass-dash--create-widget hass-test-entity-id :confirm t)))
+        (test-widget (widget-create 'hass-dash-toggle
+                                    :entity-id hass-test-entity-id
+                                    :confirm t)))
       ;; Disable `y-or-n-p' from prompting and set `confirm-called' to t if the prompt is correct.
       (advice-add #'y-or-n-p
                   :around
@@ -202,7 +209,7 @@ higher."
 
 (ert-deftest hass-dash-create-widget-confirm-none nil
   (let ((confirm-called nil)
-        (test-widget (hass-dash--create-widget hass-test-entity-id)))
+        (test-widget (widget-create 'hass-dash-toggle :entity-id hass-test-entity-id)))
       ;; Disable `y-or-n-p' from prompting and set `confirm-called' to t if the prompt is correct.
       (advice-add #'y-or-n-p
                   :around
