@@ -16,25 +16,29 @@
 ;; this dashboard feature.
 
 ;; The main configuration for the dashboard takes place with the
-;; `hass-dash-layout' variable.  `hass-dash-layout' declares how the widgets are
-;; laid out, what they display, and what they do.  See the docstring for
-;; `hass-dash-layout' for details.
+;; `hass-dash-layouts' variable.  `hass-dash-layouts' declares how the widgets
+;; are laid out, what they display, and what they do.  See the docstring for
+;; `hass-dash-layouts' for details.
 
 ;; --------------------
 ;; Full layout example
 
-;;(setq hass-dash-layout
-;;      `((hass-dash-group :title "Home Assistant"
-;;                         :format "%t\n\n%v"
-;;                         (hass-dash-group :title "Kitchen"
-;;                                          :title-face outline-2
-;;                                          (hass-dash-toggle :entity-id "light.kitchen_lights")
-;;                                          (hass-dash-toggle :entity-id "switch.entry_light"
-;;                                                            :label "Hallway"
-;;                                                            :confirm t)))
-;;        (hass-dash-group :title "Group 2"
-;;                         :format "\n\n%t\n\n%v"
-;;                         (hass-dash-toggle :entity-id "light.master_bedroom_fan_light"))))
+;;(setq hass-dash-layouts
+;;      `((default . ((hass-dash-group :title "Home Assistant"
+;;                                     :format "%t\n\n%v"
+;;                                     (hass-dash-group :title "Kitchen"
+;;                                                      :title-face outline-2
+;;                                                      (hass-dash-toggle :entity-id "light.kitchen_lights")
+;;                                                      (hass-dash-toggle :entity-id "light.master_bedroom_lights")
+;;                                                      (hass-dash-toggle :entity-id "switch.entry_light"
+;;                                                                        :label "Hallway"
+;;                                                                        :confirm t)))
+;;                    (hass-dash-group :title "Group 2"
+;;                                     :format "\n\n%t\n\n%v"
+;;                                     (hass-dash-toggle :entity-id "light.master_bedroom_fan_light"))))
+;;
+;;        (simple . ((hass-dash-toggle :entity-id "light.kitchen_lights")
+;;                   (hass-dash-toggle :entity-id "switch.entry_lights")))))
 
 ;; --------------------
 ;; Usage
@@ -53,7 +57,7 @@
 ;; Customizable
 (defvar hass-dash-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "g r") 'hass-dash-refresh)
+    (define-key map (kbd "g r") 'hass-dash-refresh-current)
     (define-key map (kbd "RET") 'widget-button-press)
     (define-key map [tab] 'widget-forward)
     (define-key map [backtab] 'widget-backward)
@@ -89,35 +93,46 @@
   :group 'hass-dash
   :type '(repeat (cons string string)))
 
-(defcustom hass-dash-buffer-name "*hass-dash*"
-  "The name of the hass-dash buffer."
-  :group 'hass-dash
-  :type 'string)
+(defun hass-dash-key-to-buffer-name (dashboard)
+  "Return the name of the hass-dash buffer for dashboard key DASHBOARD."
+  (concat "*hass-dash-" (symbol-name dashboard) "*"))
 
-(defvar hass-dash-layout nil
-  "A list describing the root widgets to show on the dashboard.
-You can then build a tree of arbitrary widgets to display on the dashboard.
-You'll probably want to make use of hass widgets such as `hass-dash-toggle' or
-`hass-dash-group'.
+(defun hass-dash-buffer-name-to-key (name)
+  "Return the dashboard key for the buffer named NAME."
+  (string-match "^\\*hass-dash-\\([[:alnum:]]+\\)\\*$" name)
+  (intern (match-string 1 name)))
+
+(defvar hass-dash-layouts nil
+  "An alist describing the dashboards.
+The key of each entry is a dashboard name which you can open with
+`hass-dash-open'.  The value for each entry is a list describing the root
+widgets to show on the dashboard.  You can then build a tree of arbitrary
+widgets to display on the dashboard.  You'll probably want to make use of hass
+widgets such as `hass-dash-toggle' or `hass-dash-group'.
 
 Full example:
 
-\(setq hass-dash-layout
-      \\=`((hass-dash-group
-         :title \"Home Assistant\"
-         :format \"%t\\n\\n%v\"
-         (hass-dash-group
-          :title \"Kitchen\"
-          :title-face outline-2
-          (hass-dash-toggle :entity-id \"light.kitchen_lights\")
-          (hass-dash-toggle :entity-id \"switch.entry_light\"
-                            :label \"Hallway\"
-                            :confirm t)))
+\(setq hass-dash-layouts
+  \\=`((default .
+     ((hass-dash-group
+       :title \"Home Assistant\"
+       :format \"%t\\n\\n%v\"
+       (hass-dash-group
+        :title \"Kitchen\"
+        :title-face outline-2
+        (hass-dash-toggle :entity-id \"light.kitchen_lights\")
+        (hass-dash-toggle :entity-id \"light.master_bedroom_lights\")
+        (hass-dash-toggle :entity-id \"switch.entry_light\"
+                          :label \"Hallway\"
+                          :confirm t)))
+      (hass-dash-group
+       :title \"Group 2\"
+       :format \"\\n\\n%t\\n\\n%v\"
+       (hass-dash-toggle :entity-id \"light.master_bedroom_fan_light\"))))
 
-        (hass-dash-group
-         :title \"Group 2\"
-         :format \"\\n\\n%t\\n\\n%v\"
-         (hass-dash-toggle :entity-id \"light.master_bedroom_fan_light\"))))")
+    (simple .
+     ((hass-dash-toggle :entity-id \"light.kitchen_lights\")
+      (hass-dash-toggle :entity-id \"switch.entry_lights\")))))")
 
 
 ;; Helper functions
@@ -244,28 +259,41 @@ the font face for the title."
 
 ;; User functions
 ;;;###autoload
-(defun hass-dash-refresh ()
-  "Rerender the hass-dash buffer."
-  (interactive)
-  (with-current-buffer (get-buffer-create hass-dash-buffer-name)
+(defun hass-dash-refresh (dashboard)
+  "Rerender the hass-dash buffer for DASHBOARD."
+  (with-current-buffer (get-buffer-create (hass-dash-key-to-buffer-name dashboard))
     (let ((inhibit-read-only t)
           (prev-line (line-number-at-pos)))
       (erase-buffer)
-      (hass-dash--track-layout-entities (widget-create (append '(group :format "%v")
-                                                               hass-dash-layout)))
+      (hass-dash--track-layout-entities
+       (widget-create
+        (append '(group :format "%v")
+                (cdr (assoc dashboard hass-dash-layouts)))))
       (goto-char (point-min))
       (forward-line (1- prev-line))
       (hass-dash-mode))))
 
-;;;###autoload
-(defun hass-dash-open ()
-  "Open the hass-dash buffer."
+(defun hass-dash-refresh-current ()
+  "Rerender the current hass-dash buffer."
   (interactive)
-  (hass-dash-refresh)
-  (let* ((buffer (get-buffer hass-dash-buffer-name))
+  (let ((key (hass-dash-buffer-name-to-key (buffer-name))))
+    (when key
+      (hass-dash-refresh key))))
+
+;;;###autoload
+(defun hass-dash-open (dashboard)
+  "Open the hass-dash buffer for DASHBOARD."
+  (hass-dash-refresh dashboard)
+  (let* ((buffer (get-buffer (hass-dash-key-to-buffer-name dashboard)))
          (window (get-buffer-window buffer)))
     (pop-to-buffer buffer)
     (set-window-dedicated-p window t)))
+
+;;;###autoload
+(defun hass-dash-select ()
+  "Prompt the user to select and open a dashboard."
+  (interactive)
+  (hass-dash-open (intern (completing-read "Dashboard: " hass-dash-layouts))))
 
 
 (define-derived-mode hass-dash-mode special-mode "Home Assistant Dash"
