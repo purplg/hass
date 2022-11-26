@@ -151,14 +151,14 @@ higher."
 (require 'hass-dash)
 
 (setq hass-dash-test-layout
-      `((hass-dash-group :title "Test Group One"
-                         (hass-dash-toggle :entity-id "test_entity.one")
-                         (hass-dash-toggle :entity-id "test_entity.two"))
-        (hass-dash-group :title "Test Group Two"
-                         (hass-dash-toggle :entity-id "test_entity.three"))))
+      `((default . ((hass-dash-group :title "Test Group One"
+                                     (hass-dash-toggle :entity-id "test_entity.one")
+                                     (hass-dash-toggle :entity-id "test_entity.two"))
+                    (hass-dash-group :title "Test Group Two"
+                                     (hass-dash-toggle :entity-id "test_entity.three"))))))
 
 (ert-deftest hass-dash-track-layout-entities nil
-  (let ((hass-dash-layout hass-dash-test-layout)
+  (let ((hass-dash-layout (cdr (assoc 'default hass-dash-test-layout)))
         (hass-tracked-entities '("explicit.entity")))
     (advice-add #'hass--update-all-entities :around (lambda (&rest _)))
     (let ((widget (widget-create (append '(group :format "%v") hass-dash-layout))))
