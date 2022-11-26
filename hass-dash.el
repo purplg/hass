@@ -198,7 +198,7 @@ already set using the `:title' and `:title-face' properties."
 
 (defun hass-dash--toggle-widget-value-get (widget)
   "Get the state for a toggle WIDGET."
-  (string= (hass-state-of (widget-get widget :entity-id)) "on"))
+  (hass-switch-p (widget-get widget :entity-id)))
 
 (defun hass-dash--widget-action (widget &optional _)
   "Action handler for WIDGET.
