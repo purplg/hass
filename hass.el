@@ -50,7 +50,7 @@
 
 (defgroup hass '()
   "Minor mode for hass."
-  :group 'hass
+  :group 'applications
   :prefix "hass-")
 
 
