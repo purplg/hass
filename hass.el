@@ -525,7 +525,7 @@ you want to query automatically."
 (defun hass--config-error ()
   "Return configuration error message if error exists or nil if no errors exist."
   (cond ((not (equal (type-of (hass--apikey)) 'string))
-         ("HASS-APIKEY must be set to use hass"))
+         "HASS-APIKEY must be set to use hass")
         ((not (equal (type-of hass-host) 'string))
          "HASS-HOST must be set to use hass")
         (t nil)))
