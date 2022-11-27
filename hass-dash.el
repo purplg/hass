@@ -283,11 +283,12 @@ the font face for the title."
 ;;;###autoload
 (defun hass-dash-open (dashboard)
   "Open the hass-dash buffer for DASHBOARD."
-  (hass-dash-refresh dashboard)
-  (let* ((buffer (get-buffer (hass-dash-key-to-buffer-name dashboard)))
-         (window (get-buffer-window buffer)))
-    (pop-to-buffer buffer)
-    (set-window-dedicated-p window t)))
+  (when (hass-websocket-ensure)
+    (hass-dash-refresh dashboard)
+    (let* ((buffer (get-buffer (hass-dash-key-to-buffer-name dashboard)))
+           (window (get-buffer-window buffer)))
+      (pop-to-buffer buffer)
+      (set-window-dedicated-p window t))))
 
 ;;;###autoload
 (defun hass-dash-select ()

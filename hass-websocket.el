@@ -1,8 +1,5 @@
-;;; hass-websocket.el --- Communicate with Home Assistant over websockets -*- lexical-binding: t; -*-
+;;; hass-websocket.el --- Websocket support for hass -*- lexical-binding: t; -*-
 
-;; Package-Requires: ((emacs "25.1") (hass "2.0.0") (websocket "1.12"))
-;; Author: Ben Whitley
-;; SPDX-License-Identifier: MIT
 ;; Homepage: https://github.com/purplg/hass
 
 ;;; Commentary:
@@ -53,14 +50,8 @@
 ;;  (hass-websocket-mode t)
 
 ;;; Code:
-
-
-;; Check if the websocket package exists. Halt loading rest of package if it doesn't.
-(unless (require 'websocket nil 'noerror)
-  (hass--warning "`hass-websocket-mode' requires package `websocket'")
-  (user-error "`hass-websocket-mode' requires package `websocket'"))
-
 (require 'json)
+(require 'websocket)
 
 (require 'hass)
 
@@ -168,19 +159,13 @@ MESSAGE is an alist to be encoded into a JSON object."
     (hass--message "Disconnected from websocket")))
 
 ;;;###autoload
-(define-minor-mode hass-websocket-mode
-  "Toggle mode for a websocket connection to Home Assistant.
-Similar to `hass-polling-mode' but uses websocket to get realtime
-updates from the Home Assistant instance.
-
-Use the variable `hass-tracked-entities' to set which entities
-you want to track state updates for."
-  :lighter nil
-  :group 'hass
-  :global t
-  (hass-websocket--disconnect)
-  (when hass-websocket-mode
-    (hass-websocket--connect)))
+(defun hass-websocket-ensure ()
+  "Ensure websocket is established to Home Assistant.
+Return t if connection succeeded."
+  (when (and (hass--check-config)
+             (or hass-websocket--connection
+                 (hass-websocket--connect)))
+    t))
 
 (provide 'hass-websocket)
 
