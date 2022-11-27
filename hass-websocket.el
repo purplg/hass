@@ -22,8 +22,8 @@
 
 ;; Since we don't want Emacs keeping track of /every/ entity in Home Assistant,
 ;; you must tell hass which entities you want to track using
-;; `hass-polling-mode'.  `hass-polling-mode' takes a list of strings of Home
-;; Assistant entity IDs.
+;; `hass-tracked-entities'.  `hass-tracked-entities' takes a list of strings of
+;; Home Assistant entity IDs.
 
 ;;  (setq hass-tracked-entities '("switch.bedroom_light" "switch.bedroom_fan"))
 
