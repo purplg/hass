@@ -323,18 +323,13 @@ the font face for the title."
 ;;;###autoload
 (defun hass-dash-open (dashboard)
   "Open the hass-dash buffer for DASHBOARD."
+  (interactive (list (intern (completing-read "Dashboard: " hass-dash-layouts))))
   (when (hass-websocket-ensure)
     (hass-dash-refresh dashboard)
     (let* ((buffer (get-buffer (hass-dash-key-to-buffer-name dashboard)))
            (window (get-buffer-window buffer)))
       (pop-to-buffer buffer)
       (set-window-dedicated-p window t))))
-
-;;;###autoload
-(defun hass-dash-select ()
-  "Prompt the user to select and open a dashboard."
-  (interactive)
-  (hass-dash-open (intern (completing-read "Dashboard: " hass-dash-layouts))))
 
 
 (define-derived-mode hass-dash-mode special-mode "Home Assistant Dash"
