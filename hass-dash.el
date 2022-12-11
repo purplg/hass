@@ -267,7 +267,7 @@ Assistant.  The following optional properties can also be used:
 • `:confirm': If passed, this will control how the action is confirmed before
   being confirmed.  See `hass-dash--widget-action' for details."
   :create 'hass-dash--widget-create
-  :format "%t: %[%v%]\n"
+  :format "%[%t: %v%]\n"
   :value-get 'hass-dash--button-widget-value-get
   :value-create 'hass-dash--button-widget-value-create
   :action 'hass-dash--widget-action)
