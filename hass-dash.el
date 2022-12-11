@@ -92,9 +92,12 @@
   :group 'hass-dash
   :type '(repeat (cons string string)))
 
-(defun hass-dash--buffer-name (dashboard)
-  "Return the name of the hass-dash buffer for dashboard key DASHBOARD."
-  (concat "*hass-dash-" (symbol-name dashboard) "*"))
+(defcustom hass-dash-buffer-name-function #'hass-dash--buffer-name
+  "The function used to create the dashboard buffer name.
+The function takes the related dashboard key and returns a string
+for the name of the associated buffer."
+  :group 'hass-dash
+  :type 'function)
 
 (defvar hass-dash-layouts nil
   "An alist describing the dashboards.
@@ -295,6 +298,10 @@ already set using the `:title' and `:title-face' properties."
 
 
 ;; Dashboard rendering
+(defun hass-dash--buffer-name (dashboard)
+  "Return the name of the hass-dash buffer for dashboard key DASHBOARD."
+  (concat "*hass-dash-" (symbol-name dashboard) "*"))
+
 (defun hass-dash--render (layout)
   "Render a hass-dash layout in the current buffer.
 LAYOUT is the layout in `hass-dash-layouts' to be rendered."
@@ -318,7 +325,7 @@ LAYOUT is the layout in `hass-dash-layouts' to be rendered."
                        (1 (intern (caar hass-dash-layouts)))
                        (_ (intern (completing-read "Dashboard: " hass-dash-layouts))))))
   (when (and dashboard (hass-websocket-ensure))
-    (let* ((buffer (get-buffer-create (hass-dash--buffer-name dashboard)))
+    (let* ((buffer (get-buffer-create (funcall hass-dash-buffer-name-function dashboard)))
            (window (get-buffer-window buffer))
            (layout (cdr (assoc dashboard hass-dash-layouts))))
       (with-current-buffer buffer
