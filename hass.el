@@ -229,11 +229,14 @@ ENTITY-ID is the id of the entity in Home Assistant."
 
 
 ;; Logging
-(defvar hass-debug nil
+(defvar hass--debug nil
   "Enable debug logging when t.")
 
 (defvar hass--debug-buffer "*Hass Debug*"
   "Name of the buffer used for debug messages.")
+
+(defvar hass--debug-ignore '("EVENT")
+  "Debug events to not show in debug buffer.")
 
 (defun hass--debug-buffer ()
   "Return the debug buffer for hass."
@@ -249,13 +252,21 @@ ENTITY-ID is the id of the entity in Home Assistant."
   "Face for widget group labels in HASS's dashboard."
   :group 'hass)
 
+(defun hass--debug-clear-buffer ()
+  (interactive)
+  (when-let ((buf (get-buffer hass--debug-buffer)))
+    (with-current-buffer buf
+      (let ((inhibit-read-only t))
+        (erase-buffer)))))
+
 (defun hass--debug (type &rest msg)
   "Display a message in the hass debug buffer.
 TYPE is the type of debug message.  Also shown as the header of
 the logged message.
 
 MSG is the message to be display in the debug buffer."
-  (when hass-debug
+  (when (and hass--debug
+             (not (member type hass--debug-ignore)))
     (with-current-buffer (hass--debug-buffer)
       (let ((inhibit-read-only t))
         (goto-char (point-max))

@@ -151,7 +151,7 @@ MESSAGE is an alist to be encoded into a JSON object."
   (when hass-websocket--connection
     (websocket-close hass-websocket--connection)
     (setq hass-websocket--connection nil)
-    (hass--message "Disconnected from websocket")))
+    (hass--debug "Disconnected from websocket")))
 
 ;;;###autoload
 (defun hass-websocket-ensure ()
