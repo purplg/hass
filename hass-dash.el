@@ -323,8 +323,11 @@ the font face for the title."
 ;;;###autoload
 (defun hass-dash-open (dashboard)
   "Open the hass-dash buffer for DASHBOARD."
-  (interactive (list (intern (completing-read "Dashboard: " hass-dash-layouts))))
-  (when (hass-websocket-ensure)
+  (interactive (list (pcase (length hass-dash-layouts)
+                       (0 (hass--warning "You must configure some dashboards in `hass-dash-layouts'."))
+                       (1 (intern (caar hass-dash-layouts)))
+                       (_ (intern (completing-read "Dashboard: " hass-dash-layouts))))))
+  (when (and dashboard (hass-websocket-ensure))
     (hass-dash-refresh dashboard)
     (let* ((buffer (get-buffer (hass-dash-key-to-buffer-name dashboard)))
            (window (get-buffer-window buffer)))
