@@ -178,13 +178,15 @@ is set, falls back to using the `:entity_id' property on the WIDGET."
 This just uses `widget-default-create', but sets the `:tag' property if it isn't
 already set by using the widget icon and label."
   (unless (widget-get widget :tag)
-    (let* ((icon (or (widget-get widget :icon)
-                     (hass--icon-of-entity (widget-get widget :entity-id))))
+    (let* ((entity-id (widget-get widget :entity-id))
+           (icon (or (widget-get widget :icon)
+                     (hass--icon-of-entity entity-id)))
            (label (propertize (hass-dash--widget-label widget)
                               'face
                               'hass-dash-widget-label-face))
            (tag (if icon (concat icon " " label) label)))
-      (widget-put widget :tag tag)))
+      (widget-put widget :tag tag)
+      (widget-put widget :value (hass-state-of entity-id))))
   (widget-default-create widget))
 
 (defun hass-dash--group-create (widget)
@@ -228,7 +230,20 @@ service.  It can take on the following values:
                      (hass-call-service entity-id service nil)))
           (t (hass-call-service entity-id service nil)))))
 
-(define-widget 'hass-dash-toggle 'toggle
+(define-widget 'hass-dash-state 'item
+  "A read-only widget for home-assistant dashboards.
+You must pass an `:entity-id' property to indicate the id of the entity in Home
+Assistant.  The following optional properties can also be used:
+
+• `:label': The friendly name to show for the widget.  If not passed, a sane
+  default will be found in the list of available entities.  If nothing is found
+  there, then the `:entity-id' property value will be used.
+• `:icon': The icon to show for the widget.  If not passed one will be found
+  based on the entity id."
+  :create #'hass-dash--widget-create
+  :format "%t: %v\n")
+
+(define-widget 'hass-dash-toggle 'hass-dash-button
   "A toggle widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
 Assistant.  The following optional properties can also be used:
