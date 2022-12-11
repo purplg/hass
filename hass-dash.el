@@ -135,7 +135,7 @@ Full example:
       (hass-dash-toggle :entity-id \"switch.entry_lights\")))))")
 
 
-;; Helper functions
+;; Entity tracking
 (defvar hass-dash--entities-to-widget-alist '()
   "An alist mapping entity IDs to widgets that use those entities.")
 
@@ -162,6 +162,8 @@ Full example:
     (dolist (widget widgets)
       (widget-value-set widget state))))
 
+
+;; Widget definitions
 (defun hass-dash--widget-label (widget)
   "Return the label for WIDGET.
 Uses the `:label' property if one is set on the WIDGET, otherwise tries to use
@@ -298,7 +300,7 @@ already set using the `:title' and `:title-face' properties."
   (widget-default-create widget))
 
 
-;; User functions
+;; Dashboard rendering
 ;;;###autoload
 (defun hass-dash-refresh (dashboard)
   "Rerender the hass-dash buffer for DASHBOARD."
@@ -320,6 +322,8 @@ already set using the `:title' and `:title-face' properties."
   (when-let ((key (hass-dash-buffer-name-to-key (buffer-name))))
     (hass-dash-refresh key)))
 
+
+;; User functions
 ;;;###autoload
 (defun hass-dash-open (dashboard)
   "Open the hass-dash buffer for DASHBOARD."
@@ -334,7 +338,6 @@ already set using the `:title' and `:title-face' properties."
       (pop-to-buffer buffer)
       (set-window-dedicated-p window t))))
 
-
 (define-derived-mode hass-dash-mode special-mode "Home Assistant Dash"
   "Dashboard for Home Assistant."
   :group 'hass-dash
@@ -342,6 +345,7 @@ already set using the `:title' and `:title-face' properties."
   :abbrev-table nil
   :interactive t)
 
+
 ;; Refresh dashboard when entity state is updated
 (add-hook 'hass-entity-updated-hook
           (lambda ()
