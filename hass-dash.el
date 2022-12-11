@@ -202,6 +202,14 @@ already set using the `:title' and `:title-face' properties."
   "Get the state for a toggle WIDGET."
   (hass-switch-p (widget-get widget :entity-id)))
 
+(defun hass-dash--button-widget-value-get (widget)
+  "Get the state for a toggle WIDGET."
+  (hass-state-of (widget-get widget :entity-id)))
+
+(defun hass-dash--button-widget-value-create (widget)
+  "Get the state for a toggle WIDGET."
+  (princ (hass-state-of (widget-get widget :entity-id)) (current-buffer)))
+
 (defun hass-dash--widget-action (widget &optional _)
   "Action handler for WIDGET.
 If the `:service' property is set, this will call that service.  Otherwise, it
@@ -243,6 +251,27 @@ Assistant.  The following optional properties can also be used:
   :create #'hass-dash--widget-create
   :format "%t: %v\n")
 
+(define-widget 'hass-dash-button 'push-button
+  "A button widget for home-assistant dashboards.
+You must pass an `:entity-id' property to indicate the id of the entity in Home
+Assistant.  The following optional properties can also be used:
+
+• `:service': The service to call when triggering the action on the widget.  If
+  not passed, then the default will be found in `hass-dash--default-services'
+  instead.
+• `:label': The friendly name to show for the widget.  If not passed, a sane
+  default will be found in the list of available entities.  If nothing is found
+  there, then the `:entity-id' property value will be used.
+• `:icon': The icon to show for the widget.  If not passed one will be found
+  based on the entity id.
+• `:confirm': If passed, this will control how the action is confirmed before
+  being confirmed.  See `hass-dash--widget-action' for details."
+  :create 'hass-dash--widget-create
+  :format "%t: %[%v%]\n"
+  :value-get 'hass-dash--button-widget-value-get
+  :value-create 'hass-dash--button-widget-value-create
+  :action 'hass-dash--widget-action)
+
 (define-widget 'hass-dash-toggle 'hass-dash-button
   "A toggle widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
@@ -258,10 +287,7 @@ Assistant.  The following optional properties can also be used:
   based on the entity id.
 • `:confirm': If passed, this will control how the action is confirmed before
   being confirmed.  See `hass-dash--widget-action' for details."
-  :create 'hass-dash--widget-create
-  :format "%t: %[[%v]%]\n"
-  :value-get 'hass-dash--toggle-widget-value-get
-  :action 'hass-dash--widget-action)
+  :value-get 'hass-dash--toggle-widget-value-get)
 
 (define-widget 'hass-dash-group 'group
   "A grouping widget for home-assistant dashboards.
