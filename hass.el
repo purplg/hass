@@ -477,20 +477,13 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
 
 
 ;; Init
-(defun hass--config-error ()
-  "Return configuration error message if error exists or nil if no errors exist."
+(defun hass--check-config ()
+  "Return t if configuration is valid."
   (cond ((not (equal (type-of (hass--apikey)) 'string))
-         "HASS-APIKEY must be set to use hass")
+         (hass--warning "HASS-APIKEY must be set to use hass.") nil)
         ((not (equal (type-of hass-host) 'string))
-         "HASS-HOST must be set to use hass")
-        (t nil)))
-
-(defun hass--start ()
-  "Initialize connection to Home Assistant instance.  Assumes configuration is valid."
-  (add-hook 'hass-api-connected-hook
-            (lambda ()
-              (hass--get-available-services #'hass--get-available-entities)))
-  (hass--check-api-connection))
+         (hass--warning "HASS-HOST must be set to use hass.") nil)
+        (t t)))
 
 ;;;###autoload
 (defun hass-setup ()
@@ -507,9 +500,12 @@ Assistant instance for available services and entities."
       (setq hass-host (match-string 2 hass-url))
       (setq hass-port (match-string 3 hass-url))))
 
-  (if-let ((err (hass--config-error)))
-      (hass--warning err)
-    (hass--start)))
+  (when (hass--check-config)
+    (hass--check-api-connection)))
+
+(add-hook 'hass-api-connected-hook
+          (lambda ()
+            (hass--get-available-services #'hass--get-available-entities)))
 
 (provide 'hass)
 
