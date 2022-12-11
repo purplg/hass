@@ -57,7 +57,6 @@
 ;; Customizable
 (defvar hass-dash-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "g r") 'hass-dash-refresh-current)
     (define-key map (kbd "RET") 'widget-button-press)
     (define-key map [tab] 'widget-forward)
     (define-key map [backtab] 'widget-backward)
@@ -93,14 +92,9 @@
   :group 'hass-dash
   :type '(repeat (cons string string)))
 
-(defun hass-dash-key-to-buffer-name (dashboard)
+(defun hass-dash--buffer-name (dashboard)
   "Return the name of the hass-dash buffer for dashboard key DASHBOARD."
   (concat "*hass-dash-" (symbol-name dashboard) "*"))
-
-(defun hass-dash-buffer-name-to-key (name)
-  "Return the dashboard key for the buffer named NAME."
-  (string-match "^\\*hass-dash-\\([[:alnum:]]+\\)\\*$" name)
-  (intern (match-string 1 name)))
 
 (defvar hass-dash-layouts nil
   "An alist describing the dashboards.
@@ -301,26 +295,18 @@ already set using the `:title' and `:title-face' properties."
 
 
 ;; Dashboard rendering
-;;;###autoload
-(defun hass-dash-refresh (dashboard)
-  "Rerender the hass-dash buffer for DASHBOARD."
-  (with-current-buffer (get-buffer-create (hass-dash-key-to-buffer-name dashboard))
-    (let ((inhibit-read-only t)
-          (prev-line (line-number-at-pos)))
-      (erase-buffer)
-      (hass-dash--track-layout-entities
-       (widget-create
-        (append '(group :format "%v")
-                (cdr (assoc dashboard hass-dash-layouts)))))
-      (goto-char (point-min))
-      (forward-line (1- prev-line))
-      (hass-dash-mode))))
-
-(defun hass-dash-refresh-current ()
-  "Rerender the current hass-dash buffer."
-  (interactive)
-  (when-let ((key (hass-dash-buffer-name-to-key (buffer-name))))
-    (hass-dash-refresh key)))
+(defun hass-dash--render (layout)
+  "Render a hass-dash layout in the current buffer.
+LAYOUT is the layout in `hass-dash-layouts' to be rendered."
+  (let ((inhibit-read-only t)
+        (prev-line (line-number-at-pos)))
+    (erase-buffer)
+    (hass-dash--track-layout-entities
+     (widget-create
+      (append '(group :format "%v")
+              layout)))
+    (goto-char (point-min))
+    (forward-line (1- prev-line))))
 
 
 ;; User functions
@@ -332,9 +318,12 @@ already set using the `:title' and `:title-face' properties."
                        (1 (intern (caar hass-dash-layouts)))
                        (_ (intern (completing-read "Dashboard: " hass-dash-layouts))))))
   (when (and dashboard (hass-websocket-ensure))
-    (hass-dash-refresh dashboard)
-    (let* ((buffer (get-buffer (hass-dash-key-to-buffer-name dashboard)))
-           (window (get-buffer-window buffer)))
+    (let* ((buffer (get-buffer-create (hass-dash--buffer-name dashboard)))
+           (window (get-buffer-window buffer))
+           (layout (cdr (assoc dashboard hass-dash-layouts))))
+      (with-current-buffer buffer
+        (hass-dash-mode)
+        (hass-dash--render layout))
       (pop-to-buffer buffer)
       (set-window-dedicated-p window t))))
 
