@@ -501,16 +501,6 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
   "Run before using any hass features.
 Check whether necessary variables are set and then query the Home
 Assistant instance for available services and entities."
-
-  ;; Backwards compability. Split `hass-url', into appropriate variables.
-  (when (boundp 'hass-url)
-    (hass--warning "`hass-url' is deprecated as of v2.0. Please use `hass-host'. https://github.com/purplg/hass/blob/master/README.org#deprecated-hass-url")
-    (save-match-data
-      (string-match "http\\(s?\\)://\\(.*\\):\\([0-9]*\\)$" hass-url)
-      (setq hass-insecure (string-empty-p (match-string 1 hass-url)))
-      (setq hass-host (match-string 2 hass-url))
-      (setq hass-port (match-string 3 hass-url))))
-
   (when (hass--check-config)
     (hass--check-api-connection)))
 
