@@ -189,27 +189,6 @@ already set by using the widget icon and label."
       (widget-put widget :value (hass-state-of entity-id))))
   (widget-default-create widget))
 
-(defun hass-dash--group-create (widget)
-  "Create the hass dashboard group WIDGET.
-This just uses `widget-default-create', but sets the `:tag' property if it isn't
-already set using the `:title' and `:title-face' properties."
-  (unless (widget-get widget :tag)
-    (widget-put widget :tag (propertize (widget-get widget :title)
-                                        'face (widget-get widget :title-face))))
-  (widget-default-create widget))
-
-(defun hass-dash--toggle-widget-value-get (widget)
-  "Get the state for a toggle WIDGET."
-  (hass-switch-p (widget-get widget :entity-id)))
-
-(defun hass-dash--button-widget-value-get (widget)
-  "Get the state for a toggle WIDGET."
-  (hass-state-of (widget-get widget :entity-id)))
-
-(defun hass-dash--button-widget-value-create (widget)
-  "Get the state for a toggle WIDGET."
-  (princ (hass-state-of (widget-get widget :entity-id)) (current-buffer)))
-
 (defun hass-dash--widget-action (widget &optional _)
   "Action handler for WIDGET.
 If the `:service' property is set, this will call that service.  Otherwise, it
@@ -272,6 +251,14 @@ Assistant.  The following optional properties can also be used:
   :value-create 'hass-dash--button-widget-value-create
   :action 'hass-dash--widget-action)
 
+(defun hass-dash--button-widget-value-get (widget)
+  "Get the state for a toggle WIDGET."
+  (hass-state-of (widget-get widget :entity-id)))
+
+(defun hass-dash--button-widget-value-create (widget)
+  "Get the state for a toggle WIDGET."
+  (princ (hass-state-of (widget-get widget :entity-id)) (current-buffer)))
+
 (define-widget 'hass-dash-toggle 'hass-dash-button
   "A toggle widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
@@ -289,6 +276,10 @@ Assistant.  The following optional properties can also be used:
   being confirmed.  See `hass-dash--widget-action' for details."
   :value-get 'hass-dash--toggle-widget-value-get)
 
+(defun hass-dash--toggle-widget-value-get (widget)
+  "Get the state for a toggle WIDGET."
+  (hass-switch-p (widget-get widget :entity-id)))
+
 (define-widget 'hass-dash-group 'group
   "A grouping widget for home-assistant dashboards.
 You can pass `:title' to give the group a title, and pass `:title-face' to set
@@ -296,6 +287,15 @@ the font face for the title."
   :format "%t\n%v"
   :create 'hass-dash--group-create
   :title-face 'hass-dash-group-face)
+
+(defun hass-dash--group-create (widget)
+  "Create the hass dashboard group WIDGET.
+This just uses `widget-default-create', but sets the `:tag' property if it isn't
+already set using the `:title' and `:title-face' properties."
+  (unless (widget-get widget :tag)
+    (widget-put widget :tag (propertize (widget-get widget :title)
+                                        'face (widget-get widget :title-face))))
+  (widget-default-create widget))
 
 
 ;; User functions
