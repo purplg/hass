@@ -317,9 +317,8 @@ the font face for the title."
 (defun hass-dash-refresh-current ()
   "Rerender the current hass-dash buffer."
   (interactive)
-  (let ((key (hass-dash-buffer-name-to-key (buffer-name))))
-    (when key
-      (hass-dash-refresh key))))
+  (when-let ((key (hass-dash-buffer-name-to-key (buffer-name))))
+    (hass-dash-refresh key)))
 
 ;;;###autoload
 (defun hass-dash-open (dashboard)
