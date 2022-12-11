@@ -94,18 +94,10 @@ requests"
 Set this to a list of Home Assistant entity ID strings.  An entity ID looks
 something like *switch.bedroom_light*.
 
-This is used by `hass-polling-mode' and `hass-websocket-mode' to
-detect changes in entity state."
+This is used by `hass-websocket-mode' to detect changes in entity
+state."
   :group 'hass
   :type '(repeat string))
-
-(defvar hass-polling-mode-map (make-sparse-keymap)
-  "Keymap for `hass-polling-mode'.")
-
-(defcustom hass-polling-frequency 60
-  "Amount of seconds between querying HASS-ENTITIES."
-  :group 'hass
-  :type 'integer)
 
 (defface hass-icon-face
   '((t (:inherit all-the-icons-lsilver)))
@@ -482,43 +474,6 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
    (lambda (&rest _)
      (run-hooks 'hass-service-called-hook)
      (when success-callback (funcall success-callback)))))
-
-
-;; Polling
-(defun hass-polling--cancel-timer ()
-  "Cancel polling without disabling it."
-  (when hass--timer
-    (cancel-timer hass--timer)
-    (setq hass--timer nil)))
-
-(defun hass-polling--query-entities ()
-  "Update the current state all of the registered entities."
-  (dolist (entity hass-tracked-entities)
-    (hass--get-entity-state entity)))
-
-;;;###autoload
-(define-minor-mode hass-polling-mode
-  "Toggle mode for querying Home Assistant periodically.
-Similar to `hass-realtime-mode' but is done without requiring
-websockets by periodically polling the API.
-
-Use the variable `hass-polling-frequency' to change how
-frequently (in seconds) the Home Assistant instance should be
-queried.
-
-Use the variable `hass-tracked-entities' to set which entities
-you want to query automatically."
-  :lighter nil
-  :group 'hass
-  :global t
-  (when hass--timer (hass-polling--cancel-timer))
-  (when hass-polling-mode
-    (hass--get-available-services 'hass--get-available-entities)
-    (when hass--timer (hass-polling--cancel-timer))
-    (setq hass--timer (run-with-timer
-                       nil
-                       hass-polling-frequency
-                       'hass-polling--query-entities))))
 
 
 ;; Init

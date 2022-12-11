@@ -7,11 +7,6 @@
 ;; This mode is an extension to the `hass' package to provide realtime updates
 ;; via websockets to a Home Assistant instance.
 
-;; Alternatively, the `hass' package has a 'polling mode' that will periodically
-;; query the Home Assistant instance to get state updates of the configured
-;; tracked entities.  This package enables the use of websockets to get updates
-;; instantly.
-
 ;; --------------------
 ;; Configuration
 
