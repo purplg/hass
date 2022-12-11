@@ -160,6 +160,24 @@ Full example:
       (widget-value-set widget state))))
 
 
+;; Dashboard rendering
+(defun hass-dash--buffer-name (dashboard)
+  "Return the name of the hass-dash buffer for dashboard key DASHBOARD."
+  (concat "*hass-dash-" (symbol-name dashboard) "*"))
+
+(defun hass-dash--render (layout)
+  "Render a hass-dash layout in the current buffer.
+LAYOUT is the layout in `hass-dash-layouts' to be rendered."
+  (let ((inhibit-read-only t)
+        (prev-line (line-number-at-pos)))
+    (erase-buffer)
+    (hass-dash--track-layout-entities
+     (widget-create
+      (append '(group :format "%v")
+              layout)))
+    (goto-char (point-min))
+    (forward-line (1- prev-line))))
+
 ;; Widget definitions
 (defun hass-dash--widget-label (widget)
   "Return the label for WIDGET.
@@ -295,25 +313,6 @@ already set using the `:title' and `:title-face' properties."
     (widget-put widget :tag (propertize (widget-get widget :title)
                                         'face (widget-get widget :title-face))))
   (widget-default-create widget))
-
-
-;; Dashboard rendering
-(defun hass-dash--buffer-name (dashboard)
-  "Return the name of the hass-dash buffer for dashboard key DASHBOARD."
-  (concat "*hass-dash-" (symbol-name dashboard) "*"))
-
-(defun hass-dash--render (layout)
-  "Render a hass-dash layout in the current buffer.
-LAYOUT is the layout in `hass-dash-layouts' to be rendered."
-  (let ((inhibit-read-only t)
-        (prev-line (line-number-at-pos)))
-    (erase-buffer)
-    (hass-dash--track-layout-entities
-     (widget-create
-      (append '(group :format "%v")
-              layout)))
-    (goto-char (point-min))
-    (forward-line (1- prev-line))))
 
 
 ;; User functions
