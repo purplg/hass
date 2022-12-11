@@ -264,17 +264,12 @@ Assistant.  The following optional properties can also be used:
   being confirmed.  See `hass-dash--widget-action' for details."
   :create 'hass-dash--widget-create
   :format "%[%t: %v%]\n"
-  :value-get 'hass-dash--button-widget-value-get
-  :value-create 'hass-dash--button-widget-value-create
+  :value-create 'widget-item-value-create
   :action 'hass-dash--widget-action)
 
 (defun hass-dash--button-widget-value-get (widget)
   "Get the state for a toggle WIDGET."
   (hass-state-of (widget-get widget :entity-id)))
-
-(defun hass-dash--button-widget-value-create (widget)
-  "Get the state for a toggle WIDGET."
-  (princ (hass-state-of (widget-get widget :entity-id)) (current-buffer)))
 
 (define-widget 'hass-dash-toggle 'hass-dash-button
   "A toggle widget for home-assistant dashboards.
