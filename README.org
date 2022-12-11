@@ -33,7 +33,6 @@
 - [[#usage][Usage]]
   - [[#dashboard][Dashboard]]
   - [[#payloads][Payloads]]
-  - [[#tracking-entities][Tracking entities]]
   - [[#hooks][Hooks]]
 - [[#license][License]]
 :END:
@@ -299,26 +298,6 @@ You could pass a JSON string directly, but that would require escaping every quo
   "topic": "valetudo/vacuum/LocateCapability/locate/set"
 }
 #+END_SRC
-
-** Tracking entities
-
-To retrieve automatic updates of specific entities, you must configure the ~hass-tracked-entities~ variable with a list of entities.
-
-#+BEGIN_SRC emacs-lisp :results none
-(setq hass-tracked-entities '("switch.bedroom_light" "switch.bedroom_fan"))
-#+END_SRC
-
-Then you can enable either ~hass-websocket-mode~ or ~hass-polling-mode~.
-
-~hass-websocket-mode~, requires =websocket= package, is a mode that receives updates from Home Assistant over a websocket. This enables real-time updates to entity states. Highly recommended if using the dashboard feature.
-
-#+BEGIN_SRC emacs-lisp :results none
-(hass-websocket-mode t)
-#+END_SRC
-
-~hass-polling-mode~ is a mode that periodically queries the Home Assistant instance to get the current state of a list of entities.
-
-The frequency of the query can be adjusted by setting ~hass-polling-frequency~ to the number of seconds you'd like. Defaults to 60.
 
 ** Hooks
 
