@@ -168,8 +168,7 @@ Full example:
 (defun hass-dash--render (layout)
   "Render a hass-dash layout in the current buffer.
 LAYOUT is the layout in `hass-dash-layouts' to be rendered."
-  (let ((inhibit-read-only t)
-        (prev-line (line-number-at-pos)))
+  (let ((prev-line (line-number-at-pos)))
     (erase-buffer)
     (hass-dash--track-layout-entities
      (widget-create
@@ -323,8 +322,9 @@ already set using the `:title' and `:title-face' properties."
            (window (get-buffer-window buffer))
            (layout (cdr (assoc dashboard hass-dash-layouts))))
       (with-current-buffer buffer
-        (hass-dash-mode)
-        (hass-dash--render layout))
+        (let ((inhibit-read-only t))
+          (hass-dash-mode)
+          (hass-dash--render layout)))
       (pop-to-buffer buffer)
       (set-window-dedicated-p window t))))
 
