@@ -78,7 +78,7 @@
   :group 'hass-dash
   :prefix "hass-dash-")
 
-(defcustom hass-dash--default-services '(("automation" . "automation.trigger")
+(defcustom hass-dash-default-services '(("automation" . "automation.trigger")
                                          ("counter" . "counter.increment")
                                          ("cover" . "cover.toggle")
                                          ("fan" . "fan.toggle")
@@ -192,7 +192,7 @@ already set by using the widget icon and label."
 (defun hass-dash--widget-action (widget &optional _)
   "Action handler for WIDGET.
 If the `:service' property is set, this will call that service.  Otherwise, it
-will call the relevant service in `hass-dash--default-services'.
+will call the relevant service in `hass-dash-default-services'.
 
 The `:confirm' property can be used to trigger a confirmation before calling the
 service.  It can take on the following values:
@@ -206,7 +206,7 @@ service.  It can take on the following values:
          (entity-id (widget-get widget :entity-id))
          (service (or (widget-get widget :service)
                       (cdr (assoc (hass--domain-of-entity entity-id)
-                                  hass-dash--default-services)))))
+                                  hass-dash-default-services)))))
     (cond ((stringp confirm) (when (y-or-n-p confirm)
                                (hass-call-service entity-id service nil)))
           ((functionp confirm) (when (funcall confirm entity-id)
@@ -236,7 +236,7 @@ You must pass an `:entity-id' property to indicate the id of the entity in Home
 Assistant.  The following optional properties can also be used:
 
 • `:service': The service to call when triggering the action on the widget.  If
-  not passed, then the default will be found in `hass-dash--default-services'
+  not passed, then the default will be found in `hass-dash-default-services'
   instead.
 • `:label': The friendly name to show for the widget.  If not passed, a sane
   default will be found in the list of available entities.  If nothing is found
@@ -260,7 +260,7 @@ You must pass an `:entity-id' property to indicate the id of the entity in Home
 Assistant.  The following optional properties can also be used:
 
 • `:service': The service to call when triggering the action on the widget.  If
-  not passed, then the default will be found in `hass-dash--default-services'
+  not passed, then the default will be found in `hass-dash-default-services'
   instead.
 • `:label': The friendly name to show for the widget.  If not passed, a sane
   default will be found in the list of available entities.  If nothing is found
