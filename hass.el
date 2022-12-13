@@ -158,18 +158,18 @@ return HASS-APIKEY as is."
       (funcall hass-apikey)
     hass-apikey))
 
-(defun hass--entity-url (entity-id)
+(defun hass--entity-endpoint (entity-id)
   "Generate entity state endpoint URLs.
 ENTITY-ID is the id of the entity in Home Assistant."
-  (hass--url (concat "api/states/" entity-id)))
+  (concat "api/states/" entity-id))
 
-(defun hass--service-url (service)
+(defun hass--service-endpoint (service)
   "Generate service endpoint URL.
 SERVICE is a string of the service to call."
   (let* ((parts (split-string service "\\."))
          (domain (pop parts))
          (service (pop parts)))
-    (hass--url (format "api/services/%s/%s" domain service))))
+    (format "api/services/%s/%s" domain service)))
 
 (defun hass--domain-of-entity (entity-id)
   "Convert an ENTITY-ID to its respective domain."
@@ -354,32 +354,53 @@ affected and now has STATE."
   (hass--set-state entity-id state)
   (run-hooks 'hass-service-called-hook))
 
-(cl-defun hass--request-error (&key symbol-status data response &allow-other-keys)
-  "Error handler for invalid requests.
-SYMBOL-STATUS, DATA, and RESPONSE are all directly forward from
-`request''s callback function."
-  (let ((message (alist-get 'message data))
-        (url (request-response-url response)))
-    (cond ((eq symbol-status 'parse-error)
-           (hass--warning "Could not connect to URL: %s" url))
-          (message
-           (hass--warning "%s URL: `%s'" message url))
-          (t
-           (hass--warning "Unknown error occurred with URL: %s" url)))))
+(defun hass--request-error-handler (endpoint http-status-code response)
+  (setq endpoint (split-string endpoint "/"))
+  (or (hass--request-error-handle-api response)
+      (hass--request-error-handle-states endpoint http-status-code response)
+      (hass--request-error-handle-services endpoint http-status-code response)
+      (if-let ((data (request-response-data response)))
+          (hass--warning "Unknown error occurred with URL: `%s', %s" (request-response-url response) data)
+        (hass--warning "Unknown error occurred with URL: %s" (request-response-url response)))))
+
+(defun hass--request-error-handle-api (response)
+  "Try to handle error dealing with the main `api' endpoint.
+Return t if handled."
+  (when (eq (request-response-symbol-status response) 'parse-error)
+    (hass--warning "Could not connect to URL: %s" (request-response-url response))
+    t))
+
+(defun hass--request-error-handle-states (endpoint http-status-code response)
+  "Try to handle error dealing with the `states' endpoint.
+Return t if handled."
+  (when-let ((entity-id (and (= 404 http-status-code)
+                             (nth 2 endpoint))))
+    (setq hass-tracked-entities (delete entity-id hass-tracked-entities))
+    (hass--warning "Entity %S was not found." entity-id)
+    t))
+
+(defun hass--request-error-handle-services (endpoint http-status-code response)
+  "Try to handle error dealing with the `services' endpoint.
+Return t if handled."
+  (when (and (= 404 http-status-code)
+             (>= 3 (length endpoint)))
+    (setq hass-tracked-entities (delete (nth 2 endpoint) hass-tracked-entities))
+    (hass--warning "Entity %S was not found." (nth 2 endpoint))
+    t))
 
 
 ;; Requests
-(defun hass--request (type url &optional success payload)
+(defun hass--request (type endpoint &optional success payload)
   "Make a request to Home Assistant.
 TYPE is a string of the type of request to make.  For example, `\"GET\"'.
 
-URL is a string of URL of the request.
+ENDPOINT is a string of endpoint portion of the url for the request.
 
 SUCCESS is a callback function for when the request successful
 completed.
 
 PAYLOAD is contents the body of the request."
-  (request url
+  (request (hass--url endpoint)
     :sync nil
     :type type
     :headers `(("User-Agent" . ,hass--user-agent)
@@ -387,7 +408,9 @@ PAYLOAD is contents the body of the request."
                ("Content-Type" . "application/json"))
     :data payload
     :parser (lambda () (hass--deserialize (buffer-string)))
-    :error #'hass--request-error
+    :error (cl-function
+            (lambda (&key symbol-status response &allow-other-keys)
+              (hass--request-error-handler endpoint (request-response-status-code response) response)))
     :success (when success
                (cl-function
                 (lambda (&key response &allow-other-keys)
@@ -397,7 +420,7 @@ PAYLOAD is contents the body of the request."
 (defun hass--check-api-connection ()
   "Set `hass--api-running' to t when a successful connection is made."
   (setq hass--api-running nil)
-  (hass--request "GET" (hass--url "api/")
+  (hass--request "GET" "api/"
                  (lambda (data)
                    (when (string= "API running." (cdr (assoc 'message data)))
                      (setq hass--api-running t)
@@ -408,7 +431,7 @@ PAYLOAD is contents the body of the request."
 Makes a request to `/api/states' but drops everything except an
 list of entity-ids.
 Optional argument CALLBACK ran after entities are received."
-  (hass--request "GET" (hass--url "api/states")
+  (hass--request "GET" "api/states"
                  (lambda (data)
                    (hass--get-entities-result data)
                    (when callback (funcall callback)))))
@@ -416,14 +439,14 @@ Optional argument CALLBACK ran after entities are received."
 (defun hass--get-available-services (&optional callback)
   "Retrieve the available services from the Home Assistant instance.
 Optional argument CALLBACK ran after services are received."
-  (hass--request "GET" (hass--url "api/services")
+  (hass--request "GET" "api/services"
                  (lambda (data)
                    (hass--get-available-services-result data)
                    (when callback (funcall callback)))))
 
 (defun hass--get-entity-state (entity-id)
   "Retrieve the current state of ENTITY-ID from the Home Assistant server."
-  (hass--request "GET" (hass--entity-url entity-id)
+  (hass--request "GET" (hass--entity-endpoint entity-id)
                  (lambda (data)
                    (hass--query-entity-result entity-id (cdr (assoc 'state data))))))
 
@@ -441,7 +464,7 @@ PAYLOAD is a JSON-encoded string of the payload to be sent with SERVICE.
 
 SUCCESS-CALLBACK is a function to be called with a successful request response."
   (hass--request "POST"
-                 (hass--service-url service)
+                 (hass--service-endpoint service)
                  success-callback
                  payload))
 
