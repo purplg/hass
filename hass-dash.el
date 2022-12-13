@@ -132,48 +132,30 @@ Full example:
       (hass-dash-toggle :entity-id \"switch.entry_lights\")))))")
 
 
-;; Entity tracking
-(defvar hass-dash--entities-to-widget-alist '()
-  "An alist mapping entity IDs to widgets that use those entities.")
-
-(defun hass-dash--insert-into-entities-to-widget-alist (widgets)
-  "Add WIDGETS to the `entities-to-widget-alist'."
-  (dolist (widget widgets)
-    (if-let ((children (widget-get widget :children)))
-        (hass-dash--insert-into-entities-to-widget-alist children)
-      (when-let ((entity-id (widget-get widget :entity-id)))
-        (setf (alist-get (intern entity-id) hass-dash--entities-to-widget-alist)
-              (push widget (alist-get (intern entity-id) hass-dash--entities-to-widget-alist)))))))
-
-(defun hass-dash--track-layout-entities (widget)
-  "Tracks entity IDs referenced by WIDGET and it's children."
-  (setq hass-dash--entities-to-widget-alist nil)
-  (hass-dash--insert-into-entities-to-widget-alist (list widget))
-  (dolist (entity-id (mapcar 'car hass-dash--entities-to-widget-alist))
-    (add-to-list 'hass-tracked-entities (symbol-name entity-id)))
-  (hass--update-all-entities))
-
-(defun hass-dash--update-widgets (entity-id state)
-  "Updated the STATE for all widgets bound to ENTITY-ID."
-  (when-let ((widgets (alist-get (intern entity-id) hass-dash--entities-to-widget-alist)))
-    (dolist (widget widgets)
-      (widget-value-set widget state))))
-
-
 ;; Dashboard rendering
 (defun hass-dash--buffer-name (dashboard)
   "Return the name of the hass-dash buffer for dashboard key DASHBOARD."
   (concat "*hass-dash-" (symbol-name dashboard) "*"))
+
+(defun hass-dash--update ()
+  "Update all currently active dashboards with entity state."
+  (let ((dashboard-buffers (mapcar (lambda (dashboard)
+                                     (get-buffer (funcall hass-dash-buffer-name-function (car dashboard))))
+                                   hass-dash-layouts)))
+    (dolist (buffer dashboard-buffers)
+      (when buffer
+        (with-current-buffer (get-buffer buffer)
+          (dolist (widget hass-dash--widgets)
+            (widget-value-set widget (widget-value-value-get widget))))))))
 
 (defun hass-dash--render (layout)
   "Render a hass-dash layout in the current buffer.
 LAYOUT is the layout in `hass-dash-layouts' to be rendered."
   (let ((prev-line (line-number-at-pos)))
     (erase-buffer)
-    (hass-dash--track-layout-entities
-     (widget-create
+    (widget-create
       (append '(group :format "%v")
-              layout)))
+              layout))
     (goto-char (point-min))
     (forward-line (1- prev-line))))
 
@@ -201,8 +183,10 @@ already set by using the widget icon and label."
                               'face
                               'hass-dash-widget-label-face))
            (tag (if icon (concat icon " " label) label)))
+      (add-to-list 'hass-tracked-entities entity-id)
       (widget-put widget :tag tag)
-      (widget-put widget :value (hass-state-of entity-id))))
+      (widget-put widget :value (hass-state-of entity-id))
+      (add-to-list 'hass-dash--widgets widget)))
   (widget-default-create widget))
 
 (defun hass-dash--widget-action (widget &optional _)
@@ -270,7 +254,7 @@ Assistant.  The following optional properties can also be used:
   "Get the state for a toggle WIDGET."
   (hass-state-of (widget-get widget :entity-id)))
 
-(define-widget 'hass-dash-toggle 'hass-dash-button
+(define-widget 'hass-dash-toggle 'toggle
   "A toggle widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
 Assistant.  The following optional properties can also be used:
@@ -285,10 +269,13 @@ Assistant.  The following optional properties can also be used:
   based on the entity id.
 • `:confirm': If passed, this will control how the action is confirmed before
   being confirmed.  See `hass-dash--widget-action' for details."
-  :value-get 'hass-dash--toggle-widget-value-get)
+  :create 'hass-dash--widget-create
+  :format "%[%t: %v%]\n"
+  :value-get 'hass-dash--toggle-widget-value-get
+  :action 'hass-dash--widget-action)
 
 (defun hass-dash--toggle-widget-value-get (widget)
-  "Get the state for a toggle WIDGET."
+  "Set the state for a toggle WIDGET."
   (hass-switch-p (widget-get widget :entity-id)))
 
 (define-widget 'hass-dash-group 'group
@@ -333,13 +320,11 @@ already set using the `:title' and `:title-face' properties."
   :group 'hass-dash
   :syntax-table nil
   :abbrev-table nil
-  :interactive t)
+  :interactive t
+  (setq-local hass-dash--widgets '()))
 
-
 ;; Refresh dashboard when entity state is updated
-(add-hook 'hass-entity-updated-hook
-          (lambda ()
-            (maphash 'hass-dash--update-widgets hass--states)))
+(add-hook 'hass-entity-updated-hook #'hass-dash--update)
 
 (provide 'hass-dash)
 
