@@ -245,10 +245,10 @@ Assistant.  The following optional properties can also be used:
   based on the entity id.
 • `:confirm': If passed, this will control how the action is confirmed before
   being confirmed.  See `hass-dash--widget-action' for details."
-  :create 'hass-dash--widget-create
+  :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
-  :value-create 'widget-item-value-create
-  :action 'hass-dash--widget-action)
+  :value-create #'widget-item-value-create
+  :action #'hass-dash--widget-action)
 
 (defun hass-dash--button-widget-value-get (widget)
   "Get the state for a toggle WIDGET."
@@ -269,10 +269,10 @@ Assistant.  The following optional properties can also be used:
   based on the entity id.
 • `:confirm': If passed, this will control how the action is confirmed before
   being confirmed.  See `hass-dash--widget-action' for details."
-  :create 'hass-dash--widget-create
+  :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
-  :value-get 'hass-dash--toggle-widget-value-get
-  :action 'hass-dash--widget-action)
+  :value-get #'hass-dash--toggle-widget-value-get
+  :action #'hass-dash--widget-action)
 
 (defun hass-dash--toggle-widget-value-get (widget)
   "Set the state for a toggle WIDGET."
@@ -283,7 +283,7 @@ Assistant.  The following optional properties can also be used:
 You can pass `:title' to give the group a title, and pass `:title-face' to set
 the font face for the title."
   :format "%t\n%v"
-  :create 'hass-dash--group-create
+  :create #'hass-dash--group-create
   :title-face 'hass-dash-group-face)
 
 (defun hass-dash--group-create (widget)
