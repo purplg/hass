@@ -312,6 +312,7 @@ already set using the `:title' and `:title-face' properties."
         (let ((inhibit-read-only t))
           (hass-dash-mode)
           (hass-dash--render layout)))
+      (hass--update-all-entities)
       (pop-to-buffer buffer)
       (set-window-dedicated-p window t))))
 
