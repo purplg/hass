@@ -327,7 +327,7 @@ PAYLOAD is contents the body of the request."
   (request url
     :sync nil
     :type type
-    :headers `(("User-Agent" . hass--user-agent)
+    :headers `(("User-Agent" . ,hass--user-agent)
                ("Authorization" . ,(concat "Bearer " (hass--apikey)))
                ("Content-Type" . "application/json"))
     :data payload
