@@ -148,9 +148,7 @@ Full example:
           (dolist (widget hass-dash--widgets)
             (let ((icon (widget-get widget :icon))
                   (label (hass-dash--widget-label widget)))
-              (widget-put widget :tag (if-let ((icon (widget-get widget :icon)))
-                                          (concat icon " " label)
-                                        label)))
+              (widget-put widget :tag (hass-dash--widget-format-tag icon label)))
             (widget-value-set widget (widget-value-value-get widget))))))))
 
 (defun hass-dash--render (layout)
@@ -176,6 +174,11 @@ is set, falls back to using the `:entity_id' property on the WIDGET."
                         entity-id)))
               'face 'hass-dash-widget-label))
 
+(defun hass-dash--widget-format-tag (icon label)
+  (if icon
+      (concat icon " " label)
+    label))
+
 (defun hass-dash--widget-create (widget)
   "Create the widget WIDGET.
 This just uses `widget-default-create', but sets the `:tag' property if it isn't
@@ -187,7 +190,7 @@ already set by using the widget icon and label."
            (label (hass-dash--widget-label widget)))
       (add-to-list 'hass-tracked-entities entity-id)
       (widget-put widget :icon icon)
-      (widget-put widget :tag (if icon (concat icon " " label) label))
+      (widget-put widget :tag (hass-dash--widget-format-tag icon label))
       (widget-put widget :value (hass-state-of entity-id))
       (add-to-list 'hass-dash--widgets widget)))
   (widget-default-create widget))
