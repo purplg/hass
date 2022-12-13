@@ -370,7 +370,7 @@ SYMBOL-STATUS, DATA, and RESPONSE are all directly forward from
 
 ;; Requests
 (defun hass--request (type url &optional success payload)
-  "Function to reduce a lot of boilerplate when making a request.
+  "Make a request to Home Assistant.
 TYPE is a string of the type of request to make.  For example, `\"GET\"'.
 
 URL is a string of URL of the request.
