@@ -301,7 +301,7 @@ already set using the `:title' and `:title-face' properties."
 (defun hass-dash-open (dashboard)
   "Open the hass-dash buffer for DASHBOARD."
   (interactive (list (pcase (length hass-dash-layouts)
-                       (0 (hass--warning "You must configure some dashboards in `hass-dash-layouts'."))
+                       (0 (hass--warning "You must configure some dashboards in `hass-dash-layouts'.") nil)
                        (1 (intern (caar hass-dash-layouts)))
                        (_ (intern (completing-read "Dashboard: " hass-dash-layouts))))))
   (when (and dashboard (hass-websocket-ensure))
