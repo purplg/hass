@@ -63,12 +63,12 @@
     map)
   "Keymap for `hass-dash-mode'.")
 
-(defface hass-dash-group-face
+(defface hass-dash-group
   '((t (:inherit outline-1)))
   "Face for dashboard titles in HASS's dashboard."
   :group 'hass-dash)
 
-(defface hass-dash-widget-label-face
+(defface hass-dash-widget-label
   '((t (:inherit outline-8)))
   "Face for widgets in HASS's dashboard."
   :group 'hass-dash)
@@ -181,7 +181,7 @@ already set by using the widget icon and label."
                      (hass--icon-of-entity entity-id)))
            (label (propertize (hass-dash--widget-label widget)
                               'face
-                              'hass-dash-widget-label-face))
+                              'hass-dash-widget-label))
            (tag (if icon (concat icon " " label) label)))
       (add-to-list 'hass-tracked-entities entity-id)
       (widget-put widget :tag tag)
@@ -284,7 +284,7 @@ You can pass `:title' to give the group a title, and pass `:title-face' to set
 the font face for the title."
   :format "%t\n%v"
   :create #'hass-dash--group-create
-  :title-face 'hass-dash-group-face)
+  :title-face 'hass-dash-group)
 
 (defun hass-dash--group-create (widget)
   "Create the hass dashboard group WIDGET.
