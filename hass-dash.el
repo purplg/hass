@@ -146,6 +146,11 @@ Full example:
       (when buffer
         (with-current-buffer (get-buffer buffer)
           (dolist (widget hass-dash--widgets)
+            (let ((icon (widget-get widget :icon))
+                  (label (hass-dash--widget-label widget)))
+              (widget-put widget :tag (if-let ((icon (widget-get widget :icon)))
+                                          (concat icon " " label)
+                                        label)))
             (widget-value-set widget (widget-value-value-get widget))))))))
 
 (defun hass-dash--render (layout)
@@ -165,11 +170,11 @@ LAYOUT is the layout in `hass-dash-layouts' to be rendered."
 Uses the `:label' property if one is set on the WIDGET, otherwise tries to use
 the `:friendly_name' property out of the list of available entities.  If neither
 is set, falls back to using the `:entity_id' property on the WIDGET."
-  (let ((entity-id (widget-get widget :entity-id)))
-    (or (widget-get widget :label)
-        (plist-get (cdr (assoc entity-id hass--available-entities))
-                   ':friendly_name)
-        entity-id)))
+  (propertize (or (widget-get widget :label)
+                  (let ((entity-id (widget-get widget :entity-id)))
+                    (or (hass-friendly-name entity-id)
+                        entity-id)))
+              'face 'hass-dash-widget-label))
 
 (defun hass-dash--widget-create (widget)
   "Create the widget WIDGET.
@@ -179,12 +184,10 @@ already set by using the widget icon and label."
     (let* ((entity-id (widget-get widget :entity-id))
            (icon (or (widget-get widget :icon)
                      (hass--icon-of-entity entity-id)))
-           (label (propertize (hass-dash--widget-label widget)
-                              'face
-                              'hass-dash-widget-label))
-           (tag (if icon (concat icon " " label) label)))
+           (label (hass-dash--widget-label widget)))
       (add-to-list 'hass-tracked-entities entity-id)
-      (widget-put widget :tag tag)
+      (widget-put widget :icon icon)
+      (widget-put widget :tag (if icon (concat icon " " label) label))
       (widget-put widget :value (hass-state-of entity-id))
       (add-to-list 'hass-dash--widgets widget)))
   (widget-default-create widget))
@@ -304,6 +307,7 @@ already set using the `:title' and `:title-face' properties."
                        (0 (hass--warning "You must configure some dashboards in `hass-dash-layouts'.") nil)
                        (1 (intern (caar hass-dash-layouts)))
                        (_ (intern (completing-read "Dashboard: " hass-dash-layouts))))))
+  (hass-ensure)
   (when (and dashboard (hass-websocket-ensure))
     (let* ((buffer (get-buffer-create (funcall hass-dash-buffer-name-function dashboard)))
            (window (get-buffer-window buffer))
