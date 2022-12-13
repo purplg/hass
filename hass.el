@@ -520,11 +520,12 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
         (t t)))
 
 ;;;###autoload
-(defun hass-setup ()
-  "Run before using any hass features.
+(defun hass-ensure ()
+  "Ensure hass is connected.
 Check whether necessary variables are set and then query the Home
 Assistant instance for available services and entities."
-  (when (hass--check-config)
+  (when (and (not hass--api-running)
+             (hass--check-config))
     (hass--check-api-connection)))
 
 (add-hook 'hass-api-connected-hook
