@@ -93,9 +93,9 @@
   :type '(repeat (cons string string)))
 
 (defcustom hass-dash-buffer-name-function #'hass-dash--buffer-name
-  "The function used to create the dashboard buffer name.
-The function takes the related dashboard key and returns a string
-for the name of the associated buffer."
+  "Function to generate a dashboard buffer name.
+Takes one argument, the key of the dashboard. See the default
+`hass-dash--buffer-name' for an example implementation."
   :group 'hass-dash
   :type 'function)
 
