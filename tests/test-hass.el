@@ -160,7 +160,7 @@ higher."
 (ert-deftest hass-dash-track-layout-entities nil
   (let ((hass-dash-layout (cdr (assoc 'default hass-dash-test-layout)))
         (hass-tracked-entities '("explicit.entity")))
-    (advice-add #'hass--update-all-entities :around (lambda (&rest _)))
+    (advice-add #'hass--update-tracked-entities :around (lambda (&rest _)))
     (let ((widget (widget-create (append '(group :format "%v") hass-dash-layout))))
       (hass-dash--track-layout-entities widget)
       (should (member "explicit.entity" hass-tracked-entities))

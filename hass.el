@@ -427,7 +427,7 @@ Optional argument CALLBACK ran after services are received."
                  (lambda (data)
                    (hass--query-entity-result entity-id (cdr (assoc 'state data))))))
 
-(defun hass--update-all-entities ()
+(defun hass--update-tracked-entities ()
   "Update current state of tracked entities."
   (dolist (entity hass-tracked-entities)
     (hass--get-entity-state entity)))
