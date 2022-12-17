@@ -25,12 +25,12 @@ services and entities are retrieved."
    (lambda ()
      (hass--get-available-entities (funcall callback)))))
 
-(ert-deftest hass-entity-url nil
-  (should (string= (hass--entity-url hass-test-entity-id)
+(ert-deftest hass-entity-endpoint nil
+  (should (string= (hass--url (hass--entity-endpoint hass-test-entity-id))
                    (format "http://%s:8123/api/states/%s" hass-host hass-test-entity-id))))
 
-(ert-deftest hass-service-url nil
-  (should (string= (hass--service-url "the_domain.service")
+(ert-deftest hass-service-endpoint nil
+  (should (string= (hass--url (hass--service-endpoint "the_domain.service"))
                    (format "http://%s:8123/api/services/the_domain/service" hass-host))))
 
 (ert-deftest hass-domain-of-entity nil
@@ -158,22 +158,25 @@ higher."
                                      (hass-dash-toggle :entity-id "test_entity.three"))))))
 
 (ert-deftest hass-dash-track-layout-entities nil
-  (let ((hass-dash-layout (cdr (assoc 'default hass-dash-test-layout)))
-        (hass-tracked-entities '("explicit.entity")))
-    (advice-add #'hass--update-tracked-entities :around (lambda (&rest _)))
-    (let ((widget (widget-create (append '(group :format "%v") hass-dash-layout))))
-      (hass-dash--track-layout-entities widget)
-      (should (member "explicit.entity" hass-tracked-entities))
-      (should (member "test_entity.one" hass-tracked-entities))
-      (should (member "test_entity.two" hass-tracked-entities))
-      (should (member "test_entity.three" hass-tracked-entities))
-      (widget-delete widget))))
+  (with-current-buffer (get-buffer-create (hass-dash--buffer-name 'test))
+    (hass-dash-mode)
+    (let ((hass-dash-layout (cdr (assoc 'default hass-dash-test-layout)))
+          (hass-tracked-entities '("explicit.entity")))
+      (advice-add #'hass--update-tracked-entities :around (lambda (&rest _)))
+      (let ((widget (widget-create (append '(group :format "%v") hass-dash-layout))))
+        (should (member "explicit.entity" hass-tracked-entities))
+        (should (member "test_entity.one" hass-tracked-entities))
+        (should (member "test_entity.two" hass-tracked-entities))
+        (should (member "test_entity.three" hass-tracked-entities))
+        (widget-delete widget)))))
 
 (ert-deftest hass-dash-create-widget-confirm-string nil
-  (let ((confirm-called nil)
-        (test-widget (widget-create 'hass-dash-toggle
-                                    :entity-id hass-test-entity-id
-                                    :confirm "Test confirmation?")))
+  (with-current-buffer (get-buffer-create (hass-dash--buffer-name 'test))
+    (hass-dash-mode)
+    (let ((confirm-called nil)
+          (test-widget (widget-create 'hass-dash-toggle
+                                      :entity-id hass-test-entity-id
+                                      :confirm "Test confirmation?")))
       ;; Disable `y-or-n-p' from prompting and set `confirm-called' to t if the prompt is correct.
       (advice-add #'y-or-n-p
                   :around
@@ -181,23 +184,27 @@ higher."
                     (setq confirm-called (string= confirm "Test confirmation?"))
                     nil))
       (widget-apply-action test-widget)
-      (should confirm-called)))
+      (should confirm-called))))
 
 (ert-deftest hass-dash-create-widget-confirm-function nil
-  (let* ((confirm-called nil)
-         (test-widget (widget-create 'hass-dash-toggle
-                                     :entity-id hass-test-entity-id
-                                     :confirm (lambda (&rest _)
-                                                (setq confirm-called t)
-                                                nil))))
+  (with-current-buffer (get-buffer-create (hass-dash--buffer-name 'test))
+    (hass-dash-mode)
+    (let* ((confirm-called nil)
+           (test-widget (widget-create 'hass-dash-toggle
+                                       :entity-id hass-test-entity-id
+                                       :confirm (lambda (&rest _)
+                                                  (setq confirm-called t)
+                                                  nil))))
       (widget-apply-action test-widget)
-      (should confirm-called)))
+      (should confirm-called))))
 
 (ert-deftest hass-dash-create-widget-confirm-default nil
-  (let ((confirm-called nil)
-        (test-widget (widget-create 'hass-dash-toggle
-                                    :entity-id hass-test-entity-id
-                                    :confirm t)))
+  (with-current-buffer (get-buffer-create (hass-dash--buffer-name 'test))
+    (hass-dash-mode)
+    (let ((confirm-called nil)
+          (test-widget (widget-create 'hass-dash-toggle
+                                      :entity-id hass-test-entity-id
+                                      :confirm t)))
       ;; Disable `y-or-n-p' from prompting and set `confirm-called' to t if the prompt is correct.
       (advice-add #'y-or-n-p
                   :around
@@ -205,11 +212,13 @@ higher."
                     (setq confirm-called (string= confirm (concat "Toggle " hass-test-entity-id "? ")))
                     nil))
       (widget-apply-action test-widget)
-      (should confirm-called)))
+      (should confirm-called))))
 
 (ert-deftest hass-dash-create-widget-confirm-none nil
-  (let ((confirm-called nil)
-        (test-widget (widget-create 'hass-dash-toggle :entity-id hass-test-entity-id)))
+  (with-current-buffer (get-buffer-create (hass-dash--buffer-name 'test))
+    (hass-dash-mode)
+    (let ((confirm-called nil)
+          (test-widget (widget-create 'hass-dash-toggle :entity-id hass-test-entity-id)))
       ;; Disable `y-or-n-p' from prompting and set `confirm-called' to t if the prompt is correct.
       (advice-add #'y-or-n-p
                   :around
@@ -217,4 +226,4 @@ higher."
                     (setq confirm-called t)
                     nil))
       (widget-apply-action test-widget)
-      (should-not confirm-called)))
+      (should-not confirm-called))))
