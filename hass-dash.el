@@ -149,7 +149,7 @@ Full example:
             (let ((icon (widget-get widget :icon))
                   (label (hass-dash--widget-label widget)))
               (widget-put widget :tag (hass-dash--widget-format-tag icon label)))
-            (widget-value-set widget (widget-value-value-get widget))))))))
+            (widget-value-set widget (hass-state-of (widget-get widget :entity-id)))))))))
 
 (defun hass-dash--render (layout)
   "Render a hass-dash layout in the current buffer.
