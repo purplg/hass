@@ -94,7 +94,7 @@
 
 (defcustom hass-dash-buffer-name-function #'hass-dash--buffer-name
   "Function to generate a dashboard buffer name.
-Takes one argument, the key of the dashboard. See the default
+Takes one argument, the key of the dashboard.  See the default
 `hass-dash--buffer-name' for an example implementation."
   :group 'hass-dash
   :type 'function)
@@ -109,7 +109,7 @@ widgets such as `hass-dash-toggle' or `hass-dash-group'.
 
 Full example:
 
-\(setq hass-dash-layouts
+\(setq `hass-dash-layouts'
   \\=`((default .
      ((hass-dash-group
        :title \"Home Assistant\"
@@ -175,6 +175,7 @@ is set, falls back to using the `:entity_id' property on the WIDGET."
               'face 'hass-dash-widget-label))
 
 (defun hass-dash--widget-format-tag (icon label)
+  "Formats a tag with ICON and LABEL to be rendered on a dashboard."
   (if icon
       (concat icon " " label)
     label))
