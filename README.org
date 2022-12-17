@@ -16,20 +16,21 @@
   - [[#use-package][use-package]]
   - [[#straightel][straight.el]]
   - [[#doom-emacs][Doom Emacs]]
-- [[#important-changes][Important Changes]]
-  - [[#deprecated-name-keyword-argument-on-widgets][Deprecated :name keyword argument on widgets]]
-  - [[#deprecated-hass-url][Deprecated hass-url]]
-  - [[#renamed-hass-watch-mode][Renamed hass-watch-mode]]
-  - [[#hass-watch-entities][hass-watch-entities]]
+- [[#version-3-changes][Version 3 changes]]
+  - [[#brand-new-dashboards][Brand new dashboards!]]
+  - [[#hass-dash-layout-is-now-hass-dash-layouts][hass-dash-layout is now hass-dash-layouts]]
+  - [[#hass-setup-no-longer-required][hass-setup no longer required.]]
+  - [[#removed-deprecated-name-widget-property][Removed deprecated :name widget property.]]
+  - [[#removed-polling-mode][Removed polling-mode]]
 - [[#configuration][Configuration]]
   - [[#getting-an-api-key][Getting an API Key]]
   - [[#dashboard-layout][Dashboard layout]]
     - [[#full-example][Full example]]
     - [[#structure][Structure]]
-    - [[#formatters][Formatters]]
-      - [[#component-formatters][Component formatters]]
-      - [[#widget-formatters][Widget formatters]]
-      - [[#default-formatters][Default formatters]]
+    - [[#widgets][Widgets]]
+      - [[#state][State]]
+      - [[#button][Button]]
+      - [[#toggle][Toggle]]
 - [[#usage][Usage]]
   - [[#dashboard][Dashboard]]
   - [[#payloads][Payloads]]
@@ -74,48 +75,19 @@ Then load the package in your main config file.
   )
 #+END_SRC
 
-* Important Changes
-** Deprecated ~:name~ keyword argument on widgets
+* Version 3 changes
+** Brand new dashboards!
+Thanks to [[https://github.com/cprussin][cprussin]], the dashboards have been completely overhauled. They're much more flexible by more cleanly utilizing the built-in widget framework. Additionally, you can have multiple dashboards configured.
 
-When defining widgets, the ~:name~ keyword argument has been replaced with ~:label~. The word 'label' is clearer to describe that the value will be rendered to the dashboard.
+** =hass-dash-layout= is now =hass-dash-layouts=
 
-** Deprecated hass-url
+** hass-setup no longer required.
+Calling ~hass-setup~ is no longer required. It has been renamed ~hass-ensure~. It can still be useful if you want to 'ensure' an API connection has already been established and entity information is already up to date before you open a dashboard.
 
-The ~hass-url~ variable is now deprecated. This has been split up into 3 variables ~hass-host~, ~hass-insecure~, and ~hass-port~. ~hass-host~ must always be set. Hass is secure by default, so ~hass-insecure~ needs to be ~t~ if SSL is not being used (i.e HTTP and not HTTPS). If using a non-default port number, ~hass-port~ must be set to the port number.
+** Removed deprecated :name widget property.
 
-#+BEGIN_SRC emacs-lisp :results none
-;; The old URL variable
-;; (setq hass-url "http://homeassistant:8123")
-
-;; Is now this
-(setq hass-host "homeassistant")
-(setq hass-insecure t)
-(setq hass-port 8123) ; Not necessary to set since `8123' is default.
-(hass-setup)
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp :results none
-;; An SSL-enabled instance can just configure `hass-host'.
-;; (setq hass-url "http://homeassistant:8123")
-
-;; Is now this
-(setq hass-host "homeassistant")
-(hass-setup)
-#+END_SRC
-
-This change was implemented to support the ~hass-websockets~ extension. This uses a different protocol and splitting out the URL into components makes it much easier to generate the websocket URL automatically.
-
-The package will currently parse ~hass-url~ if it is set and convert it into its appropriate configuration variables. This will be removed in the future.
-
-** Renamed hass-watch-mode
-
-~hass-watch-mode~ is now ~hass-polling-mode~. This new name is clearer on what it functionally does,
-periodically poll the Home Assistant instance.
-
-** hass-watch-entities
-
-~hass-watch-entities~ was named to have a prefix of ~hass-watch-~ as part of the ~hass-watch-mode~ functionality. Since ~hass-watch-mode~ was renamed and the variable will be used outside of the ~hass-polling~ functionality, the variable was renamed to ~hass-tracked-entities~ to indicate the entities will be tracked, or in other words, queried for updates.
-
+** Removed polling-mode
+Didn't seem useful.
 * Configuration
 
 Both ~hass-host~ and ~hass-apikey~ must be set to use this package. Set ~hass-host~ to the hostname or IP of Home Assistant instance. If you are not using SSL/TLS to connect to your Home Assistance instance, set ~hass-insecure~ to ~t~. If you are using a port number other than the default =8123=,
@@ -147,122 +119,77 @@ Retrieve your API key a.k.a. /Long-Lived Access Token/ by logging into your Home
 
 *** Full example
 #+BEGIN_SRC emacs-lisp :results none
-(defun state-label-icon (label state icon label-formatter state-formatter icon-formatter)
-  "Arrange the components of the widget in the order of STATE, LABEL, and then icon."
-  (concat (when state (funcall state-formatter state))
-          (funcall label-formatter label)
-          (when icon (funcall icon-formatter icon))))
+(setq hass-dash-layouts
+      '((default . ; Key for dashboard. Shows up with completing-read when calling `hass-dash-open'.
+                 ((hass-dash-group          ; Create a widget group.
+                   :title "Home Assistant"  ; Give the group a title at the top.
+                   :format "%t\n\n%v"       ; %t is where the title goes and %v is the widget it owns.
+                   (hass-dash-group         ; Create a subgroup of widgets.
+                    :title "Kitchen"
+                    :title-face outline-2   ; Give it a unique face to make it stand out.
+                    (hass-dash-toggle :entity-id "light.kitchen_lights")
+                    (hass-dash-toggle :entity-id "light.master_bedroom_lights")
+                    (hass-dash-toggle :entity-id "switch.entry_light"
+                                      :label "Hallway" ; Override the widgets friendly name
+                                      :confirm t)))    ; Require a y/n confirmation when toggling this entity.
+                  (hass-dash-group :title "Group 2" :format "\n\n%t\n\n%v"
+                                   (hass-dash-toggle :entity-id "light.master_bedroom_fan_light"))))
 
-(defun prefix-with-arrow (str)
-  "Prefix STR with a `>'."
-  (concat "> " str))
-
-(defun unavailable-p (widget)
-  "Return t if WIDGET state is 'unavailable'."
-  (string= "unavailable" (hass-state-of (car widget))))
-
-(setq hass-dash-layout
- ;; Declare a group of widgets with a group label of "Group One"
- '(("Group One" . (("input_boolean.test_boolean"
-                     :label "Toggle entity"
-                     :hide-fn (lambda (_widget) (= 1 (random 2))) ;; Will randomly hide the widget 50% of the time everytime the dashboard refreshes
-                     :widget-formatter state-label-icon
-                     :label-formatter prefix-with-arrow
-                     :state-formatter prefix-with-arrow
-                     :icon-formatter (lambda (icon) (concat "[" icon "]")))
-
-                   ;; An informational widget
-                   ("sensor.desktop_cpu"
-                     :label "CPU"
-                     :icon nil
-                     :service nil ;; Setting `:service' to nil will skip when pressing the TAB key
-                     :hide-fn unavailable-p ;; Hide this widget if the status if 'unavailable'
-                     :state-formatter (lambda (state) (concat state "%"))) ;; Add a '%' to the end of the state
-
-                   ;; Ask for confirmation before toggling the light
-                   ("switch.bedroom_light"
-                     :label "Bedroom Light"
-                     :confirm t)
-
-                   ;; A widget that can only turn off
-                   ("input_boolean.test_boolean"
-                     :label "Turn off test boolean"
-                     :service "input_boolean.turn_off")
-                   
-                   ;; Or just use the default options
-                   ("automation.some_automation")))
-
-   ;; Declare another group of widgets with a group label of "Vacuum"
-   ("Vacuum" . (("vacuum.valetudo_vacuum"
-                  :label "Vacuum"
-                  :confirm "Start vacuuming? ") ;; Ask for confirmation with a custom prompt
-
-                ("vacuum.valetudo_vacuum"
-                  :label "Vacuum return home"
-                  :service "vacuum.return_to_base" ;; Call this service instead of the default one to start cleaning
-                  :state nil ;; Don't show a state since it's displayed above
-                  :icon nil))))) ;; Don't show an icon
+        (simple . ; Declaring a top-level group is optional and implied.
+                ((hass-dash-toggle :entity-id "light.kitchen_lights")
+                 (hass-dash-toggle :entity-id "switch.entry_lights")))))
 #+END_SRC
 
 *** Structure
-To use the dashboard feature, ~hass-dash-layout~ must be configure to tell ~hass~ what the layout should look like. The layout is constructed with three components: *groups*, *widgets*, and *properties*.
+To use the dashboard feature, ~hass-dash-layouts~ must be configure to tell ~hass~ what the layout should look like. The layout is constructed with three components: *groups*, *widgets*, and *properties*.
 
-- Each element in ~hass-dash-layout~ is a *group*.
-- A *group* is an alist of the string of the *group*'s label to a list *widgets*.
-- A *widget* is a plist where the first symbol is the entity id string and the rest are the *properties*.
+- Each element in ~hass-dash-layouts~ is a *dashboard*.
+- A dashboard is a cons of its key/id and the widgets it contains.
+- A *widget* is an Emacs widget, probably one from this package.
+
+Any widgets defined in ~hass-dash-layouts~ are automatically inserted into the ~hass-tracked-entities~ list in order to receive state updates.
+
+*** Widgets
+
+All widgets contain at least the following properties:
 
 | Widget Property     | Description                                                                                  |
 |---------------------+----------------------------------------------------------------------------------------------|
 | ~:label~            | The human readable label of the widget to be shown on the dashboard.                         |
 | ~:service~          | The service to be called when the widget is selected.                                        |
 | ~:icon~             | The icon to be shown prefixed to the widget.                                                 |
-| ~:state~            | An entity id of the state to be shown next to the widget.                                    |
-| ~:widget-formatter~ | The function used to format the widgets on the dashboard.                                    |
-| ~:label-formatter~  | The function used to format the label of the widget.                                         |
-| ~:state-formatter~  | The function used to format the state of the widget.                                         |
-| ~:icon-formatter~   | The function used to format the icon of the widget.                                          |
-| ~:hide-fn~          | A function with single argument which is the widget definition. When t, don't render widget. |
 | ~:confirm~          | When ~t~ or a string, ask for confirmation before calling the service.                     |
 
-Any widgets defined in ~hass-dash-layout~ are automatically inserted into the ~hass-tracked-entities~ list in order to receive state updates. If the widget property ~:state~ is specified, then that is the entity id that is tracked instead.
+**** State
 
-*** Formatters
+A 'state' widget is a read-only widget to simply display the state of some entity. I typically like to use this as the very first widget in a group to show the overall status of the group. For example, a vacuum:
 
-*Formatters* are way to customize how a widget is rendered to the dashboard. A *widget formatter* is special in that it takes all the components of a widget and applies the *label*, *state*, and *icon* *formatters* appropriately enabling you to completely customize a widget.
-
-**** Component formatters
-
-A simple implementation of a *formatter* can just modify the string itself, for example, prefixing it with a =>=. The following example can be used for any of the *label*, *state*, or *icon* *formatters*:
-
-#+BEGIN_SRC emacs-lisp :results none
-(defun prefix-with-arrow (str)
-  "Prefix STR with a `>'"
-  (concat "> " str))
+#+BEGIN_SRC emacs-lisp
+(hass-dash-group :title "Vacuum"
+                 (hass-dash-state :entity-id "vacuum.valetudo_vacuum" :format "%v\n")
+                 ; Vacuum related widgets
+                 ; ...
+                 )
 #+END_SRC
 
-**** Widget formatters
+**** Button
 
-A *widget formatter* is slightly more complicated since it has to take all the components of a widget and fit them together. The following example re-arranges the widgets to have the *state* displayed first, then the *label*, and then suffixes it with the *icon*. It may be important, but not required, to remember to apply the *formatters* using ~funcall~, though this is technically optional (see the 'bland' example). Also note that *state* and *icon* are being checked to be non-nil before used. These two arguments are optional and may not be set.
+A 'button' widget is a push-button widget to call a service.
 
-#+BEGIN_SRC emacs-lisp :results none
-(defun state-label-icon (label state icon label-formatter state-formatter icon-formatter)
-  "Arrange the components of the widget in the order of state, label, and then icon."
-  (concat (when state (funcall state-formatter state))
-          (funcall label-formatter label)
-          (when icon (funcall icon-formatter icon))))
+#+BEGIN_SRC emacs-lisp
+(hass-dash-button :entity-id "vacuum.valetudo_vacuum"
+                  :service "vacuum.start"
+                  :format "%[%t: %v%]\n"
+                  :label "Clean")
 #+END_SRC
 
-You could just as easily display a bland widget by ignoring the *formatters* entirely:
-#+BEGIN_SRC emacs-lisp :results none
-(defun bland-widget-formatter (label state icon &rest _)
-  "Render a bland widget with no formatting applied."
-  (concat icon label state))
+**** Toggle
+
+A 'toggle' widget is similar to a button, except it'll only show on or off. If the state is anything other than "on", then it will show "off".
+
+#+BEGIN_SRC emacs-lisp
+(hass-dash-toggle :entity-id "light.kitchen")
 #+END_SRC
-
-**** Default formatters
-
-To configure a default *formatter* when one isn't define explicitly provided to a widget, use the variables ~hass-dash-default-widget-formatter~, ~hass-dash-default-label-formatter~, ~hass-dash-default-state-formatter~, and ~hass-dash-default-icon-formatter~. By default, they're set to the built-in *formatters* that are used to render the dashboard.
-
 * Usage
 
 To call a service on Home Assistant, use the ~hass-call-service~ function which has two required arguments: ~entity-id~ and ~service~.
@@ -275,7 +202,7 @@ If you call ~hass-call-service~ interactively, it will prompt you for an entity 
 
 ** Dashboard
 
-After configuring the ~hass-dash-layout~, use the function ~hass-dash-open~ to pop open the dashboard. This can be enhanced with standard buffer management configuration or packages like =popper= and/or =shackle=.
+After configuring the ~hass-dash-layouts~, use the function ~hass-dash-open~ to pop open a dashboard. This can be enhanced with standard buffer management configuration or packages like =popper= and/or =shackle=.
 
 ** Payloads
 
