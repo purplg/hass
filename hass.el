@@ -253,6 +253,7 @@ ENTITY-ID is the id of the entity in Home Assistant."
   :group 'hass)
 
 (defun hass--debug-clear-buffer ()
+  "Erase the hass-debug buffer."
   (interactive)
   (when-let ((buf (get-buffer hass--debug-buffer)))
     (with-current-buffer buf
@@ -355,6 +356,12 @@ affected and now has STATE."
   (run-hooks 'hass-service-called-hook))
 
 (defun hass--request-error-handler (endpoint http-status-code response)
+  "Entrypoint for an HTTP request error.
+ENDPOINT is the endpoint the request went to.
+
+HTTP-STATUS-CODE is the integer http error code from the request.
+
+RESPONSE is the request-response object from requests.el"
   (setq endpoint (split-string endpoint "/"))
   (or (hass--request-error-handle-api response)
       (hass--request-error-handle-states endpoint http-status-code response)
@@ -365,14 +372,22 @@ affected and now has STATE."
 
 (defun hass--request-error-handle-api (response)
   "Try to handle error dealing with the main `api' endpoint.
-Return t if handled."
+Return t if handled.
+
+RESPONSE is the request-response object from requests.el"
   (when (eq (request-response-symbol-status response) 'parse-error)
     (hass--warning "Could not connect to URL: %s" (request-response-url response))
     t))
 
 (defun hass--request-error-handle-states (endpoint http-status-code response)
   "Try to handle error dealing with the `states' endpoint.
-Return t if handled."
+Return t if handled.
+
+ENDPOINT is the endpoint the request went to.
+
+HTTP-STATUS-CODE is the integer http error code from the request.
+
+RESPONSE is the request-response object from requests.el"
   (when-let ((entity-id (and (= 404 http-status-code)
                              (nth 2 endpoint))))
     (setq hass-tracked-entities (delete entity-id hass-tracked-entities))
@@ -381,7 +396,13 @@ Return t if handled."
 
 (defun hass--request-error-handle-services (endpoint http-status-code response)
   "Try to handle error dealing with the `services' endpoint.
-Return t if handled."
+Return t if handled.
+
+ENDPOINT is the endpoint the request went to.
+
+HTTP-STATUS-CODE is the integer http error code from the request.
+
+RESPONSE is the request-response object from requests.el"
   (when (and (= 404 http-status-code)
              (>= 3 (length endpoint)))
     (setq hass-tracked-entities (delete (nth 2 endpoint) hass-tracked-entities))
