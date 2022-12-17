@@ -305,9 +305,8 @@ Filters out entities that do not have callable services available."
   (let* ((entity-id (cdr (assoc 'entity_id entity-state)))
          (friendly-name (or (cdr (assoc 'friendly_name (cdr (assoc 'attributes entity-state))))
                             entity-id)))
-    (when (hass--services-for-entity entity-id)
-      `(,entity-id . (:friendly_name ,friendly-name
-                                     :icon ,(hass--icon-of-entity entity-id))))))
+    `(,entity-id . (:friendly_name ,friendly-name
+                                   :icon ,(hass--icon-of-entity entity-id)))))
 
 (defun hass--parse-all-domains (domains)
   "Collect DOMAINS into an alist of their associated services.
@@ -504,7 +503,12 @@ SERVICE is the service you want to call on ENTITY-ID.  (e.g. `\"turn_off\"')
 When UPDATE is t, another API request will be sent to retrieve
 the new state of the affected entity."
   (interactive
-   (let ((entity (completing-read "Entity: " hass--available-entities nil t)))
+   (let ((entity (completing-read "Entity: "
+                                  (seq-filter (lambda (entity)
+                                                (hass--services-for-entity (car entity)))
+                                              hass--available-entities)
+                                  nil
+                                  t)))
      (list entity
            (format "%s.%s"
                    (hass--domain-of-entity entity)
