@@ -97,7 +97,6 @@ specify the port number with ~hass-port~.
 (setq hass-host "homeassistant")
 (setq hass-apikey "APIKEY-GOES-IN-HERE")
 (setq hass-port 8123)
-(hass-setup)
 #+END_SRC
 
 Alternatively, you can store a function inside ~hass-apikey~. This will be executed on every query. In turn, this approach requires the token to be stored in your gpg store e.g. =~/.password-store/emacs-apikey.gpg=
@@ -105,10 +104,9 @@ Alternatively, you can store a function inside ~hass-apikey~. This will be execu
 #+BEGIN_SRC emacs-lisp :results none
 (setq hass-host "homeassistant")
 (setq hass-apikey (lambda () (auth-source-pass-get 'secret "emacs-apikey")))
-(hass-setup)
 #+END_SRC
 
-Once those variables are set, you must call ~(hass-setup)~ before using this package so that it can query the Home Assistance instance and populate available entities and services.
+Once those variables are set, you can call ~(hass-ensure)~ to query the Home Assistance instance and populate available entities and services. Otherwise, this will be done when it is needed.
 ** Getting an API Key
 
 Ensure that your Home Assistant instance is configured to support API calls by following the instructions [[https://www.home-assistant.io/integrations/api/][here]].
