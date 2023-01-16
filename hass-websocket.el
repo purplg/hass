@@ -1,6 +1,7 @@
 ;;; hass-websocket.el --- Websocket support for hass -*- lexical-binding: t; -*-
 
 ;; Homepage: https://github.com/purplg/hass
+;; SPDX-License-Identifier: MIT
 
 ;;; Commentary:
 
