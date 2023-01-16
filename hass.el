@@ -379,7 +379,7 @@ RESPONSE is the request-response object from requests.el"
     (hass--warning "Could not connect to URL: %s" (request-response-url response))
     t))
 
-(defun hass--request-error-handle-states (endpoint http-status-code response)
+(defun hass--request-error-handle-states (endpoint http-status-code _response)
   "Try to handle error dealing with the `states' endpoint.
 Return t if handled.
 
@@ -394,7 +394,7 @@ RESPONSE is the request-response object from requests.el"
     (hass--warning "Entity %S was not found." entity-id)
     t))
 
-(defun hass--request-error-handle-services (endpoint http-status-code response)
+(defun hass--request-error-handle-services (endpoint http-status-code _response)
   "Try to handle error dealing with the `services' endpoint.
 Return t if handled.
 
@@ -430,7 +430,7 @@ PAYLOAD is contents the body of the request."
     :data payload
     :parser (lambda () (hass--deserialize (buffer-string)))
     :error (cl-function
-            (lambda (&key symbol-status response &allow-other-keys)
+            (lambda (&key _symbol-status response &allow-other-keys)
               (hass--request-error-handler endpoint (request-response-status-code response) response)))
     :success (when success
                (cl-function
