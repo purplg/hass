@@ -113,7 +113,8 @@ entity whose state changed.")
 (defvar hass-entity-updated-hook nil
   "Hook called when any entity information is updated.")
 
-(defvar hass-api-connected-hook nil
+(defvar hass-api-connected-hook (lambda ()
+                                  (hass--get-available-services #'hass--get-available-entities))
   "Hook called after a successful Home Assistant API connection check is made.")
 
 (defvar hass-service-called-hook nil
@@ -552,10 +553,6 @@ Assistant instance for available services and entities."
   (when (and (not hass--api-running)
              (hass--check-config))
     (hass--check-api-connection)))
-
-(add-hook 'hass-api-connected-hook
-          (lambda ()
-            (hass--get-available-services #'hass--get-available-entities)))
 
 (provide 'hass)
 
