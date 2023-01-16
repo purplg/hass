@@ -332,10 +332,9 @@ already set using the `:title' and `:title-face' properties."
   :group 'hass-dash
   :syntax-table nil
   :abbrev-table nil
-  :interactive t)
-
-;; Refresh dashboard when entity state is updated
-(add-hook 'hass-entity-updated-hook #'hass-dash--update)
+  :interactive t
+  ;; Refresh dashboard when entity state is updated
+  (add-hook 'hass-entity-updated-hook #'hass-dash--update))
 
 (provide 'hass-dash)
 
