@@ -505,10 +505,8 @@ When UPDATE is t, another API request will be sent to retrieve
 the new state of the affected entity."
   (interactive
    (let ((entity (completing-read "Entity: "
-                                  (seq-filter (lambda (entity)
-                                                (hass--services-for-entity (car entity)))
-                                              hass--available-entities)
-                                  nil
+                                  hass--available-entities
+                                  (lambda (entity) (hass--services-for-entity (car entity)))
                                   t)))
      (list entity
            (format "%s.%s"
