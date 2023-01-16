@@ -1,6 +1,6 @@
 (package-refresh-contents)
 
-(let ((deps '(request))
+(let ((deps '(request websocket))
       (test-deps '(ert-async)))
   (dolist (dep deps)
     (package-install dep))
