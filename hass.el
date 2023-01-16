@@ -274,20 +274,20 @@ MSG is the message to be display in the debug buffer."
         (goto-char (point-max))
         (insert (propertize type 'face 'hass--debug-heading-face))
         (newline)
-        (insert (apply 'format msg))
+        (insert (apply #'format msg))
         (newline)))))
 
 (defun hass--message (&rest msg)
   "Display a message in the `*Messages*' buffer.
 MSG is the message to be display in the messages buffer."
-  (hass--debug "MESSAGE" "%s" (apply 'format msg))
-  (message "(hass) %s" (apply 'format msg)))
+  (hass--debug "MESSAGE" "%s" (apply #'format msg))
+  (message "(hass) %s" (apply #'format msg)))
 
 (defun hass--warning (&rest msg)
   "Display a warning in the warnings buffer.
 MSG is the message to be display in the warnings buffer."
-  (hass--debug "WARNING" "%s" (apply 'format msg))
-  (display-warning 'hass (apply 'format msg)))
+  (hass--debug "WARNING" "%s" (apply #'format msg))
+  (display-warning 'hass (apply #'format msg)))
 
 
 ;; API parsing
