@@ -52,6 +52,8 @@
 (require 'hass)
 (require 'wid-edit)
 
+(require 'hass-websocket)
+
 
 ;; Customizable
 (defvar hass-dash-mode-map
