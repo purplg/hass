@@ -54,6 +54,8 @@
 
 (require 'hass-websocket)
 
+(defvar-local hass-dash--widgets '())
+
 
 ;; Customizable
 (defvar hass-dash-mode-map
@@ -330,8 +332,7 @@ already set using the `:title' and `:title-face' properties."
   :group 'hass-dash
   :syntax-table nil
   :abbrev-table nil
-  :interactive t
-  (setq-local hass-dash--widgets '()))
+  :interactive t)
 
 ;; Refresh dashboard when entity state is updated
 (add-hook 'hass-entity-updated-hook #'hass-dash--update)
