@@ -300,9 +300,7 @@ ENTITIES is the data returned from the `/api/states' endpoint."
 (defun hass--parse-entity (entity-state)
   "Convert an entity's state data into its entity-id.
 ENTITY-STATE is an individual entity state data return from the
-`/api/states' endpoint.
-
-Filters out entities that do not have callable services available."
+`/api/states' endpoint."
   (let* ((entity-id (cdr (assoc 'entity_id entity-state)))
          (friendly-name (or (cdr (assoc 'friendly_name (cdr (assoc 'attributes entity-state))))
                             entity-id)))
