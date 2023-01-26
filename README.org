@@ -1,11 +1,11 @@
 #+TITLE: hass
 
+#+HTML: <img src="images/logo.png" width="350px" align="right">
+
 [[https://melpa.org/#/hass][file:https://melpa.org/packages/hass-badge.svg]]
 [[https://stable.melpa.org/#/hass][file:https://stable.melpa.org/packages/hass-badge.svg]]
 
 ~hass~ is an Emacs package that enables integration with [[https://www.home-assistant.io/][Home Assistant]]. Call Home Assistant services, hook into Home Assistant events, and create convenient dashboards!
-
-#+HTML: <img src="images/logo.png" width="350px" align="right">
 
 * Table of Contents
 :PROPERTIES:
