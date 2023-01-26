@@ -6,7 +6,6 @@
 ~hass~ enables you to control [[https://www.home-assistant.io/][Home Assistant]] entities from Emacs.
 
 #+HTML: <img src="images/logo.png" width="300px" align="right">
-[[file:images/screenshot1.png]]
 
 * Table of Contents
 :PROPERTIES:
@@ -38,6 +37,8 @@
   - [[#hooks][Hooks]]
 - [[#license][License]]
 :END:
+
+[[file:images/screenshot1.png]]
 
 * Installation
 This package is available on [[https://melpa.org/][MELPA]].
