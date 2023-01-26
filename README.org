@@ -1,11 +1,11 @@
 #+TITLE: hass
 
-#+HTML: <img src="images/logo.png" align="right">
-
 [[https://melpa.org/#/hass][file:https://melpa.org/packages/hass-badge.svg]]
 [[https://stable.melpa.org/#/hass][file:https://stable.melpa.org/packages/hass-badge.svg]]
 
 ~hass~ enables you to control [[https://www.home-assistant.io/][Home Assistant]] entities from Emacs.
+
+#+HTML: <img src="images/logo.png" align="right">
 
 [[file:images/screenshot1.png]]
 
