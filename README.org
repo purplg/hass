@@ -5,7 +5,7 @@
 
 ~hass~ enables you to control [[https://www.home-assistant.io/][Home Assistant]] entities from Emacs.
 
-#+HTML: <img src="images/logo.png" align="right">
+#+HTML: <img src="images/logo.png">
 
 [[file:images/screenshot1.png]]
 
