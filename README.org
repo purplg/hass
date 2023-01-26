@@ -38,7 +38,7 @@
 - [[#license][License]]
 :END:
 
-[[file:images/screenshot1.png]]
+[[file:images/logo_transparency.png]]
 
 * Installation
 This package is available on [[https://melpa.org/][MELPA]].
