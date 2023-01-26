@@ -1,5 +1,7 @@
 #+TITLE: hass
 
+#+HTML: <img src="images/logo.png" align="right">
+
 [[https://melpa.org/#/hass][file:https://melpa.org/packages/hass-badge.svg]]
 [[https://stable.melpa.org/#/hass][file:https://stable.melpa.org/packages/hass-badge.svg]]
 
