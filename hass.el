@@ -47,13 +47,13 @@
 (require 'json)
 (require 'request)
 
+
+;;; Customizable
 (defgroup hass '()
   "Minor mode for hass."
   :group 'applications
   :prefix "hass-")
 
-
-;;; Customizable
 (defcustom hass-host nil
   "The URL of the Home Assistant instance.
 Set this to the URL of the Home Assistant instance you want to
