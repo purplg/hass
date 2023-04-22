@@ -57,7 +57,7 @@
 (defvar-local hass-dash--widgets '())
 
 
-;; Customizable
+;;; Customizable
 (defvar hass-dash-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'widget-button-press)
@@ -135,7 +135,7 @@ Full example:
       (hass-dash-toggle :entity-id \"switch.entry_lights\")))))")
 
 
-;; Dashboard rendering
+;;; Dashboard rendering
 (defun hass-dash--buffer-name (dashboard)
   "Return the name of the hass-dash buffer for dashboard key DASHBOARD."
   (concat "*hass-dash-" (symbol-name dashboard) "*"))
@@ -165,7 +165,8 @@ LAYOUT is the layout in `hass-dash-layouts' to be rendered."
     (goto-char (point-min))
     (forward-line (1- prev-line))))
 
-;; Widget definitions
+
+;;; Widget definitions
 (defun hass-dash--widget-label (widget)
   "Return the label for WIDGET.
 Uses the `:label' property if one is set on the WIDGET, otherwise tries to use
@@ -306,7 +307,7 @@ already set using the `:title' and `:title-face' properties."
   (widget-default-create widget))
 
 
-;; User functions
+;;; User functions
 ;;;###autoload
 (defun hass-dash-open (dashboard)
   "Open the hass-dash buffer for DASHBOARD."

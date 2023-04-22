@@ -52,7 +52,7 @@
 (require 'hass)
 
 
-;; User customizable
+;;; User customizable
 (defvar hass-websocket-mode-map (make-sparse-keymap)
   "Keymap for `hass-websocket-mode'.")
 
@@ -60,7 +60,7 @@
   "Hook called after successful authentication to websocket.")
 
 
-;; Internal state
+;;; Internal state
 (defvar hass-websocket--connection '()
   "Websocket connection info.")
 
@@ -68,7 +68,7 @@
   "Number Websocket interactions to use for message IDs.")
 
 
-;; Updates - Received from Home Assistant over websocket
+;;; Updates - Received from Home Assistant over websocket
 (defun hass-websocket--handle-message (_websocket frame)
   "Route FRAME received from websocket."
   (let* ((content (hass--deserialize (websocket-frame-text frame)))
@@ -116,7 +116,7 @@ Assistant."
        (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
 
 
-;; Requests - Send to Home Assistant over websocket
+;;; Requests - Send to Home Assistant over websocket
 (defun hass-websocket--subscribe-to-state-changes ()
   "Request 'state_changed' events be sent over the websocket connection."
   (hass-websocket--subscribe "state_changed"))
@@ -135,7 +135,7 @@ MESSAGE is an alist to be encoded into a JSON object."
   (setq hass-websocket--interactions (1+ hass-websocket--interactions)))
 
 
-;; Mode toggle
+;;; Mode toggle
 (defun hass-websocket--connect ()
   "Establish a websocket connection to Home Assistant."
   (setq hass-websocket--connection

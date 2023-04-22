@@ -53,7 +53,7 @@
   :prefix "hass-")
 
 
-;; Customizable
+;;; Customizable
 (defcustom hass-host nil
   "The URL of the Home Assistant instance.
 Set this to the URL of the Home Assistant instance you want to
@@ -104,7 +104,7 @@ state."
   "Face for widgets in HASS's dashboard.")
 
 
-;; Hooks
+;;; Hooks
 (defvar hass-entity-state-changed-functions nil
   "List of functions called when an entity state changes.
 Each function is called with one argument: the ENTITY-ID of the
@@ -121,7 +121,7 @@ entity whose state changed.")
   "Hook called after a service has been called.")
 
 
-;; Internal state
+;;; Internal state
 (defvar hass--states (make-hash-table :test 'equal)
   "A hashtable of entity ids to their last queried states.")
 
@@ -141,7 +141,7 @@ entity whose state changed.")
   "Whether a successful connection to Home Assistant API has been made.")
 
 
-;; Helper functions
+;;; Helper functions
 (defun hass--url (&optional path)
   "Formats a Home Assistant API request path to its' full URL.
 PATH is the Home Assistant endpoint path."
@@ -229,7 +229,7 @@ ENTITY-ID is the id of the entity in Home Assistant."
    ':friendly_name))
 
 
-;; Logging
+;;; Logging
 (defvar hass--debug nil
   "Enable debug logging when t.")
 
@@ -290,7 +290,7 @@ MSG is the message to be display in the warnings buffer."
   (display-warning 'hass (apply #'format msg)))
 
 
-;; API parsing
+;;; API parsing
 (defun hass--parse-all-entities (entities)
   "Convert entity state data into a list of available entities.
 ENTITIES is the data returned from the `/api/states' endpoint."
@@ -325,7 +325,7 @@ endpoint."
           services))
 
 
-;; Request Callbacks
+;;; Request Callbacks
 (defun hass--get-entities-result (entities)
   "Callback when states of all ENTITIES is received from API."
   (setq hass--available-entities (hass--parse-all-entities entities))
@@ -408,7 +408,7 @@ RESPONSE is the request-response object from requests.el"
     t))
 
 
-;; Requests
+;;; Requests
 (defun hass--request (type endpoint &optional success payload)
   "Make a request to Home Assistant.
 TYPE is a string of the type of request to make.  For example, `\"GET\"'.
@@ -534,7 +534,7 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
      (when success-callback (funcall success-callback)))))
 
 
-;; Init
+;;; Init
 (defun hass--check-config ()
   "Return t if configuration is valid."
   (cond ((not (equal (type-of (hass--apikey)) 'string))
