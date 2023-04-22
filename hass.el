@@ -38,8 +38,8 @@
 ;; Or use `hass-call-service-with-payload' to customize the payload:
 ;; (hass-call-service-with-payload
 ;;  "mqtt.publish"
-;;  (json-encode '(("payload" . "PERFORM")
-;;                 ("topic" . "valetudo/vacuum/LocateCapability/locate/set"))))
+;;  '((payload . "PERFORM")
+;;    ("topic" . "valetudo/vacuum/LocateCapability/locate/set")))
 
 ;; See README.org for more information.
 
@@ -532,7 +532,7 @@ the new state of the affected entity."
                    (completing-read (format "%s: " entity) (hass--services-for-entity entity) nil t)))))
   (hass-call-service-with-payload
    service
-   (format "{\"entity_id\": \"%s\"}" entity-id)
+   `((entity_id . ,entity-id))
    (when update (lambda (&rest _) (hass--get-entity-state entity-id)))))
 
 ;;;###autoload
@@ -542,12 +542,12 @@ This will send an API request to the address configure in `hass-host'.
 
 SERVICE is a string of the Home Assistant service to be called.
 
-PAYLOAD is a JSON-encoded string of the payload to be sent with SERVICE.
+PAYLOAD is an alist of service parameters to their values be sent with SERVICE.
 
 SUCCESS-CALLBACK is a function to be called with a successful request response."
   (hass--call-service
    service
-   payload
+   (hass--serialize payload)
    (lambda (&rest _)
      (run-hooks 'hass-service-called-hook)
      (when success-callback (funcall success-callback)))))
