@@ -211,17 +211,25 @@ ENTITY-ID is the id of the entity in Home Assistant."
                                ":")))
       (funcall (intern (concat "all-the-icons-" (pop parts))) (pop parts) :face 'hass-icon-face))))
 
-(defun hass--set-state (entity-id state)
+(defun hass--set-state (entity-id state attributes)
   "Set the state of an entity.
 ENTITY-ID is the id of the entity in Home Assistant.
 
 STATE is a string of the state of ENTITY-ID in Home Assistant."
-  (puthash entity-id state hass--states))
+  (let ((current-attrs (cdr (gethash entity-id hass--states))))
+    (puthash entity-id (cons state (or attributes current-attrs)) hass--states)))
 
 (defun hass-state-of (entity-id)
   "Return the last known state of ENTITY-ID.
 ENTITY-ID is the id of the entity in Home Assistant."
-  (gethash entity-id hass--states))
+  (car (gethash entity-id hass--states)))
+
+(defun hass-attribute-of (entity-id attribute)
+  "Return the last known value of ATTRIBUTE for ENTITY-ID.
+ENTITY-ID is the id of the entity in Home Assistant.
+
+ATTRIBUTE is the key of the attribute to return the value for."
+  (cdr (assoc attribute (cdr (gethash entity-id hass--states)))))
 
 (defun hass-switch-p (entity-id)
   "Return t if switch status is 'on' of ENTITY-ID.
@@ -356,14 +364,13 @@ DOMAINS is the response from the `/api/services' endpoint which
 returns a list of domains and their available services."
   (setq hass--available-services (hass--parse-all-domains domains)))
 
-(defun hass--query-entity-result (entity-id state)
+(defun hass--query-entity-result (entity-id state attributes)
   "Callback when an entity state data is received from API.
 ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
-  (let ((previous-state (hass-state-of entity-id)))
-    (unless (equal previous-state state)
-      (hass--set-state entity-id state)
-      (run-hook-with-args 'hass-entity-state-changed-functions entity-id)
-      (run-hooks 'hass-entity-updated-hook))))
+  (unless (equal (hass-state-of entity-id) state)
+    (run-hook-with-args 'hass-entity-state-changed-functions entity-id))
+  (run-hooks 'hass-entity-updated-hook)
+  (hass--set-state entity-id state attributes))
 
 (defun hass--call-service-result (entity-id state)
   "Callback when a successful service request is received from API.
@@ -486,7 +493,10 @@ Optional argument CALLBACK ran after services are received."
   "Retrieve the current state of ENTITY-ID from the Home Assistant server."
   (hass--request "GET" (hass--entity-endpoint entity-id)
                  (lambda (data)
-                   (hass--query-entity-result entity-id (cdr (assoc 'state data))))))
+                   (hass--query-entity-result
+                    entity-id
+                    (cdr (assoc 'state data))
+                    (cdr (assoc 'attributes data))))))
 
 (defun hass--update-tracked-entities ()
   "Update current state of tracked entities."

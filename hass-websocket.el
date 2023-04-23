@@ -111,9 +111,11 @@ DATA is the data retrieved from an event that triggered in Home
 Assistant."
   (let ((entity-id (cdr (assoc 'entity_id data))))
     (when (member entity-id hass-tracked-entities)
-      (hass--query-entity-result
-       entity-id
-       (cdr (assoc 'state (cdr (assoc 'new_state data))))))))
+      (let ((data (cdr (assoc 'new_state data))))
+        (hass--query-entity-result
+         entity-id
+         (cdr (assoc 'state data))
+         (cdr (assoc 'attributes data)))))))
 
 
 ;;; Requests - Send to Home Assistant over websocket
