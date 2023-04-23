@@ -380,7 +380,7 @@ affected and now has STATE."
   (hass--set-state entity-id state)
   (run-hooks 'hass-service-called-hook))
 
-(defun hass--request-error-handler (endpoint http-status-code response)
+(defun hass--request-error-handler (endpoint payload response)
   "Entrypoint for an HTTP request error.
 ENDPOINT is the endpoint the request went to.
 
@@ -388,23 +388,28 @@ HTTP-STATUS-CODE is the integer http error code from the request.
 
 RESPONSE is the request-response object from requests.el"
   (setq endpoint (split-string endpoint "/"))
-  (or (hass--request-error-handle-api response)
-      (hass--request-error-handle-states endpoint http-status-code response)
-      (hass--request-error-handle-services endpoint http-status-code response)
+  (or (hass--request-error-handle-api endpoint payload response)
+      (hass--request-error-handle-states endpoint response)
+      (hass--request-error-handle-services endpoint response)
       (if-let ((data (request-response-data response)))
           (hass--warning "Unknown error occurred with URL: `%s', %s" (request-response-url response) data)
         (hass--warning "Unknown error occurred with URL: %s" (request-response-url response)))))
 
-(defun hass--request-error-handle-api (response)
+(defun hass--request-error-handle-api (response payload response)
   "Try to handle error dealing with the main `api' endpoint.
 Return t if handled.
 
 RESPONSE is the request-response object from requests.el"
   (when (eq (request-response-symbol-status response) 'parse-error)
-    (hass--warning "Could not connect to URL: %s" (request-response-url response))
+    (hass--warning "Request failed: HTTP %s
+url: %s
+payload: %s "
+                   (request-response-status-code response)
+                   (request-response-url response)
+                   payload)
     t))
 
-(defun hass--request-error-handle-states (endpoint http-status-code _response)
+(defun hass--request-error-handle-states (endpoint response)
   "Try to handle error dealing with the `states' endpoint.
 Return t if handled.
 
@@ -413,13 +418,13 @@ ENDPOINT is the endpoint the request went to.
 HTTP-STATUS-CODE is the integer http error code from the request.
 
 RESPONSE is the request-response object from requests.el"
-  (when-let ((entity-id (and (= 404 http-status-code)
+  (when-let ((entity-id (and (= 404 (request-response-status-code response))
                              (nth 2 endpoint))))
     (setq hass-tracked-entities (delete entity-id hass-tracked-entities))
     (hass--warning "Entity %S was not found." entity-id)
     t))
 
-(defun hass--request-error-handle-services (endpoint http-status-code _response)
+(defun hass--request-error-handle-services (endpoint response)
   "Try to handle error dealing with the `services' endpoint.
 Return t if handled.
 
@@ -428,7 +433,7 @@ ENDPOINT is the endpoint the request went to.
 HTTP-STATUS-CODE is the integer http error code from the request.
 
 RESPONSE is the request-response object from requests.el"
-  (when (and (= 404 http-status-code)
+  (when (and (= 404 (request-response-status-code response))
              (>= 3 (length endpoint)))
     (setq hass-tracked-entities (delete (nth 2 endpoint) hass-tracked-entities))
     (hass--warning "Entity %S was not found." (nth 2 endpoint))
@@ -446,6 +451,7 @@ SUCCESS is a callback function for when the request successful
 completed.
 
 PAYLOAD is contents the body of the request."
+  (hass--debug "HTTP" "endpoint: %s\npayload: %s" endpoint payload)
   (request (hass--url endpoint)
     :sync nil
     :type type
@@ -456,7 +462,9 @@ PAYLOAD is contents the body of the request."
     :parser (lambda () (hass--deserialize (buffer-string)))
     :error (cl-function
             (lambda (&key _symbol-status response &allow-other-keys)
-              (hass--request-error-handler endpoint (request-response-status-code response) response)))
+              (hass--request-error-handler endpoint
+                                           payload
+                                           response)))
     :success (when success
                (cl-function
                 (lambda (&key response &allow-other-keys)
