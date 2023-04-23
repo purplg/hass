@@ -261,6 +261,47 @@ Assistant.  The following optional properties can also be used:
   :value-create #'widget-item-value-create
   :action #'hass-dash--widget-action)
 
+(define-widget 'hass-dash-slider 'hass-dash-button
+  "A slider widget for home-assistant dashboards.
+You must pass an `:entity-id' property to indicate the id of the
+entity in Home Assistant.  The following optional properties can
+also be used:
+
+Inherits properties from `hass-dash-button'.
+
+All slider properties:
+
+• `:step': The amount to step by when adjusting the slider.
+
+Light properties:
+
+• `:by-percent': When t, use `:step' as a percentage when
+  adjusting the slider."
+  :create #'hass-dash--widget-create
+  :format "%[%t: %v%]\n"
+  :value-create #'hass-dash--widget-slider-value-create
+  :action #'hass-dash--widget-action)
+
+(defun hass-dash--widget-preferred-attribute (widget)
+  "Return a preferred attribute, if any, for domain of WIDGET."
+  (let ((domain (hass--domain-of-entity (widget-get widget :entity-id))))
+    (cond ((string= "light" domain)
+           'brightness)
+          (t nil))))
+
+(defun hass-dash--widget-slider-value-create (widget)
+  "Insert the value of a slider widget.
+This widget value-create function prefers an attribute for its
+value instead of a state.  If the widget does not have a
+preferred attribute, then it's state will be rendered instead."
+  (princ (if-let ((entity-id (widget-get widget :entity-id))
+                  (attribute-key (or (widget-get widget :attribute-state)
+                                     (hass-dash--widget-preferred-attribute widget)))
+                  (attribute-value (hass-attribute-of entity-id attribute-key)))
+             attribute-value
+           (hass-state-of entity-id))
+         (current-buffer)))
+
 (defun hass-dash--button-widget-value-get (widget)
   "Get the state for a toggle WIDGET."
   (hass-state-of (widget-get widget :entity-id)))
@@ -307,7 +348,78 @@ already set using the `:title' and `:title-face' properties."
   (widget-default-create widget))
 
 
-;;; User functions
+;;; Widget actions
+(defun hass-dash--widget-slider-default (widget)
+  "Return the default slider action for the domain of ENTITY-ID."
+  (let ((domain (hass--domain-of-entity (widget-get widget :entity-id))))
+    (cond ((string= "light" domain)
+           (if (widget-get widget :by-percent)
+               #'hass-dash--slider-light-percent
+             #'hass-dash--slider-light))
+          ((string= "counter" domain)
+           #'hass-dash--slider-counter)
+          (t
+           (hass--message "Not a slider widget." nil)
+           nil))))
+
+;;;; Light
+(defun hass-dash--slider-light (entity-id step)
+  "Adjust the brightness of a light entity."
+  (hass-call-service-with-payload
+   "light.turn_on"
+   `((entity_id . ,entity-id)
+     (brightness_step . ,step))))
+
+(defun hass-dash--slider-light-percent (entity-id step_pct)
+  "Adjust the brightness of a light entity."
+  (hass-call-service-with-payload
+   "light.turn_on"
+   `((entity_id . ,entity-id)
+     (brightness_step_pct . ,step_pct))))
+
+;;;; Counter
+ (defun hass-dash--slider-counter (entity-id step)
+  "Step a counter helper."
+  (let ((amount (abs step)))
+    (if (= amount (hass-attribute-of "counter.hass_test" 'step))
+        ; If the counter already has the correct step value, just move it.
+        (hass-dash--slider-counter-adjust entity-id step)
+      ; Otherwise, configure it first then move it.
+      (hass-call-service-with-payload "counter.configure"
+                                      `((entity_id . ,entity-id)
+                                        (step . ,amount))
+                                      (lambda (&rest _)
+                                        (hass-dash--slider-counter-adjust entity-id step))))))
+
+(defun hass-dash--slider-counter-adjust (entity-id step)
+  (cond ((< step 0) (hass-call-service entity-id "counter.decrement"))
+        ((> step 0) (hass-call-service entity-id "counter.increment"))))
+
+
+;;; User Interface
+(defun hass-dash--slider-adjust (scale)
+  "Adjust the value of a slider widget at point.
+SCALE is multiplied against the step value and is usually either
+just -1 or 1 to affect slider move direction."
+  (when-let ((widget (widget-at))
+             ((eq 'hass-dash-slider (widget-type (widget-at))))
+             (entity-id (widget-get widget :entity-id))
+             (action (or (widget-get widget :slider)
+                         (hass-dash--widget-slider-default widget)))
+             (step (or (widget-get widget :step)
+                       1)))
+    (funcall action entity-id (* step scale))))
+
+(defun hass-dash-slider-increase (&optional step)
+  "Increase the value of a slider widget at point."
+  (interactive)
+  (hass-dash--slider-adjust (or step 1)))
+
+(defun hass-dash-slider-decrease (&optional step)
+  "Decrease the value of a slider widget at point."
+  (interactive)
+  (hass-dash--slider-adjust (* -1 (or step 1))))
+
 ;;;###autoload
 (defun hass-dash-open (dashboard)
   "Open the hass-dash buffer for DASHBOARD."
