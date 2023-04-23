@@ -102,7 +102,7 @@ EVENT is the name of the event in Home Assistant that triggered."
        (hass-websocket--handle-state-change data)))))
 
 (defun hass-websocket--handle-state-change (data)
-  "Handle a websocket message for the 'state_changed' event.
+  "Handle a websocket message for the \='state_changed' event.
 This event is only handled when the `entity-id' of this event is
 in the `hass-tracked-entities' list.  Otherwise, this event is
 ignored.
