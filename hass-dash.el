@@ -228,6 +228,7 @@ service.  It can take on the following values:
                      (hass-call-service entity-id service nil)))
           (t (hass-call-service entity-id service nil)))))
 
+;;;; State widget
 (define-widget 'hass-dash-state 'item
   "A read-only widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
@@ -241,6 +242,7 @@ Assistant.  The following optional properties can also be used:
   :create #'hass-dash--widget-create
   :format "%t: %v\n")
 
+;;;; Button widget
 (define-widget 'hass-dash-button 'push-button
   "A button widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
@@ -261,6 +263,7 @@ Assistant.  The following optional properties can also be used:
   :value-create #'widget-item-value-create
   :action #'hass-dash--widget-action)
 
+;;;; Slider widget
 (define-widget 'hass-dash-slider 'hass-dash-button
   "A slider widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the
@@ -306,6 +309,53 @@ preferred attribute, then it's state will be rendered instead."
   "Get the state for a toggle WIDGET."
   (hass-state-of (widget-get widget :entity-id)))
 
+(defun hass-dash--widget-slider-default (widget)
+  "Return the default slider action for the domain of ENTITY-ID."
+  (let ((domain (hass--domain-of-entity (widget-get widget :entity-id))))
+    (cond ((string= "light" domain)
+           (if (widget-get widget :by-percent)
+               #'hass-dash--slider-light-percent
+             #'hass-dash--slider-light))
+          ((string= "counter" domain)
+           #'hass-dash--slider-counter)
+          (t
+           (hass--message "Not a slider widget." nil)
+           nil))))
+
+;;;;; Light
+(defun hass-dash--slider-light (entity-id step)
+  "Adjust the brightness of a light entity."
+  (hass-call-service-with-payload
+   "light.turn_on"
+   `((entity_id . ,entity-id)
+     (brightness_step . ,step))))
+
+(defun hass-dash--slider-light-percent (entity-id step_pct)
+  "Adjust the brightness of a light entity."
+  (hass-call-service-with-payload
+   "light.turn_on"
+   `((entity_id . ,entity-id)
+     (brightness_step_pct . ,step_pct))))
+
+;;;;; Counter
+ (defun hass-dash--slider-counter (entity-id step)
+  "Step a counter helper."
+  (let ((amount (abs step)))
+    (if (= amount (hass-attribute-of "counter.hass_test" 'step))
+        ; If the counter already has the correct step value, just move it.
+        (hass-dash--slider-counter-adjust entity-id step)
+      ; Otherwise, configure it first then move it.
+      (hass-call-service-with-payload "counter.configure"
+                                      `((entity_id . ,entity-id)
+                                        (step . ,amount))
+                                      (lambda (&rest _)
+                                        (hass-dash--slider-counter-adjust entity-id step))))))
+
+(defun hass-dash--slider-counter-adjust (entity-id step)
+  (cond ((< step 0) (hass-call-service entity-id "counter.decrement"))
+        ((> step 0) (hass-call-service entity-id "counter.increment"))))
+
+;;;;; Toggle widget
 (define-widget 'hass-dash-toggle 'toggle
   "A toggle widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
@@ -330,6 +380,7 @@ Assistant.  The following optional properties can also be used:
   "Set the state for a toggle WIDGET."
   (hass-switch-p (widget-get widget :entity-id)))
 
+;;;;; Group widget
 (define-widget 'hass-dash-group 'group
   "A grouping widget for home-assistant dashboards.
 You can pass `:title' to give the group a title, and pass `:title-face' to set
@@ -346,54 +397,6 @@ already set using the `:title' and `:title-face' properties."
     (widget-put widget :tag (propertize (widget-get widget :title)
                                         'face (widget-get widget :title-face))))
   (widget-default-create widget))
-
-
-;;; Widget actions
-(defun hass-dash--widget-slider-default (widget)
-  "Return the default slider action for the domain of ENTITY-ID."
-  (let ((domain (hass--domain-of-entity (widget-get widget :entity-id))))
-    (cond ((string= "light" domain)
-           (if (widget-get widget :by-percent)
-               #'hass-dash--slider-light-percent
-             #'hass-dash--slider-light))
-          ((string= "counter" domain)
-           #'hass-dash--slider-counter)
-          (t
-           (hass--message "Not a slider widget." nil)
-           nil))))
-
-;;;; Light
-(defun hass-dash--slider-light (entity-id step)
-  "Adjust the brightness of a light entity."
-  (hass-call-service-with-payload
-   "light.turn_on"
-   `((entity_id . ,entity-id)
-     (brightness_step . ,step))))
-
-(defun hass-dash--slider-light-percent (entity-id step_pct)
-  "Adjust the brightness of a light entity."
-  (hass-call-service-with-payload
-   "light.turn_on"
-   `((entity_id . ,entity-id)
-     (brightness_step_pct . ,step_pct))))
-
-;;;; Counter
- (defun hass-dash--slider-counter (entity-id step)
-  "Step a counter helper."
-  (let ((amount (abs step)))
-    (if (= amount (hass-attribute-of "counter.hass_test" 'step))
-        ; If the counter already has the correct step value, just move it.
-        (hass-dash--slider-counter-adjust entity-id step)
-      ; Otherwise, configure it first then move it.
-      (hass-call-service-with-payload "counter.configure"
-                                      `((entity_id . ,entity-id)
-                                        (step . ,amount))
-                                      (lambda (&rest _)
-                                        (hass-dash--slider-counter-adjust entity-id step))))))
-
-(defun hass-dash--slider-counter-adjust (entity-id step)
-  (cond ((< step 0) (hass-call-service entity-id "counter.decrement"))
-        ((> step 0) (hass-call-service entity-id "counter.increment"))))
 
 
 ;;; User Interface
