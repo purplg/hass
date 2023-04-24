@@ -396,7 +396,7 @@ already set using the `:title' and `:title-face' properties."
   (unless (widget-get widget :tag)
     (widget-put widget :tag (propertize (widget-get widget :title)
                                         'face (widget-get widget :title-face))))
-  (widget-default-create widget))
+  (hass-dash--widget-create widget))
 
 
 ;;; User Interface
