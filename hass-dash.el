@@ -322,7 +322,7 @@ preferred attribute, then it's state will be rendered instead."
            (hass--message "Not a slider widget." nil)
            nil))))
 
-;;;;; Light
+;; Light
 (defun hass-dash--slider-light (entity-id step)
   "Adjust the brightness of a light entity."
   (hass-call-service-with-payload
@@ -337,7 +337,7 @@ preferred attribute, then it's state will be rendered instead."
    `((entity_id . ,entity-id)
      (brightness_step_pct . ,step_pct))))
 
-;;;;; Counter
+;; Counter
 (defun hass-dash--slider-counter (entity-id step)
   "Step a counter helper."
   (let ((amount (abs step)))
@@ -355,7 +355,7 @@ preferred attribute, then it's state will be rendered instead."
   (cond ((< step 0) (hass-call-service entity-id "counter.decrement"))
         ((> step 0) (hass-call-service entity-id "counter.increment"))))
 
-;;;;; Toggle widget
+;;;; Toggle widget
 (define-widget 'hass-dash-toggle 'toggle
   "A toggle widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
@@ -380,7 +380,7 @@ Assistant.  The following optional properties can also be used:
   "Set the state for a toggle WIDGET."
   (hass-switch-p (widget-get widget :entity-id)))
 
-;;;;; Group widget
+;;;; Group widget
 (define-widget 'hass-dash-group 'group
   "A grouping widget for home-assistant dashboards.
 You can pass `:title' to give the group a title, and pass `:title-face' to set
