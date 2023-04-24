@@ -102,6 +102,15 @@ Takes one argument, the key of the dashboard.  See the default
   :group 'hass-dash
   :type 'function)
 
+(defcustom hass-dash-group-indent 1
+  "How much to indent elements of a group widget.
+How much to offset the of each group and subgroups. This value
+gets added to the `:indent' tag for every subgroup.
+
+Set this to `0' to not indent groups at all."
+  :group 'hass-dash
+  :type 'integer)
+
 (defvar hass-dash-layouts nil
   "An alist describing the dashboards.
 The key of each entry is a dashboard name which you can open with
@@ -401,8 +410,9 @@ already set using the `:title' and `:title-face' properties."
 
 (defun hass-dash--group-value-create (widget)
   "Insert the child widgets into the buffer."
-  (widget-put widget :indent (1+ (or (widget-get widget :indent)
-                                     0)))
+  (widget-put widget :indent (+ hass-dash-group-indent
+                                (or (widget-get widget :indent)
+                                    0)))
   (widget-group-value-create widget))
 
 
