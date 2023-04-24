@@ -338,7 +338,7 @@ preferred attribute, then it's state will be rendered instead."
      (brightness_step_pct . ,step_pct))))
 
 ;;;;; Counter
- (defun hass-dash--slider-counter (entity-id step)
+(defun hass-dash--slider-counter (entity-id step)
   "Step a counter helper."
   (let ((amount (abs step)))
     (if (= amount (hass-attribute-of "counter.hass_test" 'step))
