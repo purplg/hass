@@ -49,9 +49,9 @@
 
 ;;; Code:
 (require 'subr-x)
-(require 'hass)
 (require 'wid-edit)
 
+(require 'hass)
 (require 'hass-websocket)
 
 (defvar-local hass-dash--widgets '())
