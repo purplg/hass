@@ -387,6 +387,7 @@ You can pass `:title' to give the group a title, and pass `:title-face' to set
 the font face for the title."
   :format "%t\n%v"
   :create #'hass-dash--group-create
+  :value-create #'hass-dash--group-value-create
   :title-face 'hass-dash-group)
 
 (defun hass-dash--group-create (widget)
@@ -397,6 +398,12 @@ already set using the `:title' and `:title-face' properties."
     (widget-put widget :tag (propertize (widget-get widget :title)
                                         'face (widget-get widget :title-face))))
   (hass-dash--widget-create widget))
+
+(defun hass-dash--group-value-create (widget)
+  "Insert the child widgets into the buffer."
+  (widget-put widget :indent (1+ (or (widget-get widget :indent)
+                                     0)))
+  (widget-group-value-create widget))
 
 
 ;;; User Interface
