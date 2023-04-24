@@ -176,6 +176,14 @@ LAYOUT is the layout in `hass-dash-layouts' to be rendered."
 
 
 ;;; Widget definitions
+
+;; Every hass-dash widget should use `hass-dash--widget-create' for it's
+;; ':create' parameter. This function parses the shared/tweaked dashboard
+;; parameters, like ':tag' and ':icon' and adds the widget to the list of all
+;; widgets so they can be cleaned up when necessary. You can embed
+;; `hass-dash--widget-create' in your own ':create' function, so long as it is
+;; eventually called.
+
 (defun hass-dash--widget-label (widget)
   "Return the label for WIDGET.
 Uses the `:label' property if one is set on the WIDGET, otherwise tries to use
