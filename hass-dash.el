@@ -156,12 +156,16 @@ Full example:
                                    hass-dash-layouts)))
     (dolist (buffer dashboard-buffers)
       (when buffer
-        (with-current-buffer (get-buffer buffer)
-          (dolist (widget hass-dash--widgets)
-            (let ((icon (widget-get widget :icon))
-                  (label (hass-dash--widget-label widget)))
-              (widget-put widget :tag (hass-dash--widget-format-tag icon label)))
-            (widget-value-set widget (hass-state-of (widget-get widget :entity-id)))))))))
+        (hass-dash--update-buffer buffer)))))
+
+(defun hass-dash--update-buffer (buffer)
+  "Update all currently active dashboards with entity state."
+  (with-current-buffer (get-buffer buffer)
+    (dolist (widget hass-dash--widgets)
+      (let ((icon (widget-get widget :icon))
+            (label (hass-dash--widget-label widget)))
+        (widget-put widget :tag (hass-dash--widget-format-tag icon label)))
+      (widget-value-set widget (hass-state-of (widget-get widget :entity-id))))))
 
 (defun hass-dash--render (layout)
   "Render a hass-dash layout in the current buffer.
