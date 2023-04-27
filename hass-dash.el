@@ -174,6 +174,12 @@ LAYOUT is the layout in `hass-dash-layouts' to be rendered."
     (goto-char (point-min))
     (forward-line (1- prev-line))))
 
+(defmacro hass-dash--percent (value min max)
+  "Return the completion percent of VALUE between MIN and MAX."
+  `(* (/ (- ,value ,min)
+         (- ,max ,min))
+      100.0))
+
 
 ;;; Widget definitions
 
@@ -295,10 +301,14 @@ All slider properties:
 
 Light properties:
 
-• `:by-percent': When t, use `:step' as a percentage when
-  adjusting the slider."
+• `:value-type': When `value', display raw number next to slider.
+  Good for widgets like counters. When `percent', display the
+  percentage between it's minimum and maximum value.  Good for
+  lights. `percent' also changes `:step' to a percentage value
+  when adjusting the slider."
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
+  :value-type 'value
   :value-create #'hass-dash--widget-slider-value-create
   :action #'hass-dash--widget-action)
 
@@ -309,18 +319,67 @@ Light properties:
            'brightness)
           (t nil))))
 
+(defun hass-dash--widget-slider-value-of (entity-id)
+  (pcase (hass--domain-of-entity entity-id)
+    ("light" (hass-attribute-of entity-id 'brightness))
+    ("counter" (string-to-number (hass-state-of entity-id)))))
+
 (defun hass-dash--widget-slider-value-create (widget)
   "Insert the value of a slider widget.
 This widget value-create function prefers an attribute for its
 value instead of a state.  If the widget does not have a
 preferred attribute, then it's state will be rendered instead."
-  (princ (if-let ((entity-id (widget-get widget :entity-id))
-                  (attribute-key (or (widget-get widget :attribute-state)
-                                     (hass-dash--widget-preferred-attribute widget)))
-                  (attribute-value (hass-attribute-of entity-id attribute-key)))
-             attribute-value
-           (hass-state-of entity-id))
-         (current-buffer)))
+  (princ
+   (let ((value-type (widget-get widget :value-type)))
+     (or (and (eq 'percent value-type)
+              (hass-dash--widget-slider-percent-value widget))
+         (and (eq 'value value-type)
+              (hass-dash--widget-slider-numeric-value widget))
+         "off"))
+   (current-buffer)))
+
+(defun hass-dash--widget-slider-numeric-value (widget)
+  ""
+  (when-let* ((entity-id (widget-get widget :entity-id)))
+      (or (hass-dash--widget-slider-value-of entity-id)
+          0)))
+
+(defun hass-dash--widget-slider-percent-value (widget)
+  ""
+  (when-let* ((domain (hass--domain-of-entity
+                       (widget-get widget :entity-id)))
+              (value (pcase domain
+                       ("light" (hass-dash--widget-slider-percent-light widget))
+                       ("counter" (hass-dash--widget-slider-percent-counter widget)))))
+    (if (eq 'string (type-of value))
+        value
+      (format "%0.1f%%" value))))
+
+(defun hass-dash--widget-slider-percent-light (widget)
+  "Generate the brightness percentage of a light at WIDGET.
+Lights are always between 0 and 255. See the `brightness' domain
+here.
+
+URL: https://www.home-assistant.io/integrations/light/"
+  (hass-dash--percent (hass-dash--widget-slider-numeric-value widget)
+                      0.0
+                      255.0))
+
+(defun hass-dash--widget-slider-percent-counter (widget)
+  "Generate the counter percentage of a counter at WIDGET.
+Counter widgets use the attributes `minimum' and `maximum' for
+the bounds, but both values are optional. If both bounds aren't
+set, return nil.
+
+URL: https://www.home-assistant.io/integrations/counter/"
+  (if-let ((entity-id (widget-get widget :entity-id))
+           (value (hass-dash--widget-slider-numeric-value widget))
+           (minimum (hass-attribute-of entity-id 'minimum))
+           (maximum (hass-attribute-of entity-id 'maximum)))
+      (hass-dash--percent (float value)
+                          (float minimum)
+                          (float maximum))
+    "Unknown"))
 
 (defun hass-dash--button-widget-value-get (widget)
   "Get the state for a toggle WIDGET."
