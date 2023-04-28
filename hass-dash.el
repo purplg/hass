@@ -111,6 +111,27 @@ Set this to `0' to not indent groups at all."
   :group 'hass-dash
   :type 'integer)
 
+(defcustom hass-dash-update-delay 0.2
+  "Minimum seconds between updates.
+This is set pretty low just to mitigate rendering the dashboard
+buffer multiple times in an instant when receiving multiple API
+responses in an instant.  This small period of time gives the
+responses a second to flush into `hass--states' before needing to
+update the dashboard buffer again.
+
+Increase this value if you're experiencing performance issues
+rendering dashboard updates.
+
+Set to 0 or nil instantly updates from every request."
+  :group 'hass-dash
+  :type 'integer)
+
+(defvar hass-dash--render-cooldown nil
+  "Timer object to reduce dashboard buffer updates.")
+
+(defvar hass-dash--invalid t
+  "t when dashboard needs to be updated to current entity states.")
+
 (defvar hass-dash-layouts nil
   "An alist describing the dashboards.
 The key of each entry is a dashboard name which you can open with
@@ -151,15 +172,36 @@ Full example:
 
 (defun hass-dash--update ()
   "Update all currently active dashboards with entity state."
+  (if hass-dash--render-cooldown
+      ;; if there's an update pending, just mark dashboard as invalid.
+      (setq hass-dash--invalid t)
+    ;; Otherwise, update buffers and clear the invalid flag
+    (hass-dash--update-all-buffers)
+    (when (and hass-dash-update-delay
+               (> hass-dash-update-delay 0))
+      (setq hass-dash--invalid nil)
+      (setq hass-dash--render-cooldown
+            ;; Start a new timer.
+            ;; When timer expires, it will check if `hass-dash--invalid' was set since
+            ;; it started.  If `hass-dash--invalid' was set then update the buffer.
+            (run-with-timer hass-dash-update-delay
+                            nil
+                            (lambda ()
+                              (setq hass-dash--render-cooldown nil)
+                              (when hass-dash--invalid
+                                (hass-dash--update))))))))
+
+(defun hass-dash--update-all-buffers ()
+  "Update all currently active dashboards."
   (let ((dashboard-buffers (mapcar (lambda (dashboard)
-                                     (get-buffer (funcall hass-dash-buffer-name-function (car dashboard))))
-                                   hass-dash-layouts)))
-    (dolist (buffer dashboard-buffers)
-      (when buffer
-        (hass-dash--update-buffer buffer)))))
+                                           (get-buffer (funcall hass-dash-buffer-name-function (car dashboard))))
+                                         hass-dash-layouts)))
+          (dolist (buffer dashboard-buffers)
+            (when buffer
+              (hass-dash--update-buffer buffer)))))
 
 (defun hass-dash--update-buffer (buffer)
-  "Update all currently active dashboards with entity state."
+  "Update a single dashboards buffer."
   (with-current-buffer (get-buffer buffer)
     (dolist (widget hass-dash--widgets)
       (let ((icon (widget-get widget :icon))
