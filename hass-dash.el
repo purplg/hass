@@ -224,8 +224,18 @@ already set by using the widget icon and label."
       (widget-put widget :icon icon)
       (widget-put widget :tag (hass-dash--widget-format-tag icon label))
       (widget-put widget :value (hass-state-of entity-id))
+      (unless (widget-get widget :service)
+        (if-let ((service (cdr (assoc (hass--domain-of-entity entity-id)
+                                      hass-dash-default-services))))
+            (widget-put widget :service service)
+          (widget-put widget :action #'hass-dash--widget-no-action)))
       (add-to-list 'hass-dash--widgets widget)))
   (widget-default-create widget))
+
+(defun hass-dash--widget-no-action (widget &optional _)
+  "Action for when service is unsupported for widget type."
+  (message "No default action for entity `%s'"
+           (widget-get widget :entity-id)))
 
 (defun hass-dash--widget-action (widget &optional _)
   "Action handler for WIDGET.
@@ -242,9 +252,7 @@ service.  It can take on the following values:
   `hass-dash--widget-label'"
   (let* ((confirm (widget-get widget :confirm))
          (entity-id (widget-get widget :entity-id))
-         (service (or (widget-get widget :service)
-                      (cdr (assoc (hass--domain-of-entity entity-id)
-                                  hass-dash-default-services)))))
+         (service (or (widget-get widget :service))))
     (cond ((stringp confirm) (when (y-or-n-p confirm)
                                (hass-call-service entity-id service nil)))
           ((functionp confirm) (when (funcall confirm entity-id)
