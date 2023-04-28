@@ -128,9 +128,6 @@ entity whose state changed.")
 (defvar hass--user-agent "Emacs hass.el"
   "The user-agent sent in API requests to Home Assistant.")
 
-(defvar hass--timer nil
-  "Stores a reference to the timer used to periodically update entity state.")
-
 (defvar hass--available-entities nil
   "The entities retrieved from the Home Assistant instance.")
 
