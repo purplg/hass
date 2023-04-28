@@ -326,7 +326,8 @@ Light properties:
 (defun hass-dash--widget-slider-value-of (entity-id)
   (pcase (hass--domain-of-entity entity-id)
     ("light" (hass-attribute-of entity-id 'brightness))
-    ("counter" (string-to-number (hass-state-of entity-id)))))
+    ("counter" (when-let ((value (hass-state-of entity-id)))
+                 (string-to-number value)))))
 
 (defun hass-dash--widget-slider-value-create (widget)
   "Insert the value of a slider widget.
