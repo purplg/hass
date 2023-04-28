@@ -453,7 +453,7 @@ URL: https://www.home-assistant.io/integrations/counter/"
            (hass--message "Not a slider widget." nil)
            nil))))
 
-;; Light
+;;;;; Light
 (defun hass-dash--slider-light (entity-id step)
   "Adjust the brightness of a light entity."
   (hass-call-service-with-payload
@@ -468,7 +468,7 @@ URL: https://www.home-assistant.io/integrations/counter/"
    `((entity_id . ,entity-id)
      (brightness_step_pct . ,step_pct))))
 
-;; Counter
+;;;;; Counter
 (defun hass-dash--slider-counter (entity-id step)
   "Step a counter helper."
   (let ((amount (abs step)))
