@@ -54,6 +54,11 @@
   :group 'applications
   :prefix "hass-")
 
+(defvar hass-mode-map
+  (let ((map (make-sparse-keymap)))
+    map)
+  "Keymap for `hass-mode'.")
+
 (defcustom hass-host nil
   "The URL of the Home Assistant instance.
 Set this to the URL of the Home Assistant instance you want to
@@ -468,15 +473,6 @@ PAYLOAD is contents the body of the request."
                   (let ((data (request-response-data response)))
                     (funcall success data)))))))
 
-(defun hass--check-api-connection ()
-  "Set `hass--api-running' to t when a successful connection is made."
-  (setq hass--api-running nil)
-  (hass--request "GET" "api/"
-                 (lambda (data)
-                   (when (string= "API running." (cdr (assoc 'message data)))
-                     (setq hass--api-running t)
-                     (run-hooks 'hass-api-connected-hook)))))
-
 (defun hass--get-available-entities (&optional callback)
   "Retrieve the available entities from the Home Assistant instance.
 Makes a request to `/api/states' but drops everything except an
@@ -578,14 +574,24 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
          (hass--warning "HASS-HOST must be set to use hass.") nil)
         (t t)))
 
+(defun hass--connect ()
+  "Populate available Home Assistant entities and services."
+  (hass--request "GET" "api/"
+                 (lambda (data)
+                   (when (string= "API running." (cdr (assoc 'message data)))
+                     (run-hooks 'hass-api-connected-hook)))))
+
 ;;;###autoload
-(defun hass-ensure ()
-  "Ensure hass is connected.
-Check whether necessary variables are set and then query the Home
-Assistant instance for available services and entities."
-  (when (and (not hass--api-running)
-             (hass--check-config))
-    (hass--check-api-connection)))
+(define-minor-mode hass-mode
+  ""
+  :global t
+  :lighter nil
+  :group 'hass
+  (if hass-mode
+      (when (hass--check-config)
+        (hass--connect)
+        (hass-websocket--connect))
+    (hass-websocket--disconnect)))
 
 (provide 'hass)
 

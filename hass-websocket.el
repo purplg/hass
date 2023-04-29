@@ -138,6 +138,7 @@ MESSAGE is an alist to be encoded into a JSON object."
 
 
 ;;; Mode toggle
+;;;###autoload
 (defun hass-websocket--connect ()
   "Establish a websocket connection to Home Assistant."
   (setq hass-websocket--connection
@@ -155,15 +156,6 @@ MESSAGE is an alist to be encoded into a JSON object."
     (websocket-close hass-websocket--connection)
     (setq hass-websocket--connection nil)
     (hass--debug "Disconnected from websocket")))
-
-;;;###autoload
-(defun hass-websocket-ensure ()
-  "Ensure websocket is established to Home Assistant.
-Return t if connection succeeded."
-  (when (and (hass--check-config)
-             (or hass-websocket--connection
-                 (hass-websocket--connect)))
-    t))
 
 (provide 'hass-websocket)
 
