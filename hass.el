@@ -249,7 +249,19 @@ ENTITY-ID is the id of the entity in Home Assistant."
         buf)))
 
 (defface hass--debug-heading-face
-  '((t (:inherit mode-line :extend t)))
+  `((default :height 1.0
+             :background "#4f00aa"
+             :weight bold
+             :extend t))
+  "Face for widget group labels in HASS's dashboard."
+  :group 'hass)
+
+(defface hass--debug-timestamp-face
+  `((default :height 0.8
+             :inherit hass--debug-heading-face
+             :background "#270055"
+             :weight normal
+             :extend t))
   "Face for widget group labels in HASS's dashboard."
   :group 'hass)
 
