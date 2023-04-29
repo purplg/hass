@@ -320,7 +320,8 @@ MSG is the message to be display in the warnings buffer."
   (display-warning 'hass (apply #'format msg)))
 
 
-;;; API parsing
+;;; HTTP
+;;;; Parsing
 (defun hass--parse-all-entities (entities)
   "Convert entity state data into a list of available entities.
 ENTITIES is the data returned from the `/api/states' endpoint."
@@ -355,7 +356,7 @@ endpoint."
           services))
 
 
-;;; Request Callbacks
+;;;; Callbacks
 (defun hass--get-entities-result (entities)
   "Callback when states of all ENTITIES is received from API."
   (setq hass--available-entities (hass--parse-all-entities entities))
@@ -442,7 +443,7 @@ RESPONSE is the request-response object from requests.el"
     t))
 
 
-;;; Requests
+;;;; Requests
 (defun hass--request (type endpoint &optional success payload)
   "Make a request to Home Assistant.
 TYPE is a string of the type of request to make.  For example, `\"GET\"'.
