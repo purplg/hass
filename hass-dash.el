@@ -562,6 +562,25 @@ just -1 or 1 to affect slider move direction."
   (interactive)
   (hass-dash--slider-adjust (* -1 (or step 1))))
 
+(defun hass-dash-load-layout (path)
+  "Load dashboards from file at PATH.
+The contents of this file will automatically be put into a list
+and stored in `hass-dash-layouts'.
+
+For example:
+
+  \(some-dashboard .
+     ((hass-dash-button :entity-id \"button.test\")))
+
+  \(other-dashboard .
+     ((hass-dash-state :entity-id \"sensor.test\")))"
+  (interactive "f")
+  (setq hass-dash-layouts
+        (list (with-temp-buffer
+                (insert-file-contents
+                 path)
+                (read (current-buffer))))))
+
 ;;;###autoload
 (defun hass-dash-open (dashboard)
   "Open the hass-dash buffer for DASHBOARD."
