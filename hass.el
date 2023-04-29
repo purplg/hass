@@ -567,13 +567,14 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
 
 
 ;;; Init
-(defun hass--check-config ()
-  "Return t if configuration is valid."
+(defun hass--config-errors ()
+  "Return nil if no configuration errors are found.
+If error found, a string of the error message is returned."
   (cond ((not (equal (type-of (hass--apikey)) 'string))
-         (hass--warning "HASS-APIKEY must be set to use hass.") nil)
+         "HASS-APIKEY must be set to use hass.")
         ((not (equal (type-of hass-host) 'string))
-         (hass--warning "HASS-HOST must be set to use hass.") nil)
-        (t t)))
+         "HASS-HOST must be set to use hass.")
+        (t nil)))
 
 (defun hass--connect ()
   "Populate available Home Assistant entities and services."
@@ -589,7 +590,8 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
   :lighter nil
   :group 'hass
   (if hass-mode
-      (when (hass--check-config)
+      (if-let ((err (hass--config-errors)))
+          (hass--warning err nil)
         (hass--connect)
         (hass-websocket--connect))
     (hass-websocket--disconnect)))
