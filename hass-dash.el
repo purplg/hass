@@ -588,17 +588,17 @@ For example:
                        (0 (hass--warning "You must configure some dashboards in `hass-dash-layouts'.") nil)
                        (1 (caar hass-dash-layouts))
                        (_ (intern (completing-read "Dashboard: " hass-dash-layouts))))))
-  (when (and dashboard (hass-mode 1))
-    (let* ((buffer (get-buffer-create (funcall hass-dash-buffer-name-function dashboard)))
-           (window (get-buffer-window buffer))
-           (layout (cdr (assoc dashboard hass-dash-layouts))))
-      (with-current-buffer buffer
-        (let ((inhibit-read-only t))
-          (hass-dash-mode)
-          (hass-dash--render layout)))
-      (hass--update-tracked-entities)
-      (pop-to-buffer buffer)
-      (set-window-dedicated-p window t))))
+
+  (let* ((buffer (get-buffer-create (funcall hass-dash-buffer-name-function dashboard)))
+         (window (get-buffer-window buffer))
+         (layout (cdr (assoc dashboard hass-dash-layouts))))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t))
+        (hass-dash-mode)
+        (hass-dash--render layout)))
+    (hass--update-tracked-entities)
+    (pop-to-buffer buffer)
+    (set-window-dedicated-p window t)))
 
 (define-derived-mode hass-dash-mode special-mode "Home Assistant Dash"
   "Dashboard for Home Assistant."
