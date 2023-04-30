@@ -47,7 +47,8 @@
 (require 'json)
 (require 'request)
 
-
+(require 'hass-websocket)
+
 ;;; Customizable
 (defgroup hass '()
   "Minor mode for hass."

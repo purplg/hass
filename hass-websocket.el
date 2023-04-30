@@ -49,8 +49,6 @@
 (require 'json)
 (require 'websocket)
 
-(require 'hass)
-
 
 ;;; User customizable
 (defvar hass-websocket-mode-map (make-sparse-keymap)
@@ -151,6 +149,7 @@ MESSAGE is an alist to be encoded into a JSON object."
                         :on-open (lambda (_websocket) (setq hass-websocket--interactions 0))
                         :on-close (lambda (_websocket) (setq hass-websocket--connection nil)))))
 
+;;;###autoload
 (defun hass-websocket--disconnect ()
   "Disconnect the websocket connection to Home Assistant."
   (when hass-websocket--connection
