@@ -607,6 +607,7 @@ For example:
   :abbrev-table nil
   :interactive t
   ;; Refresh dashboard when entity state is updated
+  (unless hass-mode (hass-mode 1))
   (add-hook 'hass-entity-updated-hook #'hass-dash--update))
 
 (provide 'hass-dash)
