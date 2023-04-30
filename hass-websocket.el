@@ -141,6 +141,7 @@ MESSAGE is an alist to be encoded into a JSON object."
 ;;;###autoload
 (defun hass-websocket--connect ()
   "Establish a websocket connection to Home Assistant."
+  (hass-websocket--disconnect)
   (setq hass-websocket--connection
         (websocket-open (format "%s://%s:%s/api/websocket"
                                 (if hass-insecure "ws" "wss")
