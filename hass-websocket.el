@@ -64,7 +64,7 @@
 (defvar hass-websocket--connection '()
   "Websocket connection info.")
 
-(defvar hass-websocket--interactions '()
+(defvar hass-websocket--interactions nil
   "Number Websocket interactions to use for message IDs.")
 
 
