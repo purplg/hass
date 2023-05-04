@@ -8,8 +8,9 @@
 ;; This package extends the `hass' package to include a dashboard to configure
 ;; quick access to buttons and displays.
 
-;; --------------------
-;; Configuration
+;;
+;;;; Configuration
+;;
 
 ;; The primary `hass' package must be configured properly first before using
 ;; this dashboard feature.
@@ -19,25 +20,58 @@
 ;; are laid out, what they display, and what they do.  See the docstring for
 ;; `hass-dash-layouts' for details.
 
-;; --------------------
-;; Full layout example
+;;;; Examples
 
-;;(setq hass-dash-layouts
-;;      `((default . ((hass-dash-group :title "Home Assistant"
-;;                                     :format "%t\n\n%v"
-;;                                     (hass-dash-group :title "Kitchen"
-;;                                                      :title-face outline-2
-;;                                                      (hass-dash-toggle :entity-id "light.kitchen_lights")
-;;                                                      (hass-dash-toggle :entity-id "light.master_bedroom_lights")
-;;                                                      (hass-dash-toggle :entity-id "switch.entry_light"
-;;                                                                        :label "Hallway"
-;;                                                                        :confirm t)))
-;;                    (hass-dash-group :title "Group 2"
-;;                                     :format "\n\n%t\n\n%v"
-;;                                     (hass-dash-toggle :entity-id "light.master_bedroom_fan_light"))))
 ;;
-;;        (simple . ((hass-dash-toggle :entity-id "light.kitchen_lights")
-;;                   (hass-dash-toggle :entity-id "switch.entry_lights")))))
+;; Full layout example
+;;
+
+;; You can set `hass-dash-layouts' directly like in the following example:
+
+;;   (setq hass-dash-layouts
+;;         `((default . ((hass-dash-group :title "Home Assistant"
+;;                                        :format "%t\n\n%v"
+;;                                        (hass-dash-group :title "Kitchen"
+;;                                                         :title-face outline-2
+;;                                                         (hass-dash-toggle :entity-id "light.kitchen_lights")
+;;                                                         (hass-dash-toggle :entity-id "light.master_bedroom_lights")
+;;                                                         (hass-dash-toggle :entity-id "switch.entry_light"
+;;                                                                           :label "Hallway"
+;;                                                                           :confirm t)))
+;;                       (hass-dash-group :title "Group 2"
+;;                                        :format "\n\n%t\n\n%v"
+;;                                        (hass-dash-toggle :entity-id "light.master_bedroom_fan_light"))))
+;;
+;;           (simple . ((hass-dash-toggle :entity-id "light.kitchen_lights")
+;;                      (hass-dash-toggle :entity-id "switch.entry_lights")))))
+
+;;
+;; Layout file example
+;;
+
+;; Or for more complex layouts you can create a layout file and load with
+;; `hass-dash-load-layout'.  The following defines the same layout as above.
+;;
+
+;;   default
+;;
+;;   (hass-dash-group :title "Home Assistant"
+;;                    :format "%t\n\n%v"
+;;                    (hass-dash-group :title "Kitchen"
+;;                                     :title-face outline-2
+;;                                     (hass-dash-toggle :entity-id "light.kitchen_lights")
+;;                                     (hass-dash-toggle :entity-id "light.master_bedroom_lights")
+;;                                     (hass-dash-toggle :entity-id "switch.entry_light"
+;;                                                       :label "Hallway"
+;;                                                       :confirm t)))
+;;   (hass-dash-group :title "Group 2"
+;;                    :format "\n\n%t\n\n%v"
+;;                    (hass-dash-toggle :entity-id "light.master_bedroom_fan_light"))
+;;
+;;   simple
+;;
+;;   (hass-dash-toggle :entity-id "light.kitchen_lights")
+;;   (hass-dash-toggle :entity-id "switch.entry_lights")
 
 ;; --------------------
 ;; Usage
