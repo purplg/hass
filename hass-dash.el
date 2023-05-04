@@ -576,10 +576,24 @@ For example:
      ((hass-dash-state :entity-id \"sensor.test\")))"
   (interactive "f")
   (setq hass-dash-layouts
-        (list (with-temp-buffer
-                (insert-file-contents
-                 path)
-                (read (current-buffer))))))
+        (with-temp-buffer
+          (insert "(\n")
+          (insert-file-contents
+           path)
+          (goto-char (point-max))
+          (insert "\n)")
+          (goto-char (point-min))
+          (hass--debug-clear-buffer)
+          (let ((data (read (current-buffer)))
+                result
+                layout)
+            (while data
+              (while (symbolp (car data))
+                (setq layout (list (pop data))))
+              (while (consp (car data))
+                (push (pop data) layout))
+              (push (nreverse layout) result))
+            result))))
 
 ;;;###autoload
 (defun hass-dash-open (dashboard)
