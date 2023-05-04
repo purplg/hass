@@ -562,18 +562,33 @@ just -1 or 1 to affect slider move direction."
   (interactive)
   (hass-dash--slider-adjust (* -1 (or step 1))))
 
+;;;###autoload
 (defun hass-dash-load-layout (path)
   "Load dashboards from file at PATH.
 The contents of this file will automatically be put into a list
 and stored in `hass-dash-layouts'.
 
-For example:
+A new layout is defined by placing an unquoted name on the top
+level. Following the name, the contents of the dashboard is read
+and collected into a list.
 
-  \(some-dashboard .
-     ((hass-dash-button :entity-id \"button.test\")))
 
-  \(other-dashboard .
-     ((hass-dash-state :entity-id \"sensor.test\")))"
+The example below creates two dashboards named `my-lights' and
+`my-fans' which each have a state and button widget:
+
+  my-lights
+
+  (hass-dash-state :entity-id \"light.office\"
+                   :format \"The light is %v\")
+  (hass-dash-button :entity-id \"light.office\"
+                    :label \"Press me\")
+
+  my-fans
+
+  (hass-dash-state :entity-id \"fan.bedroom\"
+                   :format \"The fan is %v\")
+  (hass-dash-button :entity-id \"bedroom.bedroom\"
+                    :label \"Press me\")"
   (interactive "f")
   (setq hass-dash-layouts
         (with-temp-buffer
