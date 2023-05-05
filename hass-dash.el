@@ -201,10 +201,6 @@ Full example:
 LAYOUT is the layout in `hass-dash-layouts' to be rendered."
   (let ((prev-line (line-number-at-pos)))
     (erase-buffer)
-    ;; There shouldn't be, but just in case any widgets exist, we'll try to
-    ;; clean them up.
-    (dolist (widget hass-dash--widgets)
-      (widget-delete widget))
     (let ((hass-dash--rendering t))
       (widget-create
        (append '(group :format "%v")
@@ -634,8 +630,6 @@ The example below creates two dashboards named `my-lights' and
   :interactive t
   ;; Refresh dashboard when entity state is updated
   (unless hass-mode (hass-mode 1))
-  (dolist (widget hass-dash--widgets)
-    (widget-delete widget))
   (setq-local hass-dash--widgets nil)
   (add-hook 'hass-entity-updated-functions #'hass-dash--update-entity))
 
