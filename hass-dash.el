@@ -90,6 +90,8 @@
 
 (defvar-local hass-dash--widgets '())
 
+(defvar-local hass-dash--rendering nil)
+
 
 ;;; Customizable
 (defvar hass-dash-mode-map
@@ -145,27 +147,6 @@ Set this to `0' to not indent groups at all."
   :group 'hass-dash
   :type 'integer)
 
-(defcustom hass-dash-update-delay 0.2
-  "Minimum seconds between updates.
-This is set pretty low just to mitigate rendering the dashboard
-buffer multiple times in an instant when receiving multiple API
-responses in an instant.  This small period of time gives the
-responses a second to flush into `hass--states' before needing to
-update the dashboard buffer again.
-
-Increase this value if you're experiencing performance issues
-rendering dashboard updates.
-
-Set to 0 or nil instantly updates from every request."
-  :group 'hass-dash
-  :type 'integer)
-
-(defvar hass-dash--render-cooldown nil
-  "Timer object to reduce dashboard buffer updates.")
-
-(defvar hass-dash--invalid t
-  "t when dashboard needs to be updated to current entity states.")
-
 (defvar hass-dash-layouts nil
   "An alist describing the dashboards.
 The key of each entry is a dashboard name which you can open with
@@ -204,53 +185,30 @@ Full example:
   "Return the name of the hass-dash buffer for dashboard key DASHBOARD."
   (concat "*hass-dash-" (symbol-name dashboard) "*"))
 
-(defun hass-dash--update ()
-  "Update all currently active dashboards with entity state."
-  (if hass-dash--render-cooldown
-      ;; if there's an update pending, just mark dashboard as invalid.
-      (setq hass-dash--invalid t)
-    ;; Otherwise, update buffers and clear the invalid flag
-    (hass-dash--update-all-buffers)
-    (when (and hass-dash-update-delay
-               (> hass-dash-update-delay 0))
-      (setq hass-dash--invalid nil)
-      (setq hass-dash--render-cooldown
-            ;; Start a new timer.
-            ;; When timer expires, it will check if `hass-dash--invalid' was set since
-            ;; it started.  If `hass-dash--invalid' was set then update the buffer.
-            (run-with-timer hass-dash-update-delay
-                            nil
-                            (lambda ()
-                              (setq hass-dash--render-cooldown nil)
-                              (when hass-dash--invalid
-                                (hass-dash--update))))))))
-
-(defun hass-dash--update-all-buffers ()
-  "Update all currently active dashboards."
+(defun hass-dash--update-entity (entity-id)
   (let ((dashboard-buffers (mapcar (lambda (dashboard)
-                                           (get-buffer (funcall hass-dash-buffer-name-function (car dashboard))))
-                                         hass-dash-layouts)))
-          (dolist (buffer dashboard-buffers)
-            (when buffer
-              (hass-dash--update-buffer buffer)))))
-
-(defun hass-dash--update-buffer (buffer)
-  "Update a single dashboards buffer."
-  (with-current-buffer (get-buffer buffer)
-    (dolist (widget hass-dash--widgets)
-      (let ((icon (widget-get widget :icon))
-            (label (hass-dash--widget-label widget)))
-        (widget-put widget :tag (hass-dash--widget-format-tag icon label)))
-      (widget-value-set widget (hass-state-of (widget-get widget :entity-id))))))
+                                     (get-buffer (funcall hass-dash-buffer-name-function (car dashboard))))
+                                   hass-dash-layouts)))
+    (dolist (widget (alist-get (intern entity-id)
+                               hass-dash--widgets))
+      (let ((value (widget-value widget)))
+        (dolist (buffer (seq-filter #'identity dashboard-buffers))
+          (with-current-buffer buffer
+            (widget-value-set widget value)))))))
 
 (defun hass-dash--render (layout)
   "Render a hass-dash layout in the current buffer.
 LAYOUT is the layout in `hass-dash-layouts' to be rendered."
   (let ((prev-line (line-number-at-pos)))
     (erase-buffer)
-    (widget-create
-      (append '(group :format "%v")
-              layout))
+    ;; There shouldn't be, but just in case any widgets exist, we'll try to
+    ;; clean them up.
+    (dolist (widget hass-dash--widgets)
+      (widget-delete widget))
+    (let ((hass-dash--rendering t))
+      (widget-create
+       (append '(group :format "%v")
+               layout)))
     (goto-char (point-min))
     (forward-line (1- prev-line))))
 
@@ -291,21 +249,26 @@ is set, falls back to using the `:entity_id' property on the WIDGET."
   "Create the widget WIDGET.
 This just uses `widget-default-create', but sets the `:tag' property if it isn't
 already set by using the widget icon and label."
-  (unless (widget-get widget :tag)
-    (let* ((entity-id (widget-get widget :entity-id))
-           (icon (or (widget-get widget :icon)
-                     (hass--icon-of-entity entity-id)))
-           (label (hass-dash--widget-label widget)))
-      (add-to-list 'hass-tracked-entities entity-id)
-      (widget-put widget :icon icon)
-      (widget-put widget :tag (hass-dash--widget-format-tag icon label))
-      (widget-put widget :value (hass-state-of entity-id))
-      (unless (widget-get widget :service)
-        (if-let ((service (cdr (assoc (hass--domain-of-entity entity-id)
-                                      hass-dash-default-services))))
-            (widget-put widget :service service)
-          (widget-put widget :action #'hass-dash--widget-no-action)))
-      (add-to-list 'hass-dash--widgets widget)))
+  (let ((entity-id (widget-get widget :entity-id)))
+    (when entity-id
+      (add-to-list 'hass-tracked-entities entity-id))
+
+    (unless (widget-get widget :tag)
+      (let* ((icon (or (widget-get widget :icon)
+                       (when entity-id
+                         (hass--icon-of-entity entity-id))))
+             (label (hass-dash--widget-label widget)))
+        (widget-put widget :icon icon)
+        (widget-put widget :tag (hass-dash--widget-format-tag icon label))))
+
+    (unless (widget-get widget :service)
+      (if-let ((service (and entity-id (cdr (assoc (hass--domain-of-entity entity-id)
+                                                   hass-dash-default-services)))))
+          (widget-put widget :service service)
+        (widget-put widget :action #'hass-dash--widget-no-action)))
+    (when (and hass-dash--rendering
+               entity-id)
+      (push widget (alist-get (intern entity-id) hass-dash--widgets))))
   (widget-default-create widget))
 
 (defun hass-dash--widget-no-action (widget &optional _)
@@ -375,7 +338,7 @@ Assistant.  The following optional properties can also be used:
   :action #'hass-dash--widget-action)
 
 ;;;; Slider widget
-(define-widget 'hass-dash-slider 'hass-dash-button
+(define-widget 'hass-dash-slider 'item
   "A slider widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the
 entity in Home Assistant.  The following optional properties can
@@ -393,12 +356,16 @@ Light properties:
   Good for widgets like counters. When `percent', display the
   percentage between it's minimum and maximum value.  Good for
   lights. `percent' also changes `:step' to a percentage value
+
   when adjusting the slider."
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
-  :value-type 'value
-  :value-create #'hass-dash--widget-slider-value-create
+  :value-get #'hass-dash--widget-slider-value-get
   :action #'hass-dash--widget-action)
+
+(defun hass-dash--widget-slider-value-get (widget)
+  (or (hass-attribute-of (widget-get widget :entity-id)
+                     'brightness) "off"))
 
 (defun hass-dash--widget-preferred-attribute (widget)
   "Return a preferred attribute, if any, for domain of WIDGET."
@@ -469,10 +436,6 @@ URL: https://www.home-assistant.io/integrations/counter/"
                           (float minimum)
                           (float maximum))
     "Unknown"))
-
-(defun hass-dash--button-widget-value-get (widget)
-  "Get the state for a toggle WIDGET."
-  (hass-state-of (widget-get widget :entity-id)))
 
 (defun hass-dash--widget-slider-default (widget)
   "Return the default slider action for the domain of ENTITY-ID."
@@ -671,7 +634,10 @@ The example below creates two dashboards named `my-lights' and
   :interactive t
   ;; Refresh dashboard when entity state is updated
   (unless hass-mode (hass-mode 1))
-  (add-hook 'hass-entity-updated-hook #'hass-dash--update))
+  (dolist (widget hass-dash--widgets)
+    (widget-delete widget))
+  (setq-local hass-dash--widgets nil)
+  (add-hook 'hass-entity-updated-functions #'hass-dash--update-entity))
 
 (provide 'hass-dash)
 
