@@ -631,6 +631,7 @@ The example below creates two dashboards named `my-lights' and
   ;; Refresh dashboard when entity state is updated
   (unless hass-mode (hass-mode 1))
   (setq-local hass-dash--widgets nil)
+  (setq-local hass-dash--rendering nil)
   (add-hook 'hass-entity-updated-functions #'hass-dash--update-entity))
 
 (provide 'hass-dash)
