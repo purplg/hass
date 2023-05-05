@@ -195,9 +195,10 @@ Full example:
   (let ((dashboard-buffers (mapcar (lambda (dashboard)
                                      (get-buffer (funcall hass-dash-buffer-name-function (car dashboard))))
                                    hass-dash-layouts)))
-    (dolist (widget (alist-get (intern entity-id)
-                               hass-dash--widgets))
-      (let ((value (widget-value widget)))
+    (dolist (widget-point (alist-get (intern entity-id)
+                                     hass-dash--widgets))
+      (when-let* ((widget (widget-at widget-point))
+                  (value (widget-value widget)))
         (dolist (buffer (seq-filter #'identity dashboard-buffers))
           (with-current-buffer buffer
             (widget-value-set widget value)))))))
@@ -205,14 +206,10 @@ Full example:
 (defun hass-dash--render (layout)
   "Render a hass-dash layout in the current buffer.
 LAYOUT is the layout in `hass-dash-layouts' to be rendered."
-  (let ((prev-line (line-number-at-pos)))
-    (erase-buffer)
-    (let ((hass-dash--rendering t))
-      (widget-create
-       (append '(group :format "%v")
-               layout)))
-    (goto-char (point-min))
-    (forward-line (1- prev-line))))
+  (erase-buffer)
+  (let ((hass-dash--rendering t))
+    (dolist (widget layout)
+      (widget-create widget))))
 
 (defmacro hass-dash--percent (value min max)
   "Return the completion percent of VALUE between MIN and MAX."
@@ -270,7 +267,7 @@ already set by using the widget icon and label."
         (widget-put widget :action #'hass-dash--widget-no-action)))
     (when (and hass-dash--rendering
                entity-id)
-      (push widget (alist-get (intern entity-id) hass-dash--widgets))))
+      (push (point) (alist-get (intern entity-id) hass-dash--widgets))))
   (widget-default-create widget))
 
 (defun hass-dash--widget-no-action (widget &optional _)
