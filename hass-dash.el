@@ -265,10 +265,15 @@ already set by using the widget icon and label."
                                                    hass-dash-default-services)))))
           (widget-put widget :service service)
         (widget-put widget :action #'hass-dash--widget-no-action)))
+
+    (widget-put widget :value (widget-value widget))
+
+    (widget-default-create widget)
+
     (when (and hass-dash--rendering
                entity-id)
-      (push (point) (alist-get (intern entity-id) hass-dash--widgets))))
-  (widget-default-create widget))
+      (push (widget-get (widget-at) :from)
+            (alist-get (intern entity-id) hass-dash--widgets)))))
 
 (defun hass-dash--widget-no-action (widget &optional _)
   "Action for when service is unsupported for widget type."
@@ -337,6 +342,27 @@ Assistant.  The following optional properties can also be used:
   :action #'hass-dash--widget-action)
 
 ;;;; Slider widget
+
+;; Slider widgets are a little complicated because the useful value can either
+;; be an entities' state or an attribute. For example, light entities use the
+;; `brightness' attribute but a counter entity just uses its' state.
+;;
+;; Additionally, the user has the option to present the value in its raw form or
+;; in a percentage form. Similar to before, it's usually more useful to display
+;; a light as a percentage, but a counter is probably more useful with its raw
+;; value displayed.
+;;
+;; To account for these two abilities, when a slider widget's value is retrieve,
+;; it firsts looks up what kind of value it wants, value or percent. See
+;; function `hass-dash--widget-slider-value-get'. The respective value-type
+;; functions will then look up the domain of the entity and fetch and format the
+;; result properly.
+;;
+;; On the note of formatting, it's important that the result is always the same
+;; length since the widget is stored and updated via marks. Otherwise, the
+;; incorrect slice of buffer gets deleted and breaks the flow of the
+;; dashboard. All the results below format the result with a length of 3.
+
 (define-widget 'hass-dash-slider 'item
   "A slider widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the
@@ -363,44 +389,13 @@ Light properties:
   :action #'hass-dash--widget-action)
 
 (defun hass-dash--widget-slider-value-get (widget)
-  (or (hass-attribute-of (widget-get widget :entity-id)
-                     'brightness) "off"))
-
-(defun hass-dash--widget-preferred-attribute (widget)
-  "Return a preferred attribute, if any, for domain of WIDGET."
-  (let ((domain (hass--domain-of-entity (widget-get widget :entity-id))))
-    (cond ((string= "light" domain)
-           'brightness)
-          (t nil))))
-
-(defun hass-dash--widget-slider-value-of (entity-id)
-  (pcase (hass--domain-of-entity entity-id)
-    ("light" (hass-attribute-of entity-id 'brightness))
-    ("counter" (when-let ((value (hass-state-of entity-id)))
-                 (string-to-number value)))))
-
-(defun hass-dash--widget-slider-value-create (widget)
-  "Insert the value of a slider widget.
-This widget value-create function prefers an attribute for its
-value instead of a state.  If the widget does not have a
-preferred attribute, then it's state will be rendered instead."
-  (princ
-   (let ((value-type (widget-get widget :value-type)))
-     (or (and (eq 'percent value-type)
-              (hass-dash--widget-slider-percent-value widget))
-         (and (eq 'value value-type)
-              (hass-dash--widget-slider-numeric-value widget))
-         "off"))
-   (current-buffer)))
-
-(defun hass-dash--widget-slider-numeric-value (widget)
-  ""
-  (when-let* ((entity-id (widget-get widget :entity-id)))
-      (or (hass-dash--widget-slider-value-of entity-id)
-          0)))
+  "The main entry point for retrieving a sliders value."
+  (pcase (widget-get widget :value-type)
+    ('percent (hass-dash--widget-slider-percent-value widget))
+    ('value (hass-dash--widget-slider-numeric-value widget))))
 
 (defun hass-dash--widget-slider-percent-value (widget)
-  ""
+  "Return a percent value."
   (when-let* ((domain (hass--domain-of-entity
                        (widget-get widget :entity-id)))
               (value (pcase domain
@@ -408,7 +403,23 @@ preferred attribute, then it's state will be rendered instead."
                        ("counter" (hass-dash--widget-slider-percent-counter widget)))))
     (if (eq 'string (type-of value))
         value
-      (format "%0.1f%%" value))))
+      (format "%3d%%" value))))
+
+(defun hass-dash--widget-slider-numeric-value (widget)
+  "Return the raw value."
+  (when-let* ((entity-id (widget-get widget :entity-id)))
+    (or (pcase (hass--domain-of-entity entity-id)
+          ("light" (hass-attribute-of entity-id 'brightness))
+          ("counter" (when-let ((value (hass-state-of entity-id)))
+                       (string-to-number value))))
+        0)))
+
+(defun hass-dash--widget-preferred-attribute (widget)
+  "Return a preferred attribute, if any, for domain of WIDGET."
+  (let ((domain (hass--domain-of-entity (widget-get widget :entity-id))))
+    (cond ((string= "light" domain)
+           'brightness)
+          (t nil))))
 
 (defun hass-dash--widget-slider-percent-light (widget)
   "Generate the brightness percentage of a light at WIDGET.
