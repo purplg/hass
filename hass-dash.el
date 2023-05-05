@@ -88,9 +88,15 @@
 (require 'hass)
 (require 'hass-websocket)
 
-(defvar-local hass-dash--widgets '())
+(defvar-local hass-dash--widgets '()
+  "An alist of entity-id's and points where associated widgets are
+at.")
 
-(defvar-local hass-dash--rendering nil)
+(defvar-local hass-dash--rendering nil
+  "Whether the dashboard is currently rendering.
+This is used to populate `hass-dash--widgets'. When we are
+actively rendering, then we'll add the widget to the list on
+creation.")
 
 
 ;;; Customizable
