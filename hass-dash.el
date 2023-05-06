@@ -306,7 +306,7 @@ service.  It can take on the following values:
           (t (hass-call-service entity-id service nil)))))
 
 ;;;; State widget
-(define-widget 'hass-dash-state 'item
+(define-widget 'hass-state 'item
   "A read-only widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
 Assistant.  The following optional properties can also be used:
@@ -319,8 +319,11 @@ Assistant.  The following optional properties can also be used:
   :create #'hass-dash--widget-create
   :format "%t: %v\n")
 
+(define-widget 'hass-dash-state 'hass-state
+  "Replaced with `hass-state'.")
+
 ;;;; Button widget
-(define-widget 'hass-dash-button 'push-button
+(define-widget 'hass-button 'push-button
   "A button widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
 Assistant.  The following optional properties can also be used:
@@ -339,6 +342,9 @@ Assistant.  The following optional properties can also be used:
   :format "%[%t: %v%]\n"
   :value-create #'widget-item-value-create
   :action #'hass-dash--widget-action)
+
+(define-widget 'hass-dash-button 'hass-button
+  "Replaced with `hass-button'.")
 
 ;;;; Slider widget
 
@@ -361,8 +367,7 @@ Assistant.  The following optional properties can also be used:
 ;; length since the widget is stored and updated via marks. Otherwise, the
 ;; incorrect slice of buffer gets deleted and breaks the flow of the
 ;; dashboard. All the results below format the result with a length of 3.
-
-(define-widget 'hass-dash-slider 'item
+(define-widget 'hass-slider 'item
   "A slider widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the
 entity in Home Assistant.  The following optional properties can
@@ -493,7 +498,7 @@ URL: https://www.home-assistant.io/integrations/counter/"
         ((> step 0) (hass-call-service entity-id "counter.increment"))))
 
 ;;;; Toggle widget
-(define-widget 'hass-dash-toggle 'toggle
+(define-widget 'hass-toggle 'toggle
   "A toggle widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the entity in Home
 Assistant.  The following optional properties can also be used:
@@ -513,12 +518,15 @@ Assistant.  The following optional properties can also be used:
   :value-get #'hass-dash--toggle-widget-value-get
   :action #'hass-dash--widget-action)
 
+(define-widget 'hass-dash-toggle 'hass-toggle
+  "Replaced with `hass-toggle'.")
+
 (defun hass-dash--toggle-widget-value-get (widget)
   "Set the state for a toggle WIDGET."
   (hass-switch-p (widget-get widget :entity-id)))
 
 ;;;; Group widget
-(define-widget 'hass-dash-group 'group
+(define-widget 'hass-group 'group
   "A grouping widget for home-assistant dashboards.
 You can pass `:title' to give the group a title, and pass `:title-face' to set
 the font face for the title."
@@ -526,6 +534,9 @@ the font face for the title."
   :create #'hass-dash--group-create
   :value-create #'hass-dash--group-value-create
   :title-face 'hass-dash-group)
+
+(define-widget 'hass-dash-group 'hass-group
+  "Replaced with `hass-group'.")
 
 (defun hass-dash--group-create (widget)
   "Create the hass dashboard group WIDGET.
