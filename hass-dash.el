@@ -248,9 +248,6 @@ is set, falls back to using the `:entity_id' property on the WIDGET."
 This just uses `widget-default-create', but sets the `:tag' property if it isn't
 already set by using the widget icon and label."
   (let ((entity-id (widget-get widget :entity-id)))
-    (when entity-id
-      (add-to-list 'hass-tracked-entities entity-id))
-
     (unless (widget-get widget :tag)
       (let* ((icon (or (widget-get widget :icon)
                        (when entity-id
@@ -271,6 +268,7 @@ already set by using the widget icon and label."
 
     (when (and hass-dash--rendering
                entity-id)
+      (add-to-list 'hass-tracked-entities entity-id)
       (let ((marker (marker-position (widget-get widget :from))))
         (push marker (alist-get (intern entity-id) hass-dash--widgets))))))
 
