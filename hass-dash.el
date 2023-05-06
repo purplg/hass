@@ -197,11 +197,10 @@ Full example:
                                    hass-dash-layouts)))
     (dolist (widget-point (alist-get (intern entity-id)
                                      hass-dash--widgets))
-      (when-let* ((widget (widget-at widget-point))
-                  (value (widget-value widget)))
+      (when-let* ((widget (widget-at widget-point)))
         (dolist (buffer (seq-filter #'identity dashboard-buffers))
           (with-current-buffer buffer
-            (widget-value-set widget value)))))))
+            (widget-value-set widget (widget-value widget))))))))
 
 (defun hass-dash--render (layout)
   "Render a hass-dash layout in the current buffer.
@@ -272,8 +271,8 @@ already set by using the widget icon and label."
 
     (when (and hass-dash--rendering
                entity-id)
-      (push (widget-get (widget-at) :from)
-            (alist-get (intern entity-id) hass-dash--widgets)))))
+      (let ((marker (marker-position (widget-get widget :from))))
+        (push marker (alist-get (intern entity-id) hass-dash--widgets))))))
 
 (defun hass-dash--widget-no-action (widget &optional _)
   "Action for when service is unsupported for widget type."
