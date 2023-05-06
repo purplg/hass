@@ -185,6 +185,9 @@ Full example:
      ((hass-dash-toggle :entity-id \"light.kitchen_lights\")
       (hass-dash-toggle :entity-id \"switch.entry_lights\")))))")
 
+(defvar hass-dash-slider-value-types '((counter . value)
+                                       (light . percent)))
+
 
 ;;; Dashboard rendering
 (defun hass-dash--buffer-name (dashboard)
@@ -195,11 +198,14 @@ Full example:
   (let ((dashboard-buffers (mapcar (lambda (dashboard)
                                      (get-buffer (funcall hass-dash-buffer-name-function (car dashboard))))
                                    hass-dash-layouts)))
-    (dolist (widget-point (alist-get (intern entity-id)
-                                     hass-dash--widgets))
-      (when-let* ((widget (widget-at widget-point)))
-        (dolist (buffer (seq-filter #'identity dashboard-buffers))
-          (with-current-buffer buffer
+    (dolist (buffer (seq-filter #'identity dashboard-buffers))
+      (with-current-buffer buffer
+        (dolist (widget-point (alist-get entity-id
+                                         hass-dash--widgets
+                                         nil
+                                         nil
+                                         #'string=))
+          (when-let* ((widget (widget-at widget-point)))
             (widget-value-set widget (widget-value widget))))))))
 
 (defun hass-dash--render (layout)
@@ -226,51 +232,38 @@ LAYOUT is the layout in `hass-dash-layouts' to be rendered."
 ;; `hass-dash--widget-create' in your own ':create' function, so long as it is
 ;; eventually called.
 
-(defun hass-dash--widget-label (widget)
-  "Return the label for WIDGET.
-Uses the `:label' property if one is set on the WIDGET, otherwise tries to use
-the `:friendly_name' property out of the list of available entities.  If neither
-is set, falls back to using the `:entity_id' property on the WIDGET."
-  (propertize (or (widget-get widget :label)
-                  (let ((entity-id (widget-get widget :entity-id)))
-                    (or (hass-friendly-name entity-id)
-                        entity-id)))
-              'face 'hass-dash-widget-label))
-
-(defun hass-dash--widget-format-tag (icon label)
-  "Formats a tag with ICON and LABEL to be rendered on a dashboard."
-  (if icon
-      (concat icon " " label)
-    label))
+(defun hass-dash--widget-convert (widget)
+  "Initialize a dashboard widget."
+  (when-let* ((type (car widget))
+              (args (widget-get widget :args))
+              (entity-id (pop args))
+              (widget (push type args)))
+    (widget-put widget :entity-id entity-id)
+    (let* ((icon (widget-get widget :icon))
+           (label (or (widget-get widget :label)
+                      (hass-friendly-name entity-id)
+                      entity-id))
+           (tag (or (widget-get widget :tag)
+                    (if icon (concat icon " " label) label)))
+           (service (cdr (assoc (hass--domain-of-entity entity-id)
+                                hass-dash-default-services))))
+      (widget-put widget :icon icon)
+      (widget-put widget :label label)
+      (widget-put widget :tag tag)
+      (widget-put widget :value (widget-value widget))
+      (widget-put widget :service service))
+    widget))
 
 (defun hass-dash--widget-create (widget)
   "Create the widget WIDGET.
 This just uses `widget-default-create', but sets the `:tag' property if it isn't
 already set by using the widget icon and label."
-  (let ((entity-id (widget-get widget :entity-id)))
-    (unless (widget-get widget :tag)
-      (let* ((icon (or (widget-get widget :icon)
-                       (when entity-id
-                         (hass--icon-of-entity entity-id))))
-             (label (hass-dash--widget-label widget)))
-        (widget-put widget :icon icon)
-        (widget-put widget :tag (hass-dash--widget-format-tag icon label))))
-
-    (unless (widget-get widget :service)
-      (if-let ((service (and entity-id (cdr (assoc (hass--domain-of-entity entity-id)
-                                                   hass-dash-default-services)))))
-          (widget-put widget :service service)
-        (widget-put widget :action #'hass-dash--widget-no-action)))
-
-    (widget-put widget :value (widget-value widget))
-
-    (widget-default-create widget)
-
-    (when (and hass-dash--rendering
-               entity-id)
-      (add-to-list 'hass-tracked-entities entity-id)
-      (let ((marker (marker-position (widget-get widget :from))))
-        (push marker (alist-get (intern entity-id) hass-dash--widgets))))))
+  (widget-default-create widget)
+  (when-let ((hass-dash--rendering)
+             (entity-id (widget-get widget :entity-id)))
+    (add-to-list 'hass-tracked-entities entity-id)
+    (let ((marker (marker-position (widget-get widget :from))))
+      (push marker (alist-get (intern entity-id) hass-dash--widgets)))))
 
 (defun hass-dash--widget-no-action (widget &optional _)
   "Action for when service is unsupported for widget type."
@@ -314,6 +307,7 @@ Assistant.  The following optional properties can also be used:
   there, then the `:entity-id' property value will be used.
 • `:icon': The icon to show for the widget.  If not passed one will be found
   based on the entity id."
+  :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--widget-create
   :format "%t: %v\n")
 
@@ -336,6 +330,7 @@ Assistant.  The following optional properties can also be used:
   based on the entity id.
 • `:confirm': If passed, this will control how the action is confirmed before
   being confirmed.  See `hass-dash--widget-action' for details."
+  :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
   :value-create #'widget-item-value-create
@@ -385,6 +380,7 @@ Light properties:
   lights. `percent' also changes `:step' to a percentage value
 
   when adjusting the slider."
+  :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
   :value-get #'hass-dash--widget-slider-value-get
@@ -392,7 +388,10 @@ Light properties:
 
 (defun hass-dash--widget-slider-value-get (widget)
   "The main entry point for retrieving a sliders value."
-  (pcase (widget-get widget :value-type)
+  (pcase (or (widget-get widget :value-type)
+             (alist-get (intern (hass--domain-of-entity
+                                 (widget-get widget :entity-id)))
+                        hass-dash-slider-value-types))
     ('percent (hass-dash--widget-slider-percent-value widget))
     ('value (hass-dash--widget-slider-numeric-value widget))))
 
@@ -511,6 +510,7 @@ Assistant.  The following optional properties can also be used:
   based on the entity id.
 • `:confirm': If passed, this will control how the action is confirmed before
   being confirmed.  See `hass-dash--widget-action' for details."
+  :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
   :value-get #'hass-dash--toggle-widget-value-get
@@ -529,6 +529,7 @@ Assistant.  The following optional properties can also be used:
 You can pass `:title' to give the group a title, and pass `:title-face' to set
 the font face for the title."
   :format "%t\n%v"
+  :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--group-create
   :value-create #'hass-dash--group-value-create
   :title-face 'hass-dash-group)
@@ -543,7 +544,7 @@ already set using the `:title' and `:title-face' properties."
   (unless (widget-get widget :tag)
     (widget-put widget :tag (propertize (widget-get widget :title)
                                         'face (widget-get widget :title-face))))
-  (hass-dash--widget-create widget))
+  (widget-default-create widget))
 
 (defun hass-dash--group-value-create (widget)
   "Insert the child widgets into the buffer."
@@ -558,13 +559,13 @@ already set using the `:title' and `:title-face' properties."
   "Adjust the value of a slider widget at point.
 SCALE is multiplied against the step value and is usually either
 just -1 or 1 to affect slider move direction."
-  (when-let ((widget (widget-at))
-             ((eq 'hass-dash-slider (widget-type (widget-at))))
-             (entity-id (widget-get widget :entity-id))
-             (action (or (widget-get widget :slider)
-                         (hass-dash--widget-slider-default widget)))
-             (step (or (widget-get widget :step)
-                       1)))
+  (when-let* ((widget (widget-at))
+              (_ (eq 'hass-slider (widget-type (widget-at))))
+              (entity-id (widget-get widget :entity-id))
+              (action (or (widget-get widget :slider)
+                          (hass-dash--widget-slider-default widget)))
+              (step (or (widget-get widget :step)
+                        1)))
     (funcall action entity-id (* step scale))))
 
 (defun hass-dash-slider-increase (&optional step)
