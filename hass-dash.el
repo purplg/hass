@@ -185,8 +185,8 @@ Full example:
      ((hass-dash-toggle :entity-id \"light.kitchen_lights\")
       (hass-dash-toggle :entity-id \"switch.entry_lights\")))))")
 
-(defvar hass-dash-slider-value-types '((counter . value)
-                                       (light . percent)))
+(defvar hass-dash-slider-value-types '((light . percent)
+                                       (counter . raw)))
 
 
 ;;; Dashboard rendering
@@ -360,6 +360,7 @@ Assistant.  The following optional properties can also be used:
 ;; length since the widget is stored and updated via marks. Otherwise, the
 ;; incorrect slice of buffer gets deleted and breaks the flow of the
 ;; dashboard. All the results below format the result with a length of 3.
+
 (define-widget 'hass-slider 'item
   "A slider widget for home-assistant dashboards.
 You must pass an `:entity-id' property to indicate the id of the
@@ -372,19 +373,34 @@ All slider properties:
 
 • `:step': The amount to step by when adjusting the slider.
 
-Light properties:
-
-• `:value-type': When `value', display raw number next to slider.
+• `:value-type': When `raw', display raw number next to slider.
   Good for widgets like counters. When `percent', display the
   percentage between it's minimum and maximum value.  Good for
   lights. `percent' also changes `:step' to a percentage value
 
-  when adjusting the slider."
-  :convert-widget #'hass-dash--widget-convert
+• `:value-source': Where the value of the slider should derive
+  from.  It can be either 'state or '(attribute . name_of_attribute)
+  where `name_of_attribute' is the name of the attribute the
+  value should use. When this value is omitted, hass will select
+  the relevant option based on the entities' domain according to
+  the variable `hass-dash--widget-preferred-attribute'."
+  :convert-widget #'hass-dash--widget-convert-slider
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
   :value-get #'hass-dash--widget-slider-value-get
   :action #'hass-dash--widget-action)
+
+(defun hass-dash--widget-convert-slider (widget)
+  "Initialize a slider widget."
+  (let ((widget (hass-dash--widget-convert widget)))
+    (pcase (hass--domain-of-entity (widget-get widget :entity-id))
+      ("light"
+       (unless (widget-get widget :value-type) (widget-put widget :value-type 'percent))
+       (unless (widget-get widget :value-source) (widget-put widget :value-source '(attribute brightness))))
+      ("counter"
+       (unless (widget-get widget :value-type) (widget-put widget :value-type 'raw))
+       (unless (widget-get widget :value-source) (widget-put widget :value-source 'state))))
+    widget))
 
 (defun hass-dash--widget-slider-value-get (widget)
   "The main entry point for retrieving a sliders value."
@@ -393,7 +409,7 @@ Light properties:
                                  (widget-get widget :entity-id)))
                         hass-dash-slider-value-types))
     ('percent (hass-dash--widget-slider-percent-value widget))
-    ('value (hass-dash--widget-slider-numeric-value widget))))
+    ('raw (hass-dash--widget-slider-raw-value widget))))
 
 (defun hass-dash--widget-slider-percent-value (widget)
   "Return a percent value."
@@ -406,21 +422,16 @@ Light properties:
         value
       (format "%3d%%" value))))
 
-(defun hass-dash--widget-slider-numeric-value (widget)
+(defun hass-dash--widget-slider-raw-value (widget)
   "Return the raw value."
-  (when-let* ((entity-id (widget-get widget :entity-id)))
-    (or (pcase (hass--domain-of-entity entity-id)
-          ("light" (hass-attribute-of entity-id 'brightness))
-          ("counter" (when-let ((value (hass-state-of entity-id)))
-                       (string-to-number value))))
-        0)))
-
-(defun hass-dash--widget-preferred-attribute (widget)
-  "Return a preferred attribute, if any, for domain of WIDGET."
-  (let ((domain (hass--domain-of-entity (widget-get widget :entity-id))))
-    (cond ((string= "light" domain)
-           'brightness)
-          (t nil))))
+  (let* ((entity-id (widget-get widget :entity-id))
+         (value-source (widget-get widget :value-source))
+         (result (if (listp value-source)
+                     (hass-attribute-of entity-id (cadr value-source))
+                   (hass-state-of entity-id))))
+    (or (if (stringp result)
+            (string-to-number result)
+          result) 0)))
 
 (defun hass-dash--widget-slider-percent-light (widget)
   "Generate the brightness percentage of a light at WIDGET.
@@ -428,7 +439,7 @@ Lights are always between 0 and 255. See the `brightness' domain
 here.
 
 URL: https://www.home-assistant.io/integrations/light/"
-  (hass-dash--percent (hass-dash--widget-slider-numeric-value widget)
+  (hass-dash--percent (hass-dash--widget-slider-raw-value widget)
                       0.0
                       255.0))
 
@@ -440,7 +451,7 @@ set, return nil.
 
 URL: https://www.home-assistant.io/integrations/counter/"
   (if-let ((entity-id (widget-get widget :entity-id))
-           (value (hass-dash--widget-slider-numeric-value widget))
+           (value (hass-dash--widget-slider-raw-value widget))
            (minimum (hass-attribute-of entity-id 'minimum))
            (maximum (hass-attribute-of entity-id 'maximum)))
       (hass-dash--percent (float value)
@@ -450,16 +461,18 @@ URL: https://www.home-assistant.io/integrations/counter/"
 
 (defun hass-dash--widget-slider-default (widget)
   "Return the default slider action for the domain of ENTITY-ID."
-  (let ((domain (hass--domain-of-entity (widget-get widget :entity-id))))
-    (cond ((string= "light" domain)
-           (if (widget-get widget :by-percent)
-               #'hass-dash--slider-light-percent
-             #'hass-dash--slider-light))
-          ((string= "counter" domain)
-           #'hass-dash--slider-counter)
-          (t
-           (hass--message "Not a slider widget." nil)
-           nil))))
+  (let ((domain (hass--domain-of-entity (widget-get widget :entity-id)))
+        (value-type (widget-get widget :value-type)))
+    (if (eq 'percent value-type)
+        (pcase domain
+          ;; percent value actions
+          ("light" #'hass-dash--slider-light-percent)
+          (_ (hass--message "Sliding by percent not supported for this widget type.") nil))
+      (pcase domain
+        ;; raw value actions
+        ("light" #'hass-dash--slider-light)
+        ("counter" #'hass-dash--slider-counter)
+        (_ (hass--message "Sliding not supported for this widget type.") nil)))))
 
 ;;;;; Light
 (defun hass-dash--slider-light (entity-id step)
