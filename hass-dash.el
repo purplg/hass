@@ -480,7 +480,7 @@ URL: https://www.home-assistant.io/integrations/counter/"
 (defun hass-dash--slider-counter (entity-id step)
   "Step a counter helper."
   (let ((amount (abs step)))
-    (if (= amount (hass-attribute-of "counter.hass_test" 'step))
+    (if (= amount (hass-attribute-of entity-id 'step))
         ; If the counter already has the correct step value, just move it.
         (hass-dash--slider-counter-adjust entity-id step)
       ; Otherwise, configure it first then move it.
