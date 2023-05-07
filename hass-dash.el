@@ -186,7 +186,8 @@ Full example:
       (hass-dash-toggle :entity-id \"switch.entry_lights\")))))")
 
 (defvar hass-dash-slider-value-types '((light . percent)
-                                       (counter . raw)))
+                                       (counter . raw)
+                                       (input_number . raw)))
 
 
 ;;; Dashboard rendering
@@ -399,6 +400,9 @@ All slider properties:
        (unless (widget-get widget :value-source) (widget-put widget :value-source '(attribute brightness))))
       ("counter"
        (unless (widget-get widget :value-type) (widget-put widget :value-type 'raw))
+       (unless (widget-get widget :value-source) (widget-put widget :value-source 'state)))
+      ("input_number"
+       (unless (widget-get widget :value-type) (widget-put widget :value-type 'raw))
        (unless (widget-get widget :value-source) (widget-put widget :value-source 'state))))
     widget))
 
@@ -417,7 +421,8 @@ All slider properties:
                        (widget-get widget :entity-id)))
               (value (pcase domain
                        ("light" (hass-dash--widget-slider-percent-light widget))
-                       ("counter" (hass-dash--widget-slider-percent-counter widget)))))
+                       ("counter" (hass-dash--widget-slider-percent-counter widget))
+                       ("input_number" (hass-dash--widget-slider-percent-input-number widget)))))
     (if (eq 'string (type-of value))
         value
       (format "%3d%%" value))))
@@ -459,6 +464,17 @@ URL: https://www.home-assistant.io/integrations/counter/"
                           (float maximum))
     "Unknown"))
 
+(defun hass-dash--widget-slider-percent-input-number (widget)
+  ""
+  (if-let ((entity-id (widget-get widget :entity-id))
+           (value (hass-dash--widget-slider-raw-value widget))
+           (minimum (hass-attribute-of entity-id 'min))
+           (maximum (hass-attribute-of entity-id 'max)))
+      (hass-dash--percent (float value)
+                          (float minimum)
+                          (float maximum))
+    "Unknown"))
+
 (defun hass-dash--widget-slider-default (widget)
   "Return the default slider action for the domain of ENTITY-ID."
   (let ((domain (hass--domain-of-entity (widget-get widget :entity-id)))
@@ -468,11 +484,13 @@ URL: https://www.home-assistant.io/integrations/counter/"
           ;; percent value actions
           ("light" #'hass-dash--slider-light-percent)
           ("counter" #'hass-dash--slider-counter-percent)
+          ("input_number" #'hass-dash--slider-input-number-percent)
           (_ (hass--message "Sliding by percent not supported for this widget type.") nil))
       (pcase domain
         ;; raw value actions
         ("light" #'hass-dash--slider-light)
         ("counter" #'hass-dash--slider-counter)
+        ("input_number" #'hass-dash--slider-input-number)
         (_ (hass--message "Sliding not supported for this widget type.") nil)))))
 
 ;;;;; Light
@@ -517,6 +535,44 @@ URL: https://www.home-assistant.io/integrations/counter/"
 (defun hass-dash--slider-counter-adjust (entity-id step)
   (cond ((< step 0) (hass-call-service entity-id "counter.decrement"))
         ((> step 0) (hass-call-service entity-id "counter.increment"))))
+
+;;;;; Input number
+(defun hass-dash--slider-input-number (entity-id step)
+  "Step a input_number helper."
+  (let ((amount (abs step)))
+    (if (= amount (hass-attribute-of entity-id 'step))
+        ; If the counter already has the correct step value, just move it.
+        (hass-dash--slider-input-number-adjust entity-id step)
+      ; Otherwise, we're going to use 'set_value' because Home Assistant doesn't
+      ; offer away to configure the 'step' attribute for input_numbers.
+      (hass-dash--slider-input-number-set-by-step entity-id step))))
+
+(defun hass-dash--slider-input-number-percent (entity-id step-pct)
+  "Step a input_number helper a certain percentage."
+  (when-let* ((minimum (hass-attribute-of entity-id 'min))
+              (maximum (hass-attribute-of entity-id 'max))
+              (step (+ (* (- maximum minimum) (/ (abs step-pct) 100.0)) minimum))
+              (step (max 1 step)))
+    (if (> step-pct 0)
+        (hass-dash--slider-input-number-set-by-step entity-id step)
+      (hass-dash--slider-input-number-set-by-step entity-id (* -1 step)))))
+
+(defun hass-dash--slider-input-number-set-by-step (entity-id step)
+  (let* ((value (string-to-number (hass-state-of entity-id)))
+         (value (+ value step))
+         ;; clamp between min and max values
+         (min (or (hass-attribute-of entity-id 'min) value))
+         (max (or (hass-attribute-of entity-id 'max) value))
+         (value (max min value))
+         (value (min max value)))
+    (hass-call-service-with-payload
+     "input_number.set_value"
+     `((entity_id . ,entity-id)
+       (value . ,value)))))
+
+(defun hass-dash--slider-input-number-adjust (entity-id step)
+  (cond ((< step 0) (hass-call-service entity-id "input_number.decrement"))
+        ((> step 0) (hass-call-service entity-id "input_number.increment"))))
 
 ;;;; Toggle widget
 (define-widget 'hass-toggle 'toggle
