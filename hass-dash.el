@@ -266,12 +266,12 @@ already set by using the widget icon and label."
     (let ((marker (marker-position (widget-get widget :from))))
       (push marker (alist-get (intern entity-id) hass-dash--widgets)))))
 
-(defun hass-dash--widget-no-action (widget &optional _)
+(defun hass-dash--action-none (widget &optional _)
   "Action for when service is unsupported for widget type."
   (message "No default action for entity `%s'"
            (widget-get widget :entity-id)))
 
-(defun hass-dash--widget-action (widget &optional _)
+(defun hass-dash--action (widget &optional _)
   "Action handler for WIDGET.
 If the `:service' property is set, this will call that service.  Otherwise, it
 will call the relevant service in `hass-dash-default-services'.
@@ -334,13 +334,13 @@ Assistant.  The following optional properties can also be used:
 • `:icon': The icon to show for the widget.  If not passed one will be found
   based on the entity id.
 • `:confirm': If passed, this will control how the action is confirmed before
-  being confirmed.  See `hass-dash--widget-action' for details."
+  being confirmed.  See `hass-dash--action' for details."
   :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
   :value-get #'hass-dash--value-state
   :value-create #'widget-item-value-create
-  :action #'hass-dash--widget-action)
+  :action #'hass-dash--action)
 
 (define-widget 'hass-dash-button 'hass-button
   "Replaced with `hass-button'.")
@@ -358,7 +358,7 @@ Assistant.  The following optional properties can also be used:
 ;;
 ;; To account for these two abilities, when a slider widget's value is retrieve,
 ;; it firsts looks up what kind of value it wants, value or percent. See
-;; function `hass-dash--widget-slider-value-get'. The respective value-type
+;; function `hass-dash--slider-value-get'. The respective value-type
 ;; functions will then look up the domain of the entity and fetch and format the
 ;; result properly.
 ;;
@@ -390,13 +390,13 @@ All slider properties:
   value should use. When this value is omitted, hass will select
   the relevant option based on the entities' domain according to
   the variable `hass-dash--widget-preferred-attribute'."
-  :convert-widget #'hass-dash--widget-convert-slider
+  :convert-widget #'hass-dash--slider-convert
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
-  :value-get #'hass-dash--widget-slider-value-get
-  :action #'hass-dash--widget-action)
+  :value-get #'hass-dash--slider-value-get
+  :action #'hass-dash--action)
 
-(defun hass-dash--widget-convert-slider (widget)
+(defun hass-dash--slider-convert (widget)
   "Initialize a slider widget."
   (let ((widget (hass-dash--widget-convert widget)))
     (pcase (hass--domain-of-entity (widget-get widget :entity-id))
@@ -411,28 +411,28 @@ All slider properties:
        (unless (widget-get widget :value-source) (widget-put widget :value-source 'state))))
     widget))
 
-(defun hass-dash--widget-slider-value-get (widget)
+(defun hass-dash--slider-value-get (widget)
   "The main entry point for retrieving a sliders value."
   (pcase (or (widget-get widget :value-type)
              (alist-get (intern (hass--domain-of-entity
                                  (widget-get widget :entity-id)))
                         hass-dash-slider-value-types))
-    ('percent (hass-dash--widget-slider-percent-value widget))
-    ('raw (hass-dash--widget-slider-raw-value widget))))
+    ('percent (hass-dash--slider-value-percent widget))
+    ('raw (hass-dash--slider-value-raw widget))))
 
-(defun hass-dash--widget-slider-percent-value (widget)
+(defun hass-dash--slider-value-percent (widget)
   "Return a percent value."
   (when-let* ((domain (hass--domain-of-entity
                        (widget-get widget :entity-id)))
               (value (pcase domain
-                       ("light" (hass-dash--widget-slider-percent-light widget))
-                       ("counter" (hass-dash--widget-slider-percent-counter widget))
-                       ("input_number" (hass-dash--widget-slider-percent-input-number widget)))))
+                       ("light" (hass-dash--slider-value-percent-light widget))
+                       ("counter" (hass-dash--slider-value-percent-counter widget))
+                       ("input_number" (hass-dash--slider-value-percent-input-number widget)))))
     (if (eq 'string (type-of value))
         value
       (format "%3d%%" value))))
 
-(defun hass-dash--widget-slider-raw-value (widget)
+(defun hass-dash--slider-value-raw (widget)
   "Return the raw value."
   (let* ((entity-id (widget-get widget :entity-id))
          (value-source (widget-get widget :value-source))
@@ -443,17 +443,17 @@ All slider properties:
             (string-to-number result)
           result) 0)))
 
-(defun hass-dash--widget-slider-percent-light (widget)
+(defun hass-dash--slider-value-percent-light (widget)
   "Generate the brightness percentage of a light at WIDGET.
 Lights are always between 0 and 255. See the `brightness' domain
 here.
 
 URL: https://www.home-assistant.io/integrations/light/"
-  (hass-dash--percent (hass-dash--widget-slider-raw-value widget)
+  (hass-dash--percent (hass-dash--slider-value-raw widget)
                       0.0
                       255.0))
 
-(defun hass-dash--widget-slider-percent-counter (widget)
+(defun hass-dash--slider-value-percent-counter (widget)
   "Generate the counter percentage of a counter at WIDGET.
 Counter widgets use the attributes `minimum' and `maximum' for
 the bounds, but both values are optional. If both bounds aren't
@@ -461,7 +461,7 @@ set, return nil.
 
 URL: https://www.home-assistant.io/integrations/counter/"
   (if-let ((entity-id (widget-get widget :entity-id))
-           (value (hass-dash--widget-slider-raw-value widget))
+           (value (hass-dash--slider-value-raw widget))
            (minimum (hass-attribute-of entity-id 'minimum))
            (maximum (hass-attribute-of entity-id 'maximum)))
       (hass-dash--percent (float value)
@@ -469,10 +469,10 @@ URL: https://www.home-assistant.io/integrations/counter/"
                           (float maximum))
     "Unknown"))
 
-(defun hass-dash--widget-slider-percent-input-number (widget)
+(defun hass-dash--slider-value-percent-input-number (widget)
   ""
   (if-let ((entity-id (widget-get widget :entity-id))
-           (value (hass-dash--widget-slider-raw-value widget))
+           (value (hass-dash--slider-value-raw widget))
            (minimum (hass-attribute-of entity-id 'min))
            (maximum (hass-attribute-of entity-id 'max)))
       (hass-dash--percent (float value)
@@ -480,33 +480,33 @@ URL: https://www.home-assistant.io/integrations/counter/"
                           (float maximum))
     "Unknown"))
 
-(defun hass-dash--widget-slider-default (widget)
+(defun hass-dash--slider-action-default (widget)
   "Return the default slider action for the domain of ENTITY-ID."
   (let ((domain (hass--domain-of-entity (widget-get widget :entity-id)))
         (value-type (widget-get widget :value-type)))
     (if (eq 'percent value-type)
         (pcase domain
           ;; percent value actions
-          ("light" #'hass-dash--slider-light-percent)
-          ("counter" #'hass-dash--slider-counter-percent)
-          ("input_number" #'hass-dash--slider-input-number-percent)
+          ("light" #'hass-dash--slider-action-light-percent)
+          ("counter" #'hass-dash--slider-action-counter-percent)
+          ("input_number" #'hass-dash--slider-action-input-number-percent)
           (_ (hass--message "Sliding by percent not supported for this widget type.") nil))
       (pcase domain
         ;; raw value actions
-        ("light" #'hass-dash--slider-light)
-        ("counter" #'hass-dash--slider-counter)
-        ("input_number" #'hass-dash--slider-input-number)
+        ("light" #'hass-dash--slider-action-light-raw)
+        ("counter" #'hass-dash--slider-action-counter-raw)
+        ("input_number" #'hass-dash--slider-action-input-number-raw)
         (_ (hass--message "Sliding not supported for this widget type.") nil)))))
 
 ;;;;; Light
-(defun hass-dash--slider-light (entity-id step)
+(defun hass-dash--slider-action-light-raw (entity-id step)
   "Adjust the brightness of a light entity."
   (hass-call-service-with-payload
    "light.turn_on"
    `((entity_id . ,entity-id)
      (brightness_step . ,step))))
 
-(defun hass-dash--slider-light-percent (entity-id step_pct)
+(defun hass-dash--slider-action-light-percent (entity-id step_pct)
   "Adjust the brightness of a light entity."
   (hass-call-service-with-payload
    "light.turn_on"
@@ -514,55 +514,55 @@ URL: https://www.home-assistant.io/integrations/counter/"
      (brightness_step_pct . ,step_pct))))
 
 ;;;;; Counter
-(defun hass-dash--slider-counter (entity-id step)
+(defun hass-dash--slider-action-counter-raw (entity-id step)
   "Step a counter helper."
   (let ((amount (abs step)))
     (if (= amount (hass-attribute-of entity-id 'step))
         ; If the counter already has the correct step value, just move it.
-        (hass-dash--slider-counter-adjust entity-id step)
+        (hass-dash--slider-action-counter entity-id step)
       ; Otherwise, configure it first then move it.
       (hass-call-service-with-payload "counter.configure"
                                       `((entity_id . ,entity-id)
                                         (step . ,amount))
                                       (lambda (&rest _)
-                                        (hass-dash--slider-counter-adjust entity-id step))))))
+                                        (hass-dash--slider-action-counter entity-id step))))))
 
-(defun hass-dash--slider-counter-percent (entity-id step-pct)
+(defun hass-dash--slider-action-counter-percent (entity-id step-pct)
   "Step a counter helper a certain percentage."
   (when-let* ((minimum (hass-attribute-of entity-id 'minimum))
               (maximum (hass-attribute-of entity-id 'maximum))
               (step (+ (* (- maximum minimum) (/ (abs step-pct) 100.0)) minimum))
               (step (max 1 step)))
     (if (> step-pct 0)
-        (hass-dash--slider-counter entity-id step)
-      (hass-dash--slider-counter entity-id (* -1 step)))))
+        (hass-dash--slider-action-counter-raw entity-id step)
+      (hass-dash--slider-action-counter-raw entity-id (* -1 step)))))
 
-(defun hass-dash--slider-counter-adjust (entity-id step)
+(defun hass-dash--slider-action-counter (entity-id step)
   (cond ((< step 0) (hass-call-service entity-id "counter.decrement"))
         ((> step 0) (hass-call-service entity-id "counter.increment"))))
 
 ;;;;; Input number
-(defun hass-dash--slider-input-number (entity-id step)
+(defun hass-dash--slider-action-input-number-raw (entity-id step)
   "Step a input_number helper."
   (let ((amount (abs step)))
     (if (= amount (hass-attribute-of entity-id 'step))
         ; If the counter already has the correct step value, just move it.
-        (hass-dash--slider-input-number-adjust entity-id step)
+        (hass-dash--slider-action-input-number-adjust entity-id step)
       ; Otherwise, we're going to use 'set_value' because Home Assistant doesn't
       ; offer away to configure the 'step' attribute for input_numbers.
-      (hass-dash--slider-input-number-set-by-step entity-id step))))
+      (hass-dash--slider-action-input-number-set-by-step entity-id step))))
 
-(defun hass-dash--slider-input-number-percent (entity-id step-pct)
+(defun hass-dash--slider-action-input-number-percent (entity-id step-pct)
   "Step a input_number helper a certain percentage."
   (when-let* ((minimum (hass-attribute-of entity-id 'min))
               (maximum (hass-attribute-of entity-id 'max))
               (step (+ (* (- maximum minimum) (/ (abs step-pct) 100.0)) minimum))
               (step (max 1 step)))
     (if (> step-pct 0)
-        (hass-dash--slider-input-number-set-by-step entity-id step)
-      (hass-dash--slider-input-number-set-by-step entity-id (* -1 step)))))
+        (hass-dash--slider-action-input-number-set-by-step entity-id step)
+      (hass-dash--slider-action-input-number-set-by-step entity-id (* -1 step)))))
 
-(defun hass-dash--slider-input-number-set-by-step (entity-id step)
+(defun hass-dash--slider-action-input-number-set-by-step (entity-id step)
   (let* ((value (string-to-number (hass-state-of entity-id)))
          (value (+ value step))
          ;; clamp between min and max values
@@ -575,7 +575,7 @@ URL: https://www.home-assistant.io/integrations/counter/"
      `((entity_id . ,entity-id)
        (value . ,value)))))
 
-(defun hass-dash--slider-input-number-adjust (entity-id step)
+(defun hass-dash--slider-action-input-number-adjust (entity-id step)
   (cond ((< step 0) (hass-call-service entity-id "input_number.decrement"))
         ((> step 0) (hass-call-service entity-id "input_number.increment"))))
 
@@ -594,12 +594,12 @@ Assistant.  The following optional properties can also be used:
 • `:icon': The icon to show for the widget.  If not passed one will be found
   based on the entity id.
 • `:confirm': If passed, this will control how the action is confirmed before
-  being confirmed.  See `hass-dash--widget-action' for details."
+  being confirmed.  See `hass-dash--action' for details."
   :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
   :value-get #'hass-dash--toggle-widget-value-get
-  :action #'hass-dash--widget-action)
+  :action #'hass-dash--action)
 
 (define-widget 'hass-dash-toggle 'hass-toggle
   "Replaced with `hass-toggle'.")
@@ -613,7 +613,7 @@ Assistant.  The following optional properties can also be used:
   "A grouping widget for home-assistant dashboards.
 You can pass `:title' to give the group a title, and pass `:title-face' to set
 the font face for the title."
-  :convert-widget #'hass-dash--widget-group-convert
+  :convert-widget #'hass-dash--group-convert
   :format "%t\n%v"
   :value-create #'hass-dash--group-value-create
   :title-face 'hass-dash-group)
@@ -621,7 +621,7 @@ the font face for the title."
 (define-widget 'hass-dash-group 'hass-group
   "Replaced with `hass-group'.")
 
-(defun hass-dash--widget-group-convert (widget)
+(defun hass-dash--group-convert (widget)
   "Create the hass dashboard group WIDGET.
 This just uses `widget-default-create', but sets the `:tag' property if it isn't
 already set using the `:title' and `:title-face' properties."
@@ -647,7 +647,7 @@ just -1 or 1 to affect slider move direction."
               (_ (eq 'hass-slider (widget-type (widget-at))))
               (entity-id (widget-get widget :entity-id))
               (action (or (widget-get widget :slider)
-                          (hass-dash--widget-slider-default widget)))
+                          (hass-dash--slider-action-default widget)))
               (step (or (widget-get widget :step)
                         1)))
     (funcall action entity-id (* step scale))))
