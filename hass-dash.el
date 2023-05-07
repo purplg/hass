@@ -297,6 +297,9 @@ service.  It can take on the following values:
                      (hass-call-service entity-id service nil)))
           (t (hass-call-service entity-id service nil)))))
 
+(defun hass-dash--value-state (widget)
+  (hass-state-of (widget-get widget :entity-id)))
+
 ;;;; State widget
 (define-widget 'hass-state 'item
   "A read-only widget for home-assistant dashboards.
@@ -308,6 +311,7 @@ Assistant.  The following optional properties can also be used:
   there, then the `:entity-id' property value will be used.
 • `:icon': The icon to show for the widget.  If not passed one will be found
   based on the entity id."
+  :value-get #'hass-dash--value-state
   :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--widget-create
   :format "%t: %v\n")
@@ -334,6 +338,7 @@ Assistant.  The following optional properties can also be used:
   :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
+  :value-get #'hass-dash--value-state
   :value-create #'widget-item-value-create
   :action #'hass-dash--widget-action)
 
