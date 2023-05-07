@@ -313,10 +313,11 @@ Assistant.  The following optional properties can also be used:
   there, then the `:entity-id' property value will be used.
 • `:icon': The icon to show for the widget.  If not passed one will be found
   based on the entity id."
-  :value-get #'hass-dash--value-state
   :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--widget-create
-  :format "%t: %v\n")
+  :button-face 'default
+  :format "%[%t: %v%]\n"
+  :value-get #'hass-dash--value-state)
 
 (define-widget 'hass-dash-state 'hass-state
   "Replaced with `hass-state'.")
