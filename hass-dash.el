@@ -465,26 +465,26 @@ All slider properties:
     (if (eq 'percent value-type)
         (pcase domain
           ;; percent value actions
-          ("light" #'hass-dash--slider-action-light-percent)
-          ("counter" #'hass-dash--slider-action-counter-percent)
-          ("input_number" #'hass-dash--slider-action-input-number-percent)
+          ("light" #'hass-dash--slider-action:light:percent)
+          ("counter" #'hass-dash--slider-action:counter:percent)
+          ("input_number" #'hass-dash--slider-action:input-number:percent)
           (_ (hass--message "Sliding by percent not supported for this widget type.") nil))
       (pcase domain
         ;; raw value actions
-        ("light" #'hass-dash--slider-action-light-raw)
-        ("counter" #'hass-dash--slider-action-counter-raw)
-        ("input_number" #'hass-dash--slider-action-input-number-raw)
+        ("light" #'hass-dash--slider-action:light:raw)
+        ("counter" #'hass-dash--slider-action:counter:raw)
+        ("input_number" #'hass-dash--slider-action:input-number:raw)
         (_ (hass--message "Sliding not supported for this widget type.") nil)))))
 
 ;;;;; Light
-(defun hass-dash--slider-action-light-raw (entity-id step)
+(defun hass-dash--slider-action:light:raw (entity-id step)
   "Adjust the brightness of a light entity."
   (hass-call-service-with-payload
    "light.turn_on"
    `((entity_id . ,entity-id)
      (brightness_step . ,step))))
 
-(defun hass-dash--slider-action-light-percent (entity-id step_pct)
+(defun hass-dash--slider-action:light:percent (entity-id step_pct)
   "Adjust the brightness of a light entity."
   (hass-call-service-with-payload
    "light.turn_on"
@@ -492,55 +492,55 @@ All slider properties:
      (brightness_step_pct . ,step_pct))))
 
 ;;;;; Counter
-(defun hass-dash--slider-action-counter-raw (entity-id step)
+(defun hass-dash--slider-action:counter:raw (entity-id step)
   "Step a counter helper."
   (let ((amount (abs step)))
     (if (= amount (hass-attribute-of entity-id 'step))
         ; If the counter already has the correct step value, just move it.
-        (hass-dash--slider-action-counter entity-id step)
+        (hass-dash--slider-action:counter:adjust entity-id step)
       ; Otherwise, configure it first then move it.
       (hass-call-service-with-payload "counter.configure"
                                       `((entity_id . ,entity-id)
                                         (step . ,amount))
                                       (lambda (&rest _)
-                                        (hass-dash--slider-action-counter entity-id step))))))
+                                        (hass-dash--slider-action:counter:adjust entity-id step))))))
 
-(defun hass-dash--slider-action-counter-percent (entity-id step-pct)
+(defun hass-dash--slider-action:counter:percent (entity-id step-pct)
   "Step a counter helper a certain percentage."
   (when-let* ((minimum (hass-attribute-of entity-id 'minimum))
               (maximum (hass-attribute-of entity-id 'maximum))
               (step (+ (* (- maximum minimum) (/ (abs step-pct) 100.0)) minimum))
               (step (max 1 step)))
     (if (> step-pct 0)
-        (hass-dash--slider-action-counter-raw entity-id step)
-      (hass-dash--slider-action-counter-raw entity-id (* -1 step)))))
+        (hass-dash--slider-action:counter:raw entity-id step)
+      (hass-dash--slider-action:counter:raw entity-id (* -1 step)))))
 
-(defun hass-dash--slider-action-counter (entity-id step)
+(defun hass-dash--slider-action:counter:adjust (entity-id step)
   (cond ((< step 0) (hass-call-service entity-id "counter.decrement"))
         ((> step 0) (hass-call-service entity-id "counter.increment"))))
 
 ;;;;; Input number
-(defun hass-dash--slider-action-input-number-raw (entity-id step)
+(defun hass-dash--slider-action:input-number:raw (entity-id step)
   "Step a input_number helper."
   (let ((amount (abs step)))
     (if (= amount (hass-attribute-of entity-id 'step))
         ; If the counter already has the correct step value, just move it.
-        (hass-dash--slider-action-input-number-adjust entity-id step)
+        (hass-dash--slider-action:input-number:adjust entity-id step)
       ; Otherwise, we're going to use 'set_value' because Home Assistant doesn't
       ; offer away to configure the 'step' attribute for input_numbers.
-      (hass-dash--slider-action-input-number-set-by-step entity-id step))))
+      (hass-dash--slider-action:input-number:set-by-step entity-id step))))
 
-(defun hass-dash--slider-action-input-number-percent (entity-id step-pct)
+(defun hass-dash--slider-action:input-number:percent (entity-id step-pct)
   "Step a input_number helper a certain percentage."
   (when-let* ((minimum (hass-attribute-of entity-id 'min))
               (maximum (hass-attribute-of entity-id 'max))
               (step (+ (* (- maximum minimum) (/ (abs step-pct) 100.0)) minimum))
               (step (max 1 step)))
     (if (> step-pct 0)
-        (hass-dash--slider-action-input-number-set-by-step entity-id step)
-      (hass-dash--slider-action-input-number-set-by-step entity-id (* -1 step)))))
+        (hass-dash--slider-action:input-number:set-by-step entity-id step)
+      (hass-dash--slider-action:input-number:set-by-step entity-id (* -1 step)))))
 
-(defun hass-dash--slider-action-input-number-set-by-step (entity-id step)
+(defun hass-dash--slider-action:input-number:set-by-step (entity-id step)
   (let* ((value (string-to-number (hass-state-of entity-id)))
          (value (+ value step))
          ;; clamp between min and max values
@@ -553,7 +553,7 @@ All slider properties:
      `((entity_id . ,entity-id)
        (value . ,value)))))
 
-(defun hass-dash--slider-action-input-number-adjust (entity-id step)
+(defun hass-dash--slider-action:input-number:adjust (entity-id step)
   (cond ((< step 0) (hass-call-service entity-id "input_number.decrement"))
         ((> step 0) (hass-call-service entity-id "input_number.increment"))))
 
