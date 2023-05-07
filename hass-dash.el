@@ -467,6 +467,7 @@ URL: https://www.home-assistant.io/integrations/counter/"
         (pcase domain
           ;; percent value actions
           ("light" #'hass-dash--slider-light-percent)
+          ("counter" #'hass-dash--slider-counter-percent)
           (_ (hass--message "Sliding by percent not supported for this widget type.") nil))
       (pcase domain
         ;; raw value actions
@@ -502,6 +503,16 @@ URL: https://www.home-assistant.io/integrations/counter/"
                                         (step . ,amount))
                                       (lambda (&rest _)
                                         (hass-dash--slider-counter-adjust entity-id step))))))
+
+(defun hass-dash--slider-counter-percent (entity-id step-pct)
+  "Step a counter helper a certain percentage."
+  (when-let* ((minimum (hass-attribute-of entity-id 'minimum))
+              (maximum (hass-attribute-of entity-id 'maximum))
+              (step (+ (* (- maximum minimum) (/ (abs step-pct) 100.0)) minimum))
+              (step (max 1 step)))
+    (if (> step-pct 0)
+        (hass-dash--slider-counter entity-id step)
+      (hass-dash--slider-counter entity-id (* -1 step)))))
 
 (defun hass-dash--slider-counter-adjust (entity-id step)
   (cond ((< step 0) (hass-call-service entity-id "counter.decrement"))
