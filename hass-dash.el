@@ -613,22 +613,22 @@ Assistant.  The following optional properties can also be used:
   "A grouping widget for home-assistant dashboards.
 You can pass `:title' to give the group a title, and pass `:title-face' to set
 the font face for the title."
+  :convert-widget #'hass-dash--widget-group-convert
   :format "%t\n%v"
-  :create #'hass-dash--group-create
   :value-create #'hass-dash--group-value-create
   :title-face 'hass-dash-group)
 
 (define-widget 'hass-dash-group 'hass-group
   "Replaced with `hass-group'.")
 
-(defun hass-dash--group-create (widget)
+(defun hass-dash--widget-group-convert (widget)
   "Create the hass dashboard group WIDGET.
 This just uses `widget-default-create', but sets the `:tag' property if it isn't
 already set using the `:title' and `:title-face' properties."
   (unless (widget-get widget :tag)
     (widget-put widget :tag (propertize (widget-get widget :title)
                                         'face (widget-get widget :title-face))))
-  (widget-default-create widget))
+  widget)
 
 (defun hass-dash--group-value-create (widget)
   "Insert the child widgets into the buffer."
