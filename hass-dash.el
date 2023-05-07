@@ -609,7 +609,6 @@ Assistant.  The following optional properties can also be used:
 You can pass `:title' to give the group a title, and pass `:title-face' to set
 the font face for the title."
   :format "%t\n%v"
-  :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--group-create
   :value-create #'hass-dash--group-value-create
   :title-face 'hass-dash-group)
