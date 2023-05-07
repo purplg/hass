@@ -365,10 +365,9 @@ Assistant.  The following optional properties can also be used:
 ;; functions will then look up the domain of the entity and fetch and format the
 ;; result properly.
 ;;
-;; On the note of formatting, it's important that the result is always the same
-;; length since the widget is stored and updated via marks. Otherwise, the
-;; incorrect slice of buffer gets deleted and breaks the flow of the
-;; dashboard. All the results below format the result with a length of 3.
+;; A percent value needs a minimum and maximum value. The way these are derived
+;; per domain are defined with the `hass-dash--slider-value-min' and
+;; `hass-dash--slider-value-max' functions.
 
 (define-widget 'hass-slider 'item
   "A slider widget for home-assistant dashboards.
@@ -425,15 +424,31 @@ All slider properties:
 
 (defun hass-dash--slider-value-percent (widget)
   "Return a percent value."
-  (when-let* ((domain (hass--domain-of-entity
-                       (widget-get widget :entity-id)))
-              (value (pcase domain
-                       ("light" (hass-dash--slider-value-percent-light widget))
-                       ("counter" (hass-dash--slider-value-percent-counter widget))
-                       ("input_number" (hass-dash--slider-value-percent-input-number widget)))))
-    (if (eq 'string (type-of value))
-        value
-      (format "%3d%%" value))))
+  (if-let* ((domain (hass--domain-of-entity
+                     (widget-get widget :entity-id)))
+            (min (hass-dash--slider-value-min widget))
+            (max (hass-dash--slider-value-max widget))
+            (value (hass-dash--slider-value-raw widget)))
+      (format "%3d%%" (hass-dash--percent value min max))
+    "N/A"))
+
+(defun hass-dash--slider-value-min (widget)
+  "Return the minimum possible value for WIDGET."
+  (let ((entity-id (widget-get widget :entity-id)))
+    (pcase (hass--domain-of-entity entity-id)
+      ("light" 0.0)
+      ("counter" (when-let ((min (hass-attribute-of entity-id 'minimum)))
+                   (float min)))
+      ("input_number" (hass-attribute-of entity-id 'min)))))
+
+(defun hass-dash--slider-value-max (widget)
+  "Return the maximum possible value for WIDGET."
+  (let ((entity-id (widget-get widget :entity-id)))
+    (pcase (hass--domain-of-entity entity-id)
+      ("light" 255.0)
+      ("counter" (when-let ((max (hass-attribute-of entity-id 'maximum)))
+                   (float max)))
+      ("input_number" (hass-attribute-of entity-id 'max)))))
 
 (defun hass-dash--slider-value-raw (widget)
   "Return the raw value."
@@ -444,44 +459,8 @@ All slider properties:
                    (hass-state-of entity-id))))
     (or (if (stringp result)
             (string-to-number result)
-          result) 0)))
-
-(defun hass-dash--slider-value-percent-light (widget)
-  "Generate the brightness percentage of a light at WIDGET.
-Lights are always between 0 and 255. See the `brightness' domain
-here.
-
-URL: https://www.home-assistant.io/integrations/light/"
-  (hass-dash--percent (hass-dash--slider-value-raw widget)
-                      0.0
-                      255.0))
-
-(defun hass-dash--slider-value-percent-counter (widget)
-  "Generate the counter percentage of a counter at WIDGET.
-Counter widgets use the attributes `minimum' and `maximum' for
-the bounds, but both values are optional. If both bounds aren't
-set, return nil.
-
-URL: https://www.home-assistant.io/integrations/counter/"
-  (if-let ((entity-id (widget-get widget :entity-id))
-           (value (hass-dash--slider-value-raw widget))
-           (minimum (hass-attribute-of entity-id 'minimum))
-           (maximum (hass-attribute-of entity-id 'maximum)))
-      (hass-dash--percent (float value)
-                          (float minimum)
-                          (float maximum))
-    "Unknown"))
-
-(defun hass-dash--slider-value-percent-input-number (widget)
-  ""
-  (if-let ((entity-id (widget-get widget :entity-id))
-           (value (hass-dash--slider-value-raw widget))
-           (minimum (hass-attribute-of entity-id 'min))
-           (maximum (hass-attribute-of entity-id 'max)))
-      (hass-dash--percent (float value)
-                          (float minimum)
-                          (float maximum))
-    "Unknown"))
+          result)
+        0)))
 
 (defun hass-dash--slider-action-default (widget)
   "Return the default slider action for the domain of ENTITY-ID."
