@@ -350,32 +350,28 @@ Assistant.  The following optional properties can also be used:
 
 ;;;; Slider widget
 
-;; Slider widgets are a little complicated because the useful value can either
-;; be an entities' state or an attribute. For example, light entities use the
-;; `brightness' attribute but a counter entity just uses its' state.
-;;
-;; Additionally, the user has the option to present the value in its raw form or
-;; in a percentage form. Similar to before, it's usually more useful to display
-;; a light as a percentage, but a counter is probably more useful with its raw
-;; value displayed.
-;;
-;; To account for these two abilities, when a slider widget's value is retrieve,
-;; it firsts looks up what kind of value it wants, value or percent. See
-;; function `hass-dash--slider-value-get'. The respective value-type
-;; functions will then look up the domain of the entity and fetch and format the
-;; result properly.
-;;
-;; A percent value needs a minimum and maximum value. The way these are derived
-;; per domain are defined with the `hass-dash--slider-value-min' and
-;; `hass-dash--slider-value-max' functions.
-
 (define-widget 'hass-slider 'item
   "A slider widget for home-assistant dashboards.
-You must pass an `:entity-id' property to indicate the id of the
-entity in Home Assistant.  The following optional properties can
-also be used:
+Slider widgets are a little complicated because the useful value
+can either be an entities' state or an attribute. For example,
+light entities use the `brightness' attribute but a counter
+entity just uses its' state.
 
-Inherits properties from `hass-dash-button'.
+Additionally, the user has the option to present the value in its
+raw form or in a percentage form. Similar to before, it's usually
+more useful to display a light as a percentage, but a counter is
+probably more useful with its raw value displayed.
+
+To account for these two abilities, when a slider widget's value
+is retrieve, it firsts looks up what kind of value it wants,
+value or percent. See function `hass-dash--slider-value-get'. The
+respective value-type functions will then look up the domain of
+the entity and fetch and format the result properly.
+
+A percent value needs a minimum and maximum value. The way these
+are derived per domain are defined with the
+`hass-dash--slider-value-min' and `hass-dash--slider-value-max'
+functions.
 
 All slider properties:
 
