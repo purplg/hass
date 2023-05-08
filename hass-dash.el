@@ -159,31 +159,29 @@ The key of each entry is a dashboard name which you can open with
 `hass-dash-open'.  The value for each entry is a list describing the root
 widgets to show on the dashboard.  You can then build a tree of arbitrary
 widgets to display on the dashboard.  You'll probably want to make use of hass
-widgets such as `hass-dash-toggle' or `hass-dash-group'.
+widgets such as `hass-toggle' or `hass-group'.
 
 Full example:
 
 \(setq `hass-dash-layouts'
   \\=`((default .
-     ((hass-dash-group
+     ((hass-group
        :title \"Home Assistant\"
        :format \"%t\\n\\n%v\"
-       (hass-dash-group
-        :title \"Kitchen\"
+       (hass-group :title \"Kitchen\"
         :title-face outline-2
-        (hass-dash-toggle :entity-id \"light.kitchen_lights\")
-        (hass-dash-toggle :entity-id \"light.master_bedroom_lights\")
-        (hass-dash-toggle :entity-id \"switch.entry_light\"
-                          :label \"Hallway\"
-                          :confirm t)))
-      (hass-dash-group
-       :title \"Group 2\"
+        (hass-toggle \"light.kitchen_lights\")
+        (hass-toggle \"light.master_bedroom_lights\")
+        (hass-toggle \"switch.entry_light\"
+                     :label \"Hallway\"
+                     :confirm t)))
+      (hass-group :title \"Group 2\"
        :format \"\\n\\n%t\\n\\n%v\"
-       (hass-dash-toggle :entity-id \"light.master_bedroom_fan_light\"))))
+       (hass--toggle \"light.master_bedroom_fan_light\"))))
 
     (simple .
-     ((hass-dash-toggle :entity-id \"light.kitchen_lights\")
-      (hass-dash-toggle :entity-id \"switch.entry_lights\")))))")
+     ((hass-toggle \"light.kitchen_lights\")
+      (hass-toggle \"switch.entry_lights\")))))")
 
 (defvar hass-dash-slider-value-types '((light . percent)
                                        (counter . raw)
@@ -305,8 +303,7 @@ service.  It can take on the following values:
 ;;;; State widget
 (define-widget 'hass-state 'item
   "A read-only widget for home-assistant dashboards.
-You must pass an `:entity-id' property to indicate the id of the entity in Home
-Assistant.  The following optional properties can also be used:
+The following optional properties can be used:
 
 • `:label': The friendly name to show for the widget.  If not passed, a sane
   default will be found in the list of available entities.  If nothing is found
@@ -325,8 +322,7 @@ Assistant.  The following optional properties can also be used:
 ;;;; Button widget
 (define-widget 'hass-button 'push-button
   "A button widget for home-assistant dashboards.
-You must pass an `:entity-id' property to indicate the id of the entity in Home
-Assistant.  The following optional properties can also be used:
+The following optional properties can also be used:
 
 • `:service': The service to call when triggering the action on the widget.  If
   not passed, then the default will be found in `hass-dash-default-services'
@@ -656,16 +652,16 @@ The example below creates two dashboards named `my-lights' and
 
   my-lights
 
-  (hass-dash-state :entity-id \"light.office\"
+  (hass-state :entity-id \"light.office\"
                    :format \"The light is %v\")
-  (hass-dash-button :entity-id \"light.office\"
+  (hass-button :entity-id \"light.office\"
                     :label \"Press me\")
 
   my-fans
 
-  (hass-dash-state :entity-id \"fan.bedroom\"
+  (hass-state :entity-id \"fan.bedroom\"
                    :format \"The fan is %v\")
-  (hass-dash-button :entity-id \"bedroom.bedroom\"
+  (hass-button :entity-id \"bedroom.bedroom\"
                     :label \"Press me\")"
   (interactive "f")
   (setq hass-dash-layouts
