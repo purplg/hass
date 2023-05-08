@@ -551,7 +551,7 @@ All slider properties:
     (hass-call-service-with-payload
      "input_number.set_value"
      `((entity_id . ,entity-id)
-       (value . ,value)))))
+       (value . ,(round value))))))
 
 (defun hass-dash--slider-action:input-number:adjust (entity-id step)
   (cond ((< step 0) (hass-call-service entity-id "input_number.decrement"))
