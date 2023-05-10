@@ -298,7 +298,11 @@ service.  It can take on the following values:
           (t (hass-call-service entity-id service nil)))))
 
 (defun hass-dash--value-state (widget)
-  (hass-state-of (widget-get widget :entity-id)))
+  (when-let ((entity-id (widget-get widget :entity-id))
+             (value-source (widget-get widget :value-source)))
+    (cond ((listp value-source) (hass-attribute-of entity-id (cadr value-source)))
+          ((eq 'state value-source) (hass-state-of entity-id))
+          (t (hass--warning "Invalid :value-source.") "ERR"))))
 
 ;;;; State widget
 (define-widget 'hass-state 'item
@@ -376,14 +380,7 @@ All slider properties:
 • `:value-type': When `raw', display raw number next to slider.
   Good for widgets like counters. When `percent', display the
   percentage between it's minimum and maximum value.  Good for
-  lights. `percent' also changes `:step' to a percentage value
-
-• `:value-source': Where the value of the slider should derive
-  from.  It can be either 'state or '(attribute . name_of_attribute)
-  where `name_of_attribute' is the name of the attribute the
-  value should use. When this value is omitted, hass will select
-  the relevant option based on the entities' domain according to
-  the variable `hass-dash--widget-preferred-attribute'."
+  lights. `percent' also changes `:step' to a percentage value "
   :convert-widget #'hass-dash--slider-convert
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
@@ -444,14 +441,10 @@ All slider properties:
 
 (defun hass-dash--slider-value-raw (widget)
   "Return the raw value."
-  (let* ((entity-id (widget-get widget :entity-id))
-         (value-source (widget-get widget :value-source))
-         (result (if (listp value-source)
-                     (hass-attribute-of entity-id (cadr value-source))
-                   (hass-state-of entity-id))))
-    (or (if (stringp result)
-            (string-to-number result)
-          result)
+  (let ((value (hass-dash--value-state widget)))
+    (or (if (stringp value)
+            (string-to-number value)
+          value)
         0)))
 
 (defun hass-dash--slider-action-default (widget)
