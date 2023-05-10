@@ -242,7 +242,7 @@ The only hook available is ~hass-entity-updated-hook~ which is called when the s
 is called.
 
 #+BEGIN_SRC emacs-lisp :results none
-(add-hook 'hass-entity-updated-hook (lambda () (message "An entitys' state was updated.")))
+(add-hook 'hass-entity-updated-hook (lambda () (message "An entity's state was updated.")))
 #+END_SRC
 
 * License
