@@ -120,9 +120,6 @@ entity whose state changed.")
                                   (hass--get-available-services #'hass--get-available-entities))
   "Hook called after a successful Home Assistant API connection check is made.")
 
-(defvar hass-service-called-hook nil
-  "Hook called after a service has been called.")
-
 
 ;;; Internal state
 (defvar hass--states (make-hash-table :test 'equal)
@@ -377,8 +374,7 @@ ENTITY-ID is the id of the entity in Home Assistant that has state STATE."
   "Callback when a successful service request is received from API.
 ENTITY-ID is the id of the entity in Home Assistant that was
 affected and now has STATE."
-  (hass--set-state entity-id state)
-  (run-hooks 'hass-service-called-hook))
+  (hass--set-state entity-id state))
 
 (defun hass--request-error-handler (endpoint payload response)
   "Entrypoint for an HTTP request error.
@@ -559,7 +555,6 @@ SUCCESS-CALLBACK is a function to be called with a successful request response."
    service
    (hass--serialize payload)
    (lambda (&rest _)
-     (run-hooks 'hass-service-called-hook)
      (when success-callback (funcall success-callback)))))
 
 

@@ -238,11 +238,10 @@ This example will display the state of an entity when it changes:
     (message "The entity %s state has changed to %s." entity-id (hass-state-of entity-id))))
 #+END_SRC
 
-The other two hooks available are ~hass-entity-updated-hook~ and ~hass-service-called-hook~. ~hass-entity-updated-hook~ is called when the state of an entity is updated, regardless of if it changed or not. ~hass-service-called-hook~ is called when a service
+The only hook available is ~hass-entity-updated-hook~ which is called when the state of an entity is updated, regardless of if it changed or not.
 is called.
 
 #+BEGIN_SRC emacs-lisp :results none
-(add-hook 'hass-service-called-hook (lambda () (message "A service was called.")))
 (add-hook 'hass-entity-updated-hook (lambda () (message "An entitys' state was updated.")))
 #+END_SRC
 
