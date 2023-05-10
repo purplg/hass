@@ -6,19 +6,66 @@
 ;;; Commentary:
 
 ;; This package extends the `hass' package to include a dashboard to configure
-;; quick access to buttons and displays.
-
-;;
-;;;; Configuration
-;;
-
-;; The primary `hass' package must be configured properly first before using
-;; this dashboard feature.
+;; quick access to buttons and displays.  The primary `hass' package must be
+;; configured properly first before using this dashboard feature.
 
 ;; The main configuration for the dashboard takes place with the
 ;; `hass-dash-layouts' variable.  `hass-dash-layouts' declares how the widgets
 ;; are laid out, what they display, and what they do.  See the docstring for
 ;; `hass-dash-layouts' for details.
+
+;;;; Widget properties
+
+;; All built-in widget properties apply.
+;; See Info node `(widget) The Emacs Widget Library'
+
+;;  :label
+;;
+;; The human-readable text to display inside the widget. This will, by default,
+;; be prefixed to the current value (often state) of the widget. Internally,
+;; this property is usedf to derive the `:tag' property. You can override `:tag' if
+;; you want, but then `:label' and `:icon' are not used.
+
+;;  :icon
+;;
+;; This is the icon shown within the widget next to `:label'. By default, hass
+;; will try to pick a good icons by selecting the icon associated with the
+;; entity's domain in `hass-icons'.
+
+;;  :confirm
+;;
+;; Prompt the user for confirmation when triggering a widget.
+;;
+;; - If set to t, a default prompt will be used to ask the user for
+;;   confirmation.
+;;
+;; - If set to a string, that string will be used for the prompt.
+;;
+;; - If it's a function, then the service will only be called if that function
+;;   returns t. You're expected to call `y-or-n-p', or similar, within this
+;;   function.
+
+;;  :service
+;;
+;; The service called when triggering the widget. If omitted, hass will use the
+;; default for the associated domain listed in `hass-dash-default-services'. If
+;; you want to trigger a more complex service with a payload, you should use the
+;; built-in widget property `:action'.
+
+;;  :value-source
+;;
+;; Where the value of the slider should derive from.  It can be either 'state
+;; or '(attribute . name_of_attribute) where `name_of_attribute' is the name of
+;; the attribute the value should use. When this value is omitted, hass will
+;; select the relevant option based on the entities' domain according to the
+;; variable `hass-dash--widget-preferred-attribute'.
+
+;;;; Group properties
+
+;;  :title
+;;
+;; Similar to `:label' in the widget properties, this is the text displayed at
+;; the top of the group.
 
 ;;;; Examples
 
