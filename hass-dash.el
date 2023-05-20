@@ -329,8 +329,8 @@ service.  It can take on the following values:
 • if it's a string, that string will be used for the prompt
 • if it's a function, then the service will only be called if that function
   returns t
-• if it's t, a prompt will be created using the value returned by
-  `hass-dash--widget-label'"
+• if it's t, a prompt will be created using the ':label' property of the
+  widget."
   (let* ((confirm (widget-get widget :confirm))
          (entity-id (widget-get widget :entity-id))
          (service (or (widget-get widget :service))))
@@ -338,9 +338,7 @@ service.  It can take on the following values:
                                (hass-call-service entity-id service nil)))
           ((functionp confirm) (when (funcall confirm entity-id)
                                  (hass-call-service entity-id service nil)))
-          (confirm (when (y-or-n-p (concat "Toggle "
-                                           (hass-dash--widget-label widget)
-                                           "? "))
+          (confirm (when (y-or-n-p (concat "Toggle " (widget-get widget :label) "? "))
                      (hass-call-service entity-id service nil)))
           (t (hass-call-service entity-id service nil)))))
 
