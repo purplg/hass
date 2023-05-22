@@ -297,6 +297,14 @@ LAYOUT is the layout in `hass-dash-layouts' to be rendered."
       (widget-put widget :tag tag)
       (widget-put widget :value (widget-value widget))
       (widget-put widget :service service))
+
+    (pcase (hass--domain-of-entity (widget-get widget :entity-id))
+      ("light"
+       (unless (widget-get widget :value-type) (widget-put widget :value-type 'percent))
+       (unless (widget-get widget :value-source) (widget-put widget :value-source '(attribute brightness))))
+      (_
+       (unless (widget-get widget :value-type) (widget-put widget :value-type 'raw))
+       (unless (widget-get widget :value-source) (widget-put widget :value-source 'state))))
     widget))
 
 (defun hass-dash--widget-create (widget)
@@ -423,26 +431,11 @@ All slider properties:
   Good for widgets like counters. When `percent', display the
   percentage between it's minimum and maximum value.  Good for
   lights. `percent' also changes `:step' to a percentage value "
-  :convert-widget #'hass-dash--slider-convert
+  :convert-widget #'hass-dash--widget-convert
   :create #'hass-dash--widget-create
   :format "%[%t: %v%]\n"
   :value-get #'hass-dash--slider-value-get
   :action #'hass-dash--action)
-
-(defun hass-dash--slider-convert (widget)
-  "Initialize a slider widget."
-  (let ((widget (hass-dash--widget-convert widget)))
-    (pcase (hass--domain-of-entity (widget-get widget :entity-id))
-      ("light"
-       (unless (widget-get widget :value-type) (widget-put widget :value-type 'percent))
-       (unless (widget-get widget :value-source) (widget-put widget :value-source '(attribute brightness))))
-      ("counter"
-       (unless (widget-get widget :value-type) (widget-put widget :value-type 'raw))
-       (unless (widget-get widget :value-source) (widget-put widget :value-source 'state)))
-      ("input_number"
-       (unless (widget-get widget :value-type) (widget-put widget :value-type 'raw))
-       (unless (widget-get widget :value-source) (widget-put widget :value-source 'state))))
-    widget))
 
 (defun hass-dash--slider-value-get (widget)
   "The main entry point for retrieving a sliders value."
