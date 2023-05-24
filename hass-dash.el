@@ -184,6 +184,22 @@ creation.")
   :group 'hass-dash
   :type '(repeat (cons string string)))
 
+(defcustom hass-dash-default-value-type '(("light" . percent))
+  "An alist of domains to their default value types.
+Default `:value-type' is 'raw, so domains missing from this list
+use that."
+  :group 'hass-dash
+  :type '(repeat (cons string string)))
+
+(defcustom hass-dash-domain-attribute-value '(("light" . brightness))
+  "An alist of domains to their value attribute.
+The CDR of an element should be the name of the attribute the
+domain should derive their value from. By default, omitted
+domains use their state as their value."
+  :group 'hass-dash
+  :type '(repeat (cons string symbol)))
+
+
 (defcustom hass-dash-buffer-name-function #'hass-dash--buffer-name
   "Function to generate a dashboard buffer name.
 Takes one argument, the key of the dashboard.  See the default
@@ -283,7 +299,8 @@ updated."
               (args (widget-get widget :args))
               (entity-id (pop args))
               (widget (push type args)))
-    (let* ((icon (or (widget-get widget :icon)
+    (let* ((domain (hass--domain-of-entity entity-id))
+           (icon (or (widget-get widget :icon)
                      (hass--icon-of-entity entity-id)))
            (label (or (widget-get widget :label)
                       (hass-friendly-name entity-id)
@@ -291,22 +308,26 @@ updated."
            (tag (or (widget-get widget :tag)
                     (if icon (concat icon " " label) label)))
            (service (or (widget-get widget :service)
-                        (cdr (assoc (hass--domain-of-entity entity-id)
-                                    hass-dash-default-services)))))
+                        (cdr (assoc domain hass-dash-default-services)))))
       (widget-put widget :entity-id entity-id)
       (widget-put widget :icon icon)
       (widget-put widget :label label)
       (widget-put widget :tag tag)
       (widget-put widget :value (widget-value widget))
-      (widget-put widget :service service))
-
-    (pcase (hass--domain-of-entity (widget-get widget :entity-id))
-      ("light"
-       (unless (widget-get widget :value-type) (widget-put widget :value-type 'percent))
-       (unless (widget-get widget :value-source) (widget-put widget :value-source '(attribute brightness))))
-      (_
-       (unless (widget-get widget :value-type) (widget-put widget :value-type 'raw))
-       (unless (widget-get widget :value-source) (widget-put widget :value-source 'state))))
+      (widget-put widget :service service)
+      (widget-put widget :value-type
+                  (alist-get domain hass-dash-default-value-type
+                             'raw
+                             nil
+                             #'string=))
+      (widget-put widget :value-source
+                  (if-let ((attribute (alist-get domain
+                                                 hass-dash-domain-attribute-value
+                                                 nil
+                                                 nil
+                                                 #'string=)))
+                      (cons 'attribute attribute)
+                    'state)))
     widget))
 
 (defun hass-dash--widget-create (widget)
@@ -350,7 +371,7 @@ service.  It can take on the following values:
 (defun hass-dash--value-state (widget)
   (when-let ((entity-id (widget-get widget :entity-id))
              (value-source (widget-get widget :value-source)))
-    (cond ((listp value-source) (hass-attribute-of entity-id (cadr value-source)))
+    (cond ((consp value-source) (hass-attribute-of entity-id (cdr value-source)))
           ((eq 'state value-source) (hass-state-of entity-id))
           (t (hass--warning "Invalid :value-source.") "ERR"))))
 
