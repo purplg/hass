@@ -268,15 +268,17 @@ LAYOUT is the layout in `hass-dash-layouts' to be rendered."
 
 ;;; Widget definitions
 
-;; Every hass-dash widget should use `hass-dash--widget-create' for it's
-;; ':create' parameter. This function parses the shared/tweaked dashboard
-;; parameters, like ':tag' and ':icon' and adds the widget to the list of all
-;; widgets so they can be cleaned up when necessary. You can embed
-;; `hass-dash--widget-create' in your own ':create' function, so long as it is
-;; eventually called.
+;; Every hass-dash widget must eventually call `hass-dash--widget-create' in
+;; it's ':create' parameter to support implied parameters for all widgets and
+;; `hass-dash--widget-convert' for ':convert' so it can be tracked and
+;; updated. The `hass-group' widget is an exception to this since it does not
+;; need to be updated.
 
 (defun hass-dash--widget-convert (widget)
-  "Initialize a dashboard widget."
+  "Initialize a dashboard widget.
+Parse widget parameters, like ':tag' and ':icon', and adds the
+widget to buffers' list of widgets so they can be tracked and
+updated."
   (when-let* ((type (car widget))
               (args (widget-get widget :args))
               (entity-id (pop args))
@@ -308,9 +310,7 @@ LAYOUT is the layout in `hass-dash-layouts' to be rendered."
     widget))
 
 (defun hass-dash--widget-create (widget)
-  "Create the widget WIDGET.
-This just uses `widget-default-create', but sets the `:tag' property if it isn't
-already set by using the widget icon and label."
+  "Track the dashboard widget so it can be updated."
   (widget-default-create widget)
   (when-let ((hass-dash--rendering)
              (entity-id (widget-get widget :entity-id)))
