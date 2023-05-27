@@ -295,38 +295,38 @@ updated."
   (when-let* ((type (car widget))
               (args (widget-get widget :args))
               (entity-id (pop args))
-              (widget (push type args)))
-    (let* ((domain (hass--domain-of-entity entity-id))
-           (icon (or (widget-get widget :icon)
-                     (hass--icon-of-entity entity-id)))
-           (label (or (widget-get widget :label)
-                      (hass-friendly-name entity-id)
-                      entity-id)))
-      (widget-put widget :entity-id entity-id)
-      (widget-put widget :icon icon)
-      (widget-put widget :label label)
-      (widget-put widget :tag
-                  (or (widget-get widget :tag)
-                      (if icon (concat icon " " label) label)))
-      (widget-put widget :value (widget-value widget))
-      (widget-put widget :service
-                  (or (widget-get widget :service)
-                      (cdr (assoc domain hass-dash-default-services))))
-      (widget-put widget :value-type
-                  (or (widget-get widget :value-type)
-                      (alist-get domain hass-dash-default-value-type
-                                 'raw
-                                 nil
-                                 #'string=)))
-      (widget-put widget :value-source
-                  (or (widget-get widget :value-source)
-                      (if-let ((attribute (alist-get domain
-                                                     hass-dash-domain-attribute-value
-                                                     nil
-                                                     nil
-                                                     #'string=)))
-                          (cons 'attribute attribute)
-                        'state))))
+              (widget (push type args))
+              (domain (hass--domain-of-entity entity-id))
+              (icon (or (widget-get widget :icon)
+                        (hass--icon-of-entity entity-id)))
+              (label (or (widget-get widget :label)
+                         (hass-friendly-name entity-id)
+                         entity-id)))
+    (widget-put widget :entity-id entity-id)
+    (widget-put widget :icon icon)
+    (widget-put widget :label label)
+    (widget-put widget :tag
+                (or (widget-get widget :tag)
+                    (if icon (concat icon " " label) label)))
+    (widget-put widget :value (widget-value widget))
+    (widget-put widget :service
+                (or (widget-get widget :service)
+                    (cdr (assoc domain hass-dash-default-services))))
+    (widget-put widget :value-type
+                (or (widget-get widget :value-type)
+                    (alist-get domain hass-dash-default-value-type
+                               'raw
+                               nil
+                               #'string=)))
+    (widget-put widget :value-source
+                (or (widget-get widget :value-source)
+                    (if-let ((attribute (alist-get domain
+                                                   hass-dash-domain-attribute-value
+                                                   nil
+                                                   nil
+                                                   #'string=)))
+                        (cons 'attribute attribute)
+                      'state)))
     widget))
 
 (defun hass-dash--widget-create (widget)
