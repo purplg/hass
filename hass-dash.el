@@ -246,9 +246,6 @@ Full example:
      ((hass-toggle \"light.kitchen_lights\")
       (hass-toggle \"switch.entry_lights\")))))")
 
-(defvar hass-dash-slider-value-types '((light . percent)
-                                       (counter . raw)
-                                       (input_number . raw)))
 
 
 ;;; Dashboard rendering
@@ -460,10 +457,7 @@ All slider properties:
 
 (defun hass-dash--slider-value-get (widget)
   "The main entry point for retrieving a sliders value."
-  (pcase (or (widget-get widget :value-type)
-             (alist-get (intern (hass--domain-of-entity
-                                 (widget-get widget :entity-id)))
-                        hass-dash-slider-value-types))
+  (pcase (widget-get widget :value-type)
     ('percent (hass-dash--slider-value-percent widget))
     ('raw (hass-dash--slider-value-raw widget))))
 
