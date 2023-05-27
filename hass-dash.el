@@ -313,18 +313,20 @@ updated."
       (widget-put widget :value (widget-value widget))
       (widget-put widget :service service)
       (widget-put widget :value-type
-                  (alist-get domain hass-dash-default-value-type
-                             'raw
-                             nil
-                             #'string=))
+                  (or (widget-get widget :value-type)
+                      (alist-get domain hass-dash-default-value-type
+                                 'raw
+                                 nil
+                                 #'string=)))
       (widget-put widget :value-source
-                  (if-let ((attribute (alist-get domain
-                                                 hass-dash-domain-attribute-value
-                                                 nil
-                                                 nil
-                                                 #'string=)))
-                      (cons 'attribute attribute)
-                    'state)))
+                  (or (widget-get widget :value-source)
+                      (if-let ((attribute (alist-get domain
+                                                     hass-dash-domain-attribute-value
+                                                     nil
+                                                     nil
+                                                     #'string=)))
+                          (cons 'attribute attribute)
+                        'state))))
     widget))
 
 (defun hass-dash--widget-create (widget)
