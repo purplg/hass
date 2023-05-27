@@ -301,17 +301,17 @@ updated."
                      (hass--icon-of-entity entity-id)))
            (label (or (widget-get widget :label)
                       (hass-friendly-name entity-id)
-                      entity-id))
-           (tag (or (widget-get widget :tag)
-                    (if icon (concat icon " " label) label)))
-           (service (or (widget-get widget :service)
-                        (cdr (assoc domain hass-dash-default-services)))))
+                      entity-id)))
       (widget-put widget :entity-id entity-id)
       (widget-put widget :icon icon)
       (widget-put widget :label label)
-      (widget-put widget :tag tag)
+      (widget-put widget :tag
+                  (or (widget-get widget :tag)
+                      (if icon (concat icon " " label) label)))
       (widget-put widget :value (widget-value widget))
-      (widget-put widget :service service)
+      (widget-put widget :service
+                  (or (widget-get widget :service)
+                      (cdr (assoc domain hass-dash-default-services))))
       (widget-put widget :value-type
                   (or (widget-get widget :value-type)
                       (alist-get domain hass-dash-default-value-type
