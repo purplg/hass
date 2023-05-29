@@ -454,7 +454,7 @@ PAYLOAD is contents the body of the request."
     :headers `(("User-Agent" . ,hass--user-agent)
                ("Authorization" . ,(concat "Bearer " (hass--apikey)))
                ("Content-Type" . "application/json"))
-    :data payload
+    :data (hass--serialize payload)
     :parser (lambda () (hass--deserialize (buffer-string)))
     :error (cl-function
             (lambda (&key _symbol-status response &allow-other-keys)
@@ -553,7 +553,7 @@ PAYLOAD is an alist of service parameters to their values be sent with SERVICE.
 SUCCESS-CALLBACK is a function to be called with a successful request response."
   (hass--call-service
    service
-   (hass--serialize payload)
+   payload
    (lambda (&rest _)
      (when success-callback (funcall success-callback)))))
 
