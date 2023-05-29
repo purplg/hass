@@ -81,6 +81,7 @@ requests"
 
 (defcustom hass-icons '(("default" . "faicon:cog")
                         ("automation" . "faicon:bolt")
+                        ("light" . "faicon:lightbulb-o")
                         ("switch" . "faicon:toggle-on")
                         ("input_boolean" . "faicon:toggle-on")
                         ("vacuum" ."fileicon:robot"))
