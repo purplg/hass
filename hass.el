@@ -132,9 +132,6 @@ entity whose state changed.")
 (defvar hass--available-services nil
   "The services retrieved from the Home Assistant instance.")
 
-(defvar hass--api-running nil
-  "Whether a successful connection to Home Assistant API has been made.")
-
 
 ;;; Helper functions
 (defun hass--url (&optional path)
