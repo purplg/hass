@@ -577,10 +577,10 @@ If error found, a string of the error message is returned."
   :global t
   :lighter nil
   :group 'hass
-  (if hass-mode
-      (if-let ((err (hass--config-errors)))
-          (hass--warning err nil)
-        (hass--connect))))
+  (when hass-mode
+    (if-let ((err (hass--config-errors)))
+        (hass--warning err nil)
+      (hass--connect))))
 
 (provide 'hass)
 
