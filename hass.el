@@ -216,13 +216,13 @@ STATE is a string of the state of ENTITY-ID in Home Assistant."
 ENTITY-ID is the id of the entity in Home Assistant."
   (car (gethash entity-id hass--states)))
 
-(defun hass-attribute-of (entity-id attribute)
+(defun hass-attribute-of (entity-id attribute &optional default)
   "Return the last known value of ATTRIBUTE for ENTITY-ID.
 ENTITY-ID is the id of the entity in Home Assistant.
 
 ATTRIBUTE is the key of the attribute to return the value for."
   (let ((value (cdr (assoc attribute (cdr (gethash entity-id hass--states))))))
-    (if (eq value ':null) nil value)))
+    (if (eq value ':null) default value)))
 
 (defun hass-switch-p (entity-id)
   "Return t if switch status is 'on' of ENTITY-ID.
