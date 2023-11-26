@@ -1,6 +1,6 @@
 ;;; hass.el --- Interact with Home Assistant -*- lexical-binding: t; -*-
 
-;; Package-Requires: ((emacs "25.1") (request "0.3.3") (websocket "1.13"))
+;; Package-Requires: ((emacs "25.1") (request "0.3.3"))
 ;; Version: 3.0.2
 ;; Author: Ben Whitley
 ;; Homepage: https://github.com/purplg/hass
@@ -46,8 +46,6 @@
 ;;; Code:
 (require 'json)
 (require 'request)
-
-(require 'hass-websocket)
 
 ;;; Customizable
 (defgroup hass '()
@@ -107,7 +105,7 @@ state."
 
 (defface hass-icon-face
   '((t (:inherit all-the-icons-lsilver)))
-  "Face for widgets in HASS's dashboard.")
+  "Face for Home Assistant entity domains.")
 
 
 ;;; Hooks
@@ -265,7 +263,7 @@ ENTITY-ID is the id of the entity in Home Assistant."
              :background "#4f00aa"
              :weight bold
              :extend t))
-  "Face for widget group labels in HASS's dashboard."
+  "Face for debug entry headings."
   :group 'hass)
 
 (defface hass--debug-timestamp-face
@@ -274,7 +272,7 @@ ENTITY-ID is the id of the entity in Home Assistant."
              :background "#270055"
              :weight normal
              :extend t))
-  "Face for widget group labels in HASS's dashboard."
+  "Face for debug entry timestamps."
   :group 'hass)
 
 (defun hass--debug-clear-buffer ()
@@ -584,9 +582,7 @@ If error found, a string of the error message is returned."
   (if hass-mode
       (if-let ((err (hass--config-errors)))
           (hass--warning err nil)
-        (hass--connect)
-        (hass-websocket--connect))
-    (hass-websocket--disconnect)))
+        (hass--connect))))
 
 (provide 'hass)
 
