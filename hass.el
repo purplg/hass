@@ -308,7 +308,8 @@ MSG is the message to be display in the messages buffer."
   "Display a warning in the warnings buffer.
 MSG is the message to be display in the warnings buffer."
   (hass--debug "WARNING" "%s" (apply #'format msg))
-  (display-warning 'hass (apply #'format msg)))
+  (display-warning 'hass (apply #'format msg))
+  nil)
 
 
 ;;; HTTP
@@ -578,7 +579,7 @@ If error found, a string of the error message is returned."
   :lighter nil
   :group 'hass
   (when hass-mode
-    (if-let ((err (hass--config-errors)))
+    (if-let* ((err (hass--config-errors)))
         (hass--warning err nil)
       (hass--connect))))
 
