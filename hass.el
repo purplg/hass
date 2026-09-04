@@ -118,6 +118,9 @@ entity whose state changed.")
                                   (hass--get-available-services #'hass--get-available-entities))
   "Hook called after a successful Home Assistant API connection check is made.")
 
+(defvar hass-loaded-hook nil
+  "Hook called after hass has loaded info from server.")
+
 
 ;;; Internal state
 (defvar hass--states (make-hash-table :test 'equal)
@@ -472,7 +475,8 @@ Optional argument CALLBACK ran after entities are received."
   (hass--request "GET" "api/states"
                  (lambda (data)
                    (hass--get-entities-result data)
-                   (when callback (funcall callback)))))
+                   (when callback (funcall callback))
+                   (run-hooks 'hass-loaded-hook))))
 
 (defun hass--get-available-services (&optional callback)
   "Retrieve the available services from the Home Assistant instance.
